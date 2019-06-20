@@ -2,7 +2,9 @@
 
 namespace NGSOFT\Tools\Interfaces;
 
-interface CacheAble {
+use Illuminate\Support\Contracts\ArrayableInterface;
+
+interface CacheAble extends ArrayableInterface {
 
     /**
      * Cache will call that method whenever the data is retrieved
@@ -13,7 +15,7 @@ interface CacheAble {
 
     /**
      * Cache will call that method whenever the data is cached
-     * @return array data to put into cache
+     * {@inheritdoc}
      */
-    public function __get_state(): array;
+    public function toArray();
 }
