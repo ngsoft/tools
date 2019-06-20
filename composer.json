@@ -25,7 +25,9 @@
         "kdyby/parse-use-statements": "*",
 
         "psr/container": "*",
-        "php-di/php-di": "*"
+        "php-di/php-di": "*",
+
+        "illuminate/support": "^4"
     },
     "autoload": {
         "psr-4": {
