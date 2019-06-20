@@ -11,16 +11,17 @@
         }],
     "require-dev": {
         "phan/phan": "^2.2",
-        "psr/simple-cache": "*",
-        "fig/cache-util": "*"
+        "psr/simple-cache": "*"
+
     },
     "require": {
         "php": ">=7.1",
-        "psr/container": "*",
-        "psr/cache": "*",
-        "psr/log": "*",
+        "psr/container": "*","psr/log": "*",
+        "psr/cache": "*","fig/cache-util": "*",
+
         "symfony/polyfill-mbstring": "*",
-        "kdyby/parse-use-statements": "*"
+        "kdyby/parse-use-statements": "*",
+        "pimple/pimple": "*"
     },
     "autoload": {
         "psr-4": {
