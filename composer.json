@@ -11,7 +11,7 @@
         }],
     "require-dev": {
         "phan/phan": "^2.2",
-        "psr/simple-cache": "*"
+
     },
     "require": {
         "php": ">=7.1",
@@ -19,6 +19,7 @@
 
         "psr/log": "*",
         "psr/cache": "*",
+        "psr/simple-cache": "*",
         "fig/cache-util": "*",
 
         "symfony/polyfill-mbstring": "*",

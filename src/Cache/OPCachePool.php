@@ -1,22 +1,31 @@
 <?php
 
-use Fig\Cache\BasicPoolTrait;
-use Fig\Cache\KeyValidatorTrait;
-use Psr\Cache\CacheItemPoolInterface;
-
 namespace NGSOFT\Tools\Cache;
 
-class OPCachePool implements CacheItemPoolInterface {
+use DateTime;
+use Fig\Cache\BasicPoolTrait;
+use Fig\Cache\KeyValidatorTrait;
+use Fig\Cache\Memory\MemoryCacheItem;
+use NGSOFT\Tools\Traits\LoggerAwareWriter;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\SimpleCache\CacheInterface;
 
-    use BasicPoolTrait;
-    use KeyValidatorTrait;
+class OPCachePool extends CachePoolAbstract {
 
-    /**
-     * The stored data in this cache pool.
-     *
-     * @var array
-     */
-    protected $data = [];
+    /** @var string */
+    protected $path;
+
+    public function getPath() {
+        return $this->path;
+    }
+
+    public function setPath($path) {
+        $this->path = $path;
+        return $this;
+    }
 
     /**
      * {@inheritdoc}
@@ -33,33 +42,6 @@ class OPCachePool implements CacheItemPoolInterface {
     }
 
     /**
-     * Returns an empty item definition.
-     *
-     * @return array
-     */
-    protected function emptyItem() {
-        return [
-            'value' => null,
-            'hit' => false,
-            'ttd' => null,
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getItems(array $keys = []) {
-        // This method will throw an appropriate exception if any key is not valid.
-        array_map([$this, 'validateKey'], $keys);
-
-        $collection = [];
-        foreach ($keys as $key) {
-            $collection[$key] = $this->getItem($key);
-        }
-        return $collection;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function clear() {
@@ -70,24 +52,15 @@ class OPCachePool implements CacheItemPoolInterface {
     /**
      * {@inheritdoc}
      */
-    public function deleteItems(array $keys) {
-        foreach ($keys as $key) {
-            unset($this->data[$key]);
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function hasItem($key) {
-        return array_key_exists($key, $this->data) && $this->data[$key]['ttd'] > new \DateTime();
+        return array_key_exists($key, $this->data) && $this->data[$key]['ttd'] > new DateTime();
     }
 
     /**
      * {@inheritdoc}
      */
     protected function write(array $items) {
-        /** @var \Psr\Cache\CacheItemInterface $item  */
+        /** @var CacheItemInterface $item  */
         foreach ($items as $item) {
             $this->data[$item->getKey()] = [
                 // Assumes use of the BasicCacheItemAccessorsTrait.
