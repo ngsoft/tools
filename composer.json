@@ -1,0 +1,33 @@
+{
+    "name": "ngsoft/tools",
+    "description": "A set of reusable tools used on my projects.",
+    "keywords": [],
+    "homepage": "https://github.com/ngsoft/manju",
+    "license": "MIT",
+    "authors": [{
+            "name": "Aymeric Anger",
+            "email": "daedelus.git@gmail.com",
+            "homepage": "https://github.com/ngsoft"
+        }],
+    "require-dev": {
+        "phan/phan": "^2.2",
+        "psr/simple-cache": "*",
+        "fig/cache-util": "*"
+    },
+    "require": {
+        "php": ">=7.1",
+        "psr/container": "*",
+        "psr/cache": "*",
+        "psr/log": "*",
+        "symfony/polyfill-mbstring": "*",
+        "kdyby/parse-use-statements": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "NGSOFT\\": "src/"
+        },
+        "files": ["src/Utils/functions.php"]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
