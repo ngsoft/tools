@@ -29,9 +29,9 @@
     },
     "autoload": {
         "psr-4": {
-            "NGSOFT\\": "src/"
+            "NGSOFT\\Tools\\": "src/"
         },
-        "files": ["src/Utils/functions.php"]
+        "files": ["src/functions.php"]
     },
     "minimum-stability": "dev",
     "prefer-stable": true
