@@ -4,8 +4,7 @@ namespace NGSOFT\Tools\Reflection;
 
 use Exception;
 use Kdyby\ParseUseStatements\UseStatements;
-use NGSOFT\Manju\Helpers\LoggerAwareWriter;
-use NGSOFT\Manju\Manju;
+use NGSOFT\Tools\Traits\LoggerAwareWriter;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
@@ -24,17 +23,30 @@ class Parser implements LoggerAwareInterface {
         "getMethods",
         "getReflectionConstants"
     ];
-    private $reflector = null;
 
-    public function __construct() {
-        $container = Manju::getContainer();
-        if ($container->has(LoggerInterface::class)) $this->setLogger($container->get(LoggerInterface::class));
+    /**
+     * @var ReflectionClass
+     */
+    private $reflector;
+
+    /**
+     * Creates an instance of logger
+     * @param LoggerInterface|null  $logger
+     * @return Parser
+     */
+    public static function create(LoggerInterface $logger = null): Parser {
+        return new static($logger);
+    }
+
+    /** @param LoggerInterface|null  $logger */
+    public function __construct(LoggerInterface $logger = null) {
+        $logger && $this->setLogger($logger);
     }
 
     /**
      * Parse a class
      * @param object|string $class instance or class name
-     * @return array<int, Annotation>
+     * @return array<int,Annotation>
      */
     public function parseClass($class): array {
         if (is_string($class) and ( class_exists($class) or interface_exists($class))) {
@@ -102,44 +114,58 @@ class Parser implements LoggerAwareInterface {
         return $result;
     }
 
-    private function isList(string $line) {
+    /**
+     * @param string $line
+     * @return bool
+     */
+    private function isList(string $line): bool {
 
-        return !!preg_match('/@.*([\(].*[\)]|\w+\h?+,)/', $line);
+        return !!preg_match('/@.*([\(].*[\)]|\S+\h?+,)/', $line);
     }
 
-    private function parseLine(string $line) {
+    /**
+     * Parse a line that contains a flag, a property type or a type
+     * @param string $line
+     * @return array|null
+     */
+    private function parseLine(string $line): ?array {
         $tag = null; $val = null; $desc = null;
         //@(?P<tag>\w+)\h?+(?P<value>.*)\r?\n
         //@flag
         //@flag false
-        if (preg_match('/@(\w+)\h?+(true|1|on)?(false|0|off)?$/i', $line, $matches)) {
+        if (preg_match('/@(\w[\w-]+)\h?+(true|1|on)?(false|0|off)?$/i', $line, $matches)) {
             list(, $tag) = $matches;
             $val = count($matches) !== 4;
         }
         //@property type $var Desc
-        elseif (preg_match('/@(\w[\w-]+)\h+([\w\|]+)\h+\$(\w+)\h?+(.*)?$/', $line, $matches)) {
+        elseif (preg_match('/@(\w[\w-]+)\h+(\S+)\h+\$(\w+)\h?+(.*)?$/', $line, $matches)) {
             list(, $tag, $type, $var, $desc) = $matches;
             $val = [
                 "param" => $var,
                 "types" => $type
             ];
         }
-        //@var type|type2
-        elseif (preg_match('/@(\w+)\h+([\w\|]+)\s?+(.*)?$/', $line, $matches)) {
+        //@var type|type2<key,val>
+        elseif (preg_match('/@(\w[\w-]+)\h+(\S+)\h?+(.*)?$/', $line, $matches)) {
             list(, $tag, $types, $desc) = $matches;
             $val = $types;
         }
         //fallback match @tag value that can be all the line
-        elseif (preg_match('/@(\w+)\h+(.*)/', $line, $matches)) {
+        elseif (preg_match('/@(\w[\w-]+)\h+(.*)/', $line, $matches)) {
             list(, $tag, $val) = $matches;
         }
         if (!is_null($tag) and ! is_null($val)) $result = [$tag, $val, $desc];
         return $result ?? null;
     }
 
-    private function parseList(string $line) {
+    /**
+     * Parse a line that contains a list
+     * @param string $line
+     * @return array|null
+     */
+    private function parseList(string $line): ?array {
         $tag = null; $value = null; $arr = [];
-        if (preg_match('/@(\w+)\h+(\w+)?\h?+\((.*)\)(.*)/', $line, $matches)) {
+        if (preg_match('/@(\w[\w-]+)\h+(\w+)?\h?+\((.*)\)(.*)/', $line, $matches)) {
             list(, $tag, $name, $val) = $matches;
             $hasParams = mb_strpos($val, "=") !== false;
 
