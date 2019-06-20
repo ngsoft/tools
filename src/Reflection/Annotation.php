@@ -9,7 +9,6 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionObject;
 use ReflectionProperty;
-use Reflector;
 
 /**
  * @property string $className
@@ -31,7 +30,15 @@ class Annotation extends ArrayObject {
         ReflectionFunction::class => "FUNCTION",
     ];
 
-    public function __construct(\ReflectionClass $classRefl, Reflector $reflector, string $tag, $value, string $description = null) {
+    /**
+     *
+     * @param ReflectionClass $classRefl
+     * @param ReflectionObject|ReflectionClass|ReflectionProperty|ReflectionMethod|ReflectionClassConstant|ReflectionFunction $reflector
+     * @param string $tag
+     * @param mixed $value
+     * @param ?string $description
+     */
+    public function __construct(\ReflectionClass $classRefl, $reflector, string $tag, $value, string $description = null) {
         parent::__construct(
                 [
                     "annotationType" => null,

@@ -9,8 +9,11 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use ReflectionClassConstant;
+use ReflectionFunction;
+use ReflectionMethod;
 use ReflectionObject;
-use Reflector;
+use ReflectionProperty;
 use Throwable;
 
 class Parser implements LoggerAwareInterface {
@@ -86,9 +89,10 @@ class Parser implements LoggerAwareInterface {
 
     /**
      * Parse Doc Comment
+     * @param ReflectionObject|ReflectionClass|ReflectionProperty|ReflectionMethod|ReflectionClassConstant|ReflectionFunction $refl
      * @return array<int,array>
      */
-    public function parseDocComment(Reflector $refl): array {
+    public function parseDocComment($refl): array {
         $result = [];
         if (method_exists($refl, 'getDocComment')) {
 
