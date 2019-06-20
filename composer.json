@@ -12,16 +12,20 @@
     "require-dev": {
         "phan/phan": "^2.2",
         "psr/simple-cache": "*"
-
     },
     "require": {
         "php": ">=7.1",
-        "psr/container": "*","psr/log": "*",
-        "psr/cache": "*","fig/cache-util": "*",
+
+
+        "psr/log": "*",
+        "psr/cache": "*",
+        "fig/cache-util": "*",
 
         "symfony/polyfill-mbstring": "*",
         "kdyby/parse-use-statements": "*",
-        "pimple/pimple": "*"
+
+        "psr/container": "*",
+        "php-di/php-di": "*"
     },
     "autoload": {
         "psr-4": {
