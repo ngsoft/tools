@@ -2,9 +2,10 @@
 
 namespace NGSOFT\Tools\Exceptions;
 
-use Fig\Cache\CacheException;
+use Psr\Cache\CacheException;
 use Psr\SimpleCache\CacheException as SimpleCacheException;
+use RuntimeException;
 
-class PSRCacheException extends CacheException implements SimpleCacheException {
+class PSRCacheException extends RuntimeException implements SimpleCacheException, CacheException {
 
 }
