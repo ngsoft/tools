@@ -1,6 +1,6 @@
 <?php
 
-namespace NGSOFT\Tools\Cache;
+namespace NGSOFT\Tools\Cache\OPCache;
 
 class CachedFile extends \SplFileInfo {
 

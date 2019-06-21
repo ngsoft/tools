@@ -1,6 +1,6 @@
 <?php
 
-namespace NGSOFT\Tools\Cache;
+namespace NGSOFT\Tools\Cache\OPCache;
 
 use ArrayObject;
 use NGSOFT\Tools\Interfaces\CacheAble;
@@ -43,6 +43,17 @@ class CacheMap extends ArrayObject implements CacheAble {
      */
     public function setPool(BasicCachePool $pool) {
         $this->pool = $pool;
+    }
+
+    ////////////////////////////   CacheAble   ////////////////////////////
+
+
+    public function toArray(): array {
+        return $this->getArrayCopy();
+    }
+
+    public static function __set_state(array $data): self {
+        return new static($data);
     }
 
 }
