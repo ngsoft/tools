@@ -25,7 +25,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     /** @var array<string,CacheItemInterface> */
     protected $loaded = [];
 
-    /** @var array<string,CacheMeta> */
+    /** @var CacheMap */
     protected $map = [];
 
     /** @var SplObjectStorage */
@@ -67,6 +67,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     public function __construct(ContainerInterface $container = null, int $ttl = null) {
         if (isset($container)) $this->setContainer($container);
         $this->deferred = new \SplObjectStorage();
+        $this->map = $this->loadMap();
         //initialize PSR16
         parent::__construct($this, $ttl);
     }
@@ -116,7 +117,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return string
      */
     protected function getInternalKey(string $key): string {
-        return $key;
+        return md5($key);
     }
 
     /**
@@ -136,6 +137,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return bool
      */
     abstract protected function hasCache(string $key): bool;
+
+    /**
+     * Loads the cache Map
+     */
+    abstract protected function loadMap(): CacheMap;
 
 
     ////////////////////////////   LoggerInterface   ////////////////////////////
