@@ -17,7 +17,7 @@ class CacheMeta {
     /** @var bool */
     private $hit;
 
-    /** @var DateTime */
+    /** @var int */
     private $expire;
 
     /** @var string */
@@ -43,7 +43,8 @@ class CacheMeta {
 
     /** @return DateTime */
     public function getExpire(): DateTime {
-        return $this->expire;
+
+        return new DateTime(date(\DateTime::ISO8601, $this->expire));
     }
 
     /** @return string */
@@ -58,7 +59,7 @@ class CacheMeta {
 
     /** @return mixed */
     public function getValue() {
-        return $this->value;
+        return $this->value = $this->value ?? $this->pool->getCache($this->item);
     }
 
     /**
@@ -71,10 +72,10 @@ class CacheMeta {
     }
 
     /**
-     * @param DateTime $expire
+     * @param int $expire
      * @return static
      */
-    public function setExpire(DateTime $expire): self {
+    public function setExpire(int $expire): self {
         $this->expire = $expire;
         return $this;
     }
