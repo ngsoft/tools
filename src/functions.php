@@ -22,3 +22,24 @@ function rrmdir(string $src): bool {
     closedir($dir);
     return rmdir($src);
 }
+
+/**
+ * Tests whether all elements in the array pass the test implemented by the provided function.
+ * @param callable $callback A function to test for each element
+ * @param array $array
+ * @return bool
+ */
+function array_every(callable $callback, array $array): bool {
+    $newarr = array_filter($array, $callback);
+    return empty(array_diff_key($array, $newarr));
+}
+
+/**
+ * Tests whether at least one element in the array passes the test implemented by the provided function..
+ * @param callable $callback A function to test for each element
+ * @param array $array
+ * @return bool
+ */
+function array_some(callable $callback, array $array): bool {
+    return !array_every($callback, $array);
+}

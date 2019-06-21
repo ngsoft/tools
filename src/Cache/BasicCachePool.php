@@ -21,11 +21,8 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
 
     use LoggerAwareTrait;
 
-    /** @var array<string,CacheItemInterface> */
-    protected $loaded = [];
-
-    /** @var SplObjectStorage */
-    protected $deferred;
+    /** @var array */
+    protected $deferred = [];
 
     ////////////////////////////   TTL   ////////////////////////////
 
@@ -62,7 +59,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function __construct(int $ttl = null) {
         if (isset($ttl)) $this->ttl = $ttl;
-        $this->deferred = new \SplObjectStorage();
         //initialize PSR16
         parent::__construct($this, $ttl);
     }
@@ -84,18 +80,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @param string $key
      * @return CacheMeta
      */
-    protected function createItem(string $key): BasicCacheItem {
+    protected function createEmptyItem(string $key): BasicCacheItem {
         return new BasicCacheItem($key, $this->ttl, false, null);
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
-
-    /**
-     * Creates an empty cache item
-     * @param string $key
-     * @return CacheItemInterface
-     */
-    abstract protected function createCache(string $key): CacheItemInterface;
 
     /**
      * Deletes all items in the pool.
@@ -104,18 +93,18 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     abstract protected function clearCache(): bool;
 
     /**
-     * Commits the specified cache items to storage.
-     * @param array<CacheItemInterface> $items
-     * @return bool
+     * Loads an item from the cache
+     * @param string $key
+     * @return BasicCacheItem
      */
-    abstract protected function writeCache(array $items): bool;
+    abstract protected function loadCache(string $key): BasicCacheItem;
 
     /**
-     * Reads the cached value for a specific key
-     * @param CacheItemInterface $item
-     * @return mixed|null
+     * Commits the specified cache item to storage.
+     * @param BasicCacheItem $item
+     * @return bool
      */
-    abstract public function getCache(CacheItemInterface $item);
+    abstract protected function writeCache(BasicCacheItem $item): bool;
 
     /**
      * Removes multiple items from the pool.
@@ -174,11 +163,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     protected function validateKey($key) {
         try {
             if (!is_string($key) || $key === '') {
-                throw new PSRCacheInvalidKey('Key should be a non empty string');
+                throw new BasicCacheInvalidKey('Key should be a non empty string');
             }
             $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
             if ($unsupportedMatched > 0) {
-                throw new PSRCacheInvalidKey('Can\'t validate the specified key');
+                throw new BasicCacheInvalidKey('Can\'t validate the specified key');
             }
             return true;
         } catch (Throwable $exc) {
@@ -206,8 +195,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function deleteItems(array $keys) {
-        // This method will either return True or throw an appropriate exception.
         array_map([$this, 'validateKey'], $keys);
+
+
+
+
         return $this->deleteCache($keys);
     }
 
@@ -215,28 +207,26 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function deleteItem($key) {
-        // This method will either return True or throw an appropriate exception.
         $this->validateKey($key);
-        return $this->deleteItems([$key]);
+        return $this->deleteCache($key);
     }
 
     /**
      * {@inheritdoc}
      */
     public function getItem($key) {
-        // This method will either return True or throw an appropriate exception.
         $this->validateKey($key);
-        return $this->loaded->get($key) ?? $this->createCache($key);
+        return $this->loadCache($key);
     }
 
     /**
      * {@inheritdoc}
+     * @return array<string,BasicCacheItem>
      */
     public function getItems(array $keys = []) {
-        // This method will throw an appropriate exception if any key is not valid.
         array_map([$this, 'validateKey'], $keys); $list = [];
         foreach ($keys as $key) {
-            $list[] = $this->getItem($key);
+            $list[$key] = $this->getItem($key);
         }
         return $list;
     }
@@ -245,7 +235,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-        return $this->writeCache([$item]);
+        return $this->writeCache($item);
     }
 
     /**
