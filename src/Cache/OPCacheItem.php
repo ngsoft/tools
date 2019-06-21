@@ -2,6 +2,6 @@
 
 namespace NGSOFT\Tools\Cache;
 
-class OPCacheItem extends Cache {
+class OPCacheItem extends CacheItemAbstract {
 
 }

@@ -7,6 +7,7 @@ namespace NGSOFT\Tools\Cache;
 use NGSOFT\Tools\Exceptions\PSRCacheInvalidArgumentException;
 use NGSOFT\Tools\Objects\Collection;
 use NGSOFT\Tools\Traits\ContainerAware;
+use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -14,7 +15,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;
 
-class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
+abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
     use ContainerAware;
@@ -59,6 +60,36 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
     public function getTTL(): int {
         return $this->ttl;
     }
+
+    ////////////////////////////   Abstract Methods   ////////////////////////////
+
+    /**
+     * Creates an empty cache item
+     * @param string $key
+     * @return CacheItemInterface
+     */
+    abstract protected function createCache(string $key): CacheItemInterface;
+
+    /**
+     * Deletes all items in the pool.
+     * @return bool
+     */
+    abstract protected function clearCache(): bool;
+
+    /**
+     * Commits the specified cache items to storage.
+     * @param array<CacheItemInterface> $items
+     * @return bool
+     */
+    abstract protected function writeCache(array $items): bool;
+
+    /**
+     * Removes multiple items from the pool.
+     * @param array<string> $keys
+     * @return bool
+     */
+    abstract protected function deleteCache(array $keys): bool;
+
 
     ////////////////////////////   LoggerInterface   ////////////////////////////
 
@@ -109,7 +140,32 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
     /**
      * {@inheritdoc}
      */
+    public function clear() {
+        return $this->clearCache();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasItem($key) {
+        return $this->hasCache($key);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function deleteItems(array $keys) {
+        // This method will either return True or throw an appropriate exception.
+        $this->validateKey($key);
+        return $this->deleteCache($key);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function deleteItem($key) {
+        // This method will either return True or throw an appropriate exception.
+        $this->validateKey($key);
         return $this->deleteItems([$key]);
     }
 
@@ -117,22 +173,28 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      * {@inheritdoc}
      */
     public function getItem($key) {
-
+        // This method will either return True or throw an appropriate exception.
+        $this->validateKey($key);
+        return $this->loaded->get($key) ?? $this->createCache($key);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getItems(string $keys = array()) {
-
+    public function getItems(array $keys = []) {
+        // This method will throw an appropriate exception if any key is not valid.
+        array_map([$this, 'validateKey'], $keys); $list = [];
+        foreach ($keys as $key) {
+            $list[] = $this->getItem($key);
+        }
+        return $list;
     }
 
     /**
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-
-        return $this->write([$item]);
+        return $this->writeCache([$item]);
     }
 
     /**
@@ -143,7 +205,7 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
         foreach ($this->loaded as $item) {
             if ($this->deferred->contains($item)) $items[] = $item;
         }
-        if ($success = $this->write($items)) $this->deferred = new \SplObjectStorage();
+        if ($success = $this->writeCache($items)) $this->deferred = new \SplObjectStorage();
         return $success;
     }
 
