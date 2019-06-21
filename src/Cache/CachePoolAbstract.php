@@ -12,7 +12,7 @@ use Psr\Log\LoggerAwareTrait;
 class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
-    use LoggerAwareWriter;
+    use LoggerWriter;
 
     /**
      * Items already loaded from cache
@@ -69,7 +69,7 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      */
     protected function validateKey($key) {
         if (!is_string($key) || $key === '') {
-            throw new InvalidArgumentException('Key should be a non empty string');
+            throw new PSR('Key should be a non empty string');
         }
 
         $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);

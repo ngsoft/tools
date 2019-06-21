@@ -1,10 +1,11 @@
 <?php
 
-use Psr\Cache\InvalidArgumentException;
-use Psr\SimpleCache\InvalidArgumentException as InvalidArgumentException2;
-
 namespace NGSOFT\Tools\Exceptions;
 
-class PSRCacheInvalidArgumentException extends InvalidArgumentException implements InvalidArgumentException, InvalidArgumentException2 {
+use Psr\Cache\InvalidArgumentException as I1;
+use Psr\SimpleCache\InvalidArgumentException as I2;
+use InvalidArgumentException;
+
+class PSRCacheInvalidArgumentException extends InvalidArgumentException implements I1, I2 {
 
 }
