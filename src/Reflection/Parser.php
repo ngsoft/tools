@@ -201,7 +201,7 @@ class Parser implements LoggerAwareInterface {
                     } catch (Throwable $ex) {
                         $ex->getCode();
                         if (!preg_match('/^\w+$/', (string) $v)) {
-                            $this->__log(
+                            $this->log(
                                     sprintf(
                                             "%s Cannot parse annotation %s in %s, json : %s",
                                             __CLASS__, $line, $this->reflector->getFileName(), json_last_error_msg()

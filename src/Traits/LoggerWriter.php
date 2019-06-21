@@ -18,7 +18,7 @@ trait LoggerWriter {
      * Checks if logger is defined and logs a debug message
      * @param string $message
      */
-    public function __log(string $message) {
+    public function log(string $message) {
         if ($this->logger instanceof LoggerInterface) $this->logger->debug($message);
     }
 

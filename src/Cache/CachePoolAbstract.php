@@ -49,7 +49,11 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
 
     ////////////////////////////   LoggerInterface   ////////////////////////////
 
-    public function __log($message) {
+    /**
+     * Checks if logger is defined and logs a debug message
+     * @param string $message
+     */
+    public function log($message) {
         if (isset($this->logger)) $this->logger->debug($message);
     }
 
