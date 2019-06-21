@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Tools\Cache;
 
 use DateInterval;
@@ -25,11 +27,12 @@ class CacheItemAbstract implements CacheItemInterface {
      * {@inheritdoc}
      */
     public function expiresAfter($time) {
-        if ($time === null) $time = $this->meta->getPool()->getTTL();
-        if (is_numeric($time)) $this->meta->setExpire(new \DateTime(sprintf('now +%d seconds', (int) $time)));
+        if ($time === null) $time = $this->meta->getPool()->getTTL() + time();
+
+        if (is_numeric($time)) $this->meta->setExpire((int) $time);
         else {
             assert($time instanceof \DateInterval);
-            $this->meta->setExpire((new \DateTime())->add($time));
+            $this->meta->setExpire((new \DateTime())->add($time)->getTimestamp());
         }
         return $this;
     }
@@ -38,11 +41,10 @@ class CacheItemAbstract implements CacheItemInterface {
      * {@inheritdoc}
      */
     public function expiresAt($expire) {
-        if ($expire === null) {
-            $this->meta->setExpire(new \DateTime(sprintf("now +%d seconds", $this->meta->getPool()->getTTL())));
-        } else {
+        if ($expire === null) $this->meta->setExpire($this->meta->getPool()->getTTL() + time());
+        else {
             assert($expire instanceof \DateTimeInterface);
-            $this->meta->setExpire($expire);
+            $this->meta->setExpire($expire->getTimestamp());
         }
         return $this;
     }
