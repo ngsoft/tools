@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\Exceptions\PSRCacheInvalidArgumentException;
+use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
 use NGSOFT\Tools\Objects\Collection;
 use NGSOFT\Tools\Traits\ContainerAware;
 use Psr\Cache\CacheItemInterface;
@@ -18,7 +18,6 @@ use SplObjectStorage;
 abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
-    use ContainerAware;
 
     /** @var Collection */
     protected $loaded;
@@ -26,10 +25,34 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
     /** @var SplObjectStorage */
     protected $deferred;
 
+    ////////////////////////////   TTL   ////////////////////////////
+
     /** @var int */
     protected $ttl = 60;
 
+    /**
+     * Set the default ttl value for the cache
+     * @param int $ttl
+     * @return $this
+     */
+    public function setTTL(int $ttl) {
+        $this->ttl = $ttl;
+    }
+
+    /**
+     * Get Default TTL Value
+     * @return int
+     */
+    public function getTTL(): int {
+        return $this->ttl;
+    }
+
     ////////////////////////////   ContainerAware   ////////////////////////////
+
+    /**
+     * @var ContainerInterface
+     */
+    protected $container;
 
     /**
      * @param ContainerInterface|null $container
@@ -40,25 +63,16 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
         if (isset($ttl)) $this->setTTL($ttl);
         $this->deferred = new \SplObjectStorage();
         $this->loaded = new Collection();
-        if ($this->has(LoggerInterface::class)) $this->setLogger($this->get(LoggerInterface::class));
     }
 
     /**
-     * Set the default ttl value for the cache
-     * @param int $ttl
-     * @return $this
+     * Inject the Container
+     * @param ContainerInterface $container
      */
-    public function setTTL(int $ttl) {
-        $this->ttl = $ttl;
-        return $this;
-    }
-
-    /**
-     * Get Default TTL Value
-     * @return int
-     */
-    public function getTTL(): int {
-        return $this->ttl;
+    public function setContainer(ContainerInterface $container) {
+        if ($container->has(LoggerInterface::class)) {
+            $this->setLogger($container->get(LoggerInterface::class));
+        }
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
@@ -90,6 +104,17 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
      */
     abstract protected function deleteCache(array $keys): bool;
 
+    /**
+     * Confirms if the cache contains specified cache item.
+     *
+     * Note: This method MAY avoid retrieving the cached value for performance reasons.
+     * This could result in a race condition with CacheItemInterface::get(). To avoid
+     * such situation use CacheItemInterface::isHit() instead.
+     * @param string $key
+     * @return bool
+     */
+    abstract protected function hasCache(string $key): bool;
+
 
     ////////////////////////////   LoggerInterface   ////////////////////////////
 
@@ -120,7 +145,7 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
      *
      * @param string $key
      *   The key to validate.
-     * @throws PSRCacheInvalidArgumentException
+     * @throws PSRCacheInvalidKey
      *   An exception implementing The Cache InvalidArgumentException interface
      *   will be thrown if the key does not validate.
      * @return bool
@@ -128,11 +153,11 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
      */
     protected function validateKey($key) {
         if (!is_string($key) || $key === '') {
-            throw new PSRCacheInvalidArgumentException('Key should be a non empty string');
+            throw new PSRCacheInvalidKey('Key should be a non empty string');
         }
         $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
         if ($unsupportedMatched > 0) {
-            throw new PSRCacheInvalidArgumentException('Can\'t validate the specified key');
+            throw new PSRCacheInvalidKey('Can\'t validate the specified key');
         }
         return true;
     }
@@ -156,8 +181,8 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
      */
     public function deleteItems(array $keys) {
         // This method will either return True or throw an appropriate exception.
-        $this->validateKey($key);
-        return $this->deleteCache($key);
+        array_map([$this, 'validateKey'], $keys);
+        return $this->deleteCache($keys);
     }
 
     /**

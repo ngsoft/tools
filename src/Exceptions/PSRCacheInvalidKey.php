@@ -6,6 +6,6 @@ use Psr\Cache\InvalidArgumentException as I1;
 use Psr\SimpleCache\InvalidArgumentException as I2;
 use InvalidArgumentException;
 
-class PSRCacheInvalidArgumentException extends InvalidArgumentException implements I1, I2 {
+class PSRCacheInvalidKey extends InvalidArgumentException implements I1, I2 {
 
 }
