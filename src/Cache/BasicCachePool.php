@@ -22,8 +22,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
 
     use LoggerAwareTrait;
 
-    /** @var Collection */
-    protected $loaded;
+    /** @var array<string,CacheItemInterface> */
+    protected $loaded = [];
+
+    /** @var array<string,CacheMeta> */
+    protected $map = [];
 
     /** @var SplObjectStorage */
     protected $deferred;
@@ -64,7 +67,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     public function __construct(ContainerInterface $container = null, int $ttl = null) {
         if (isset($container)) $this->setContainer($container);
         $this->deferred = new \SplObjectStorage();
-        $this->loaded = new Collection();
         //initialize PSR16
         parent::__construct($this, $ttl);
     }
