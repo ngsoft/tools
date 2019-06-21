@@ -31,9 +31,12 @@ class CacheMeta {
 
     ////////////////////////////   Getter/Setter   ////////////////////////////
 
-    /**
-     * @return bool
-     */
+    /** @return int */
+    public function getTTL(): int {
+        return $this->pool->getTTL();
+    }
+
+    /** @return bool */
     public function getHit(): bool {
         return $this->hit === true;
     }
