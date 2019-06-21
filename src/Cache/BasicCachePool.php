@@ -6,7 +6,6 @@ namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
 use NGSOFT\Tools\Objects\Collection;
-use NGSOFT\Tools\Traits\ContainerAware;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
@@ -15,7 +14,7 @@ use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;
 
-abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
+abstract class BasicCachePool implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
 
@@ -152,14 +151,20 @@ abstract class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareI
      *   TRUE if the specified key is legal.
      */
     protected function validateKey($key) {
-        if (!is_string($key) || $key === '') {
-            throw new PSRCacheInvalidKey('Key should be a non empty string');
+        try {
+            if (!is_string($key) || $key === '') {
+                throw new PSRCacheInvalidKey('Key should be a non empty string');
+            }
+            $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
+            if ($unsupportedMatched > 0) {
+                throw new PSRCacheInvalidKey('Can\'t validate the specified key');
+            }
+            return true;
+        } catch (\Throwable $exc) {
+            //log the message
+            $this->log($exc->getMessage());
+            throw $exc;
         }
-        $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
-        if ($unsupportedMatched > 0) {
-            throw new PSRCacheInvalidKey('Can\'t validate the specified key');
-        }
-        return true;
     }
 
     /**

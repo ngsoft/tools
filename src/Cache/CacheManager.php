@@ -8,15 +8,15 @@ class CacheManager {
     private $item;
 
     /**
-     * @param CachePoolAbstract $pool
+     * @param BasicCachePool $pool
      * @param CacheItemAbstract $item
      */
-    public function __construct(CachePoolAbstract $pool, CacheItemAbstract $item) {
+    public function __construct(BasicCachePool $pool, CacheItemAbstract $item) {
         $this->pool = $pool;
         $this->item = $item;
     }
 
-    public function getPool(): CachePoolAbstract {
+    public function getPool(): BasicCachePool {
         return $this->pool;
     }
 

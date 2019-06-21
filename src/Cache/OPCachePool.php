@@ -2,7 +2,7 @@
 
 namespace NGSOFT\Tools\Cache;
 
-class OPCachePool extends CachePoolAbstract {
+class OPCachePool extends BasicCachePool {
 
     /** @var string */
     protected $path;
