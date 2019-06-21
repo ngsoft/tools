@@ -2,7 +2,9 @@
 
 namespace NGSOFT\Tools\Cache\OPCache;
 
-class CachedFile extends \SplFileInfo {
+use SplFileInfo;
+
+class CachedFile extends SplFileInfo {
 
     public function __construct(string $file_name) {
         parent::__construct($file_name);
