@@ -1,23 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Exceptions\PSRCacheInvalidArgumentException;
-use NGSOFT\Tools\Traits\LoggerWriter;
+use NGSOFT\Tools\Objects\Collection;
+use NGSOFT\Tools\Traits\ContainerAware;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 use SplObjectStorage;
 
 class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
+    use ContainerAware;
 
-    /**
-     * Items already loaded from cache
-     * @var array<string,CacheManager>
-     */
-    protected $loaded = [];
+    /** @var Collection */
+    protected $loaded;
 
     /** @var SplObjectStorage */
     protected $deferred;
@@ -25,8 +28,18 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
     /** @var int */
     protected $ttl = 60;
 
-    public function __construct() {
+    ////////////////////////////   ContainerAware   ////////////////////////////
 
+    /**
+     * @param ContainerInterface|null $container
+     * @param int|null $ttl
+     */
+    public function __construct(ContainerInterface $container = null, int $ttl = null) {
+        if (isset($container)) $this->setContainer($container);
+        if (isset($ttl)) $this->setTTL($ttl);
+        $this->deferred = new \SplObjectStorage();
+        $this->loaded = new Collection();
+        if ($this->has(LoggerInterface::class)) $this->setLogger($this->get(LoggerInterface::class));
     }
 
     /**
@@ -53,7 +66,7 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      * Checks if logger is defined and logs a debug message
      * @param string $message
      */
-    public function log($message) {
+    public function log(string $message) {
         if (isset($this->logger)) $this->logger->debug($message);
     }
 
@@ -91,13 +104,6 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
             throw new PSRCacheInvalidArgumentException('Can\'t validate the specified key');
         }
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function clear() {
-
     }
 
     /**
