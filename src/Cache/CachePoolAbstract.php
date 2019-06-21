@@ -109,13 +109,6 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
     /**
      * {@inheritdoc}
      */
-    public function commit() {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function deleteItem($key) {
         return $this->deleteItems([$key]);
     }
@@ -137,22 +130,28 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
     /**
      * {@inheritdoc}
      */
-    public function hasItem($key) {
+    public function save(CacheItemInterface $item) {
 
+        return $this->write([$item]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function save($item) {
-
+    public function commit() {
+        $items = [];
+        foreach ($this->loaded as $item) {
+            if ($this->deferred->contains($item)) $items[] = $item;
+        }
+        if ($success = $this->write($items)) $this->deferred = new \SplObjectStorage();
+        return $success;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function saveDeferred($item) {
-
+    public function saveDeferred(CacheItemInterface $item) {
+        $this->deferred->attach($item);
     }
 
 }

@@ -13,34 +13,58 @@ class SimpleCacheAdapter implements CacheInterface {
         $this->pool = $pool;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function clear() {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete($key) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteMultiple($keys) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function get($key, $default = null) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getMultiple($keys, $default = null) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function has($key) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function set($key, $value, $ttl = null) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setMultiple($values, $ttl = null) {
 
     }
