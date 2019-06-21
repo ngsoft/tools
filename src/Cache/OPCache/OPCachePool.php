@@ -3,8 +3,11 @@
 namespace NGSOFT\Tools\Cache\OPCache;
 
 use NGSOFT\Tools\Cache\BasicCachePool;
+use NGSOFT\Tools\Exceptions\BasicCacheException;
 use Psr\Cache\CacheItemInterface;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
+use function NGSOFT\Tools\rrmdir;
 
 /**
  * Uses PHP OPCode to store data
@@ -55,10 +58,11 @@ class OPCachePool extends BasicCachePool {
             if (!is_dir($this->path)) {
                 throw new BasicCacheException(sprintf("Cannot use %s as cache path.", $this->path));
             }
-        } catch (\RuntimeException $exc) {
+        } catch (RuntimeException $exc) {
             echo $this->log($exc->getMessage());
             throw $exc;
         }
+        return true;
     }
 
     private function loadMap() {
@@ -66,7 +70,7 @@ class OPCachePool extends BasicCachePool {
         $cf = $this->mapFile = new CachedFile($filename);
         if (($data = $this->loadFile($cf))) {
             $this->map = CacheMap::____set_state($cf["contents"]);
-        }
+        } else $this->map = new CacheMap();
     }
 
     private function saveMap(): bool {
@@ -88,38 +92,48 @@ class OPCachePool extends BasicCachePool {
         return false;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function clearCache(): bool {
-        $dir = opendir($this->path);
-        while (false !== ( $file = readdir($dir))) {
-            if (( $file != '.' ) && ( $file != '..' )) {
-                $full = $src . '/' . $file;
-                if (is_dir($full)) {
-                    rrmdir($full);
-                } else {
-                    unlink($full);
-                }
-            }
+        if (rrmdir($this->path) and $this->makePath()) {
+            $this->map = new CacheMap();
+            return true;
         }
-        closedir($dir);
-        rmdir($src);
+        return false;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function createCache(string $key): CacheItemInterface {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function deleteCache($keys): bool {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCache(CacheItemInterface $item) {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function hasCache(string $key): bool {
 
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function writeCache($items): bool {
 
     }
