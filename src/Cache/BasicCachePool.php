@@ -13,8 +13,12 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use SplObjectStorage;
+use Throwable;
 
-abstract class BasicCachePool implements CacheItemPoolInterface, LoggerAwareInterface {
+/**
+ * PSR6/PSR16 Compatible Cache Pool implementation
+ */
+abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
 
@@ -59,9 +63,10 @@ abstract class BasicCachePool implements CacheItemPoolInterface, LoggerAwareInte
      */
     public function __construct(ContainerInterface $container = null, int $ttl = null) {
         if (isset($container)) $this->setContainer($container);
-        if (isset($ttl)) $this->setTTL($ttl);
         $this->deferred = new \SplObjectStorage();
         $this->loaded = new Collection();
+        //initialize PSR16
+        parent::__construct($this, $ttl);
     }
 
     /**
@@ -160,7 +165,7 @@ abstract class BasicCachePool implements CacheItemPoolInterface, LoggerAwareInte
                 throw new PSRCacheInvalidKey('Can\'t validate the specified key');
             }
             return true;
-        } catch (\Throwable $exc) {
+        } catch (Throwable $exc) {
             //log the message
             $this->log($exc->getMessage());
             throw $exc;
