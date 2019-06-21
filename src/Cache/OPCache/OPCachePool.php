@@ -14,9 +14,7 @@ class OPCachePool extends BasicCachePool {
     /** @var string */
     private $path;
 
-    /**
-     * @var CacheMap
-     */
+    /** @var CacheMap */
     private $map;
 
     /** @var CachedFile  */
@@ -25,11 +23,16 @@ class OPCachePool extends BasicCachePool {
     /** @var string */
     private $ext = ".opcache";
 
-    public function getPath() {
+    /**  @return string */
+    public function getPath(): string {
         return $this->path;
     }
 
-    public function setPath($path) {
+    /**
+     * @param type $path
+     * @return static
+     */
+    public function setPath($path): self {
         $this->path = $path;
         return $this;
     }
@@ -59,15 +62,15 @@ class OPCachePool extends BasicCachePool {
     }
 
     private function loadMap() {
-        $filename = $this->path . DIRECTORY_SEPARATOR . md5($this->path) . ".index.opcache";
+        $filename = $this->path . DIRECTORY_SEPARATOR . md5($this->path) . ".index" . $this->ext;
         $cf = $this->mapFile = new CachedFile($filename);
         if (($data = $this->loadFile($cf))) {
             $this->map = CacheMap::____set_state($cf["contents"]);
         }
     }
 
-    private function saveMap() {
-        $this->saveFile($this->mapFile, $this->map->toArray());
+    private function saveMap(): bool {
+        return $this->saveFile($this->mapFile, $this->map->toArray());
     }
 
     private function loadFile(CachedFile $cf): ?array {
@@ -77,7 +80,7 @@ class OPCachePool extends BasicCachePool {
         return $var ?? null;
     }
 
-    private function saveFile(CachedFile $cf, array $data) {
+    private function saveFile(CachedFile $cf, array $data): bool {
         $string = sprintf('<?php $val = %s;', var_export($array, true));
         $filename = $cf->getFilename();
         $fn = new CachedFile(sprintf("%s.tmp", $filename));
@@ -86,7 +89,19 @@ class OPCachePool extends BasicCachePool {
     }
 
     protected function clearCache(): bool {
-
+        $dir = opendir($this->path);
+        while (false !== ( $file = readdir($dir))) {
+            if (( $file != '.' ) && ( $file != '..' )) {
+                $full = $src . '/' . $file;
+                if (is_dir($full)) {
+                    rrmdir($full);
+                } else {
+                    unlink($full);
+                }
+            }
+        }
+        closedir($dir);
+        rmdir($src);
     }
 
     protected function createCache(string $key): CacheItemInterface {
