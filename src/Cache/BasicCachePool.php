@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
-use NGSOFT\Tools\Objects\Collection;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
@@ -82,6 +81,17 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
         }
     }
 
+    ////////////////////////////   CacheMeta   ////////////////////////////
+
+    /**
+     * Creates a empty item
+     * @param string $key
+     * @return CacheMeta
+     */
+    protected function createItem(string $key): CacheMeta {
+
+    }
+
     ////////////////////////////   Abstract Methods   ////////////////////////////
 
     /**
@@ -137,11 +147,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return bool
      */
     abstract protected function hasCache(string $key): bool;
-
-    /**
-     * Loads the cache Map
-     */
-    abstract protected function loadMap(): CacheMap;
 
 
     ////////////////////////////   LoggerInterface   ////////////////////////////

@@ -15,7 +15,7 @@ class CacheMeta {
     private $item;
 
     /** @var bool */
-    private $hit;
+    private $hit = false;
 
     /** @var int */
     private $expire;
