@@ -13,83 +13,66 @@ use Psr\Log\LoggerAwareTrait;
 class CacheItemAbstract implements CacheItemInterface {
 
     /**
-     * @var CacheManager
+     * @var CacheMeta
      */
-    private $manager;
+    private $meta;
 
-    public function __construct(CacheManager $manager) {
-        $this->manager = $manager;
+    public function __construct(CacheMeta $meta) {
+        $this->manager = $meta;
     }
 
     /**
      * {@inheritdoc}
      */
     public function expiresAfter($time) {
-
+        if ($time === null) $time = $this->meta->getPool()->getTTL();
+        if (is_numeric($time)) $this->meta->setExpire(new \DateTime(sprintf('now +%d seconds', (int) $time)));
+        else {
+            assert($time instanceof \DateInterval);
+            $this->meta->setExpire((new \DateTime())->add($time));
+        }
+        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function expiresAt($expiration) {
-
+    public function expiresAt($expire) {
+        if ($expire === null) {
+            $this->meta->setExpire(new \DateTime(sprintf("now +%d seconds", $this->meta->getPool()->getTTL())));
+        } else {
+            assert($expire instanceof \DateTimeInterface);
+            $this->meta->setExpire($expire);
+        }
+        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
     public function get() {
-
+        return $this->meta->getValue();
     }
 
     /**
      * {@inheritdoc}
      */
     public function getKey() {
-
+        return $this->meta->getKey();
     }
 
     /**
      * {@inheritdoc}
      */
     public function isHit() {
-
+        return $this->meta->getHit();
     }
 
     /**
      * {@inheritdoc}
      */
     public function set($value) {
-
-    }
-
-    /**
-     * Returns the expiration timestamp.
-     *
-     * Although not part of the CacheItemInterface, this method is used by
-     * the pool for extracting information for saving.
-     *
-     * @return \DateTime
-     *   The timestamp at which this cache item should expire.
-     *
-     * @internal
-     */
-    public function getExpiration() {
-        //return $this->expiration ?: new \DateTime('now +1 year');
-    }
-
-    /**
-     * Returns the raw value, regardless of hit status.
-     *
-     * Although not part of the CacheItemInterface, this method is used by
-     * the pool for extracting information for saving.
-     *
-     * @return mixed
-     *
-     * @internal
-     */
-    public function getRawValue() {
-
+        $this->meta->setValue($value);
     }
 
 }
