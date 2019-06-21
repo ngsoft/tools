@@ -6,23 +6,20 @@ use Fig\Cache\BasicPoolTrait;
 use Fig\Cache\KeyValidatorTrait;
 use NGSOFT\Tools\Traits\LoggerAwareWriter;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
-use Psr\SimpleCache\CacheInterface;
 
-class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface, CacheInterface {
+class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
-    use BasicPoolTrait;
-    use KeyValidatorTrait;
     use LoggerAwareTrait;
     use LoggerAwareWriter;
 
     /**
      * Items already loaded from cache
-     * @var array<string,CacheItemInterface>
+     * @var array<string,CacheManager>
      */
-    protected $cached = [];
+    protected $loaded = [];
+    protected $deferred = [];
 
     /** @var int */
     protected $ttl = 60;
@@ -37,6 +34,10 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface,
         return $this;
     }
 
+    /**
+     * Get Default TTL Value
+     * @return int
+     */
     public function getTTL(): int {
         return $this->ttl;
     }
@@ -44,89 +45,65 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface,
     ////////////////////////////   CacheItemPool   ////////////////////////////
 
     /**
-     * Returns an empty item definition.
-     *
-     * @return array
-     */
-    protected function emptyItem() {
-        return [
-            'value' => null,
-            'hit' => false,
-            'ttd' => null,
-        ];
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function getItems(array $keys = []) {
-        // This method will throw an appropriate exception if any key is not valid.
-        array_map([$this, 'validateKey'], $keys);
-
-        $collection = [];
-        foreach ($keys as $key) {
-            $collection[$key] = $this->getItem($key);
-        }
-        return $collection;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function deleteItems(array $keys) {
-        foreach ($keys as $key) {
-            unset($this->data[$key]);
-        }
-    }
-
-    ////////////////////////////   SimpleCache   ////////////////////////////
-
-    /**
-     * {@inheritdoc}
-     */
-    public function delete($key) {
+    public function clear() {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function deleteMultiple($keys) {
+    public function commit() {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get($key, $default = null) {
+    public function deleteItem($key) {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getMultiple($keys, $default = null) {
+    public function deleteItems(string $keys) {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function has($key): bool {
+    public function getItem($key): \Psr\Cache\CacheItemInterface {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function set($key, $value, $ttl = null) {
+    public function getItems(string $keys = array()) {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setMultiple($values, $ttl = null) {
+    public function hasItem($key): bool {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function save(\Psr\Cache\CacheItemInterface $item) {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function saveDeferred(\Psr\Cache\CacheItemInterface $item) {
 
     }
 
