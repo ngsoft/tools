@@ -85,7 +85,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return CacheMeta
      */
     protected function createItem(string $key): BasicCacheItem {
-
         return new BasicCacheItem($key, $this->ttl, false, null);
     }
 

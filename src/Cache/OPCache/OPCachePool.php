@@ -45,8 +45,8 @@ class OPCachePool extends BasicCachePool {
      * @param int $ttl Default TTL for a cache item
      * @param ContainerInterface $container
      */
-    public function __construct(string $path, int $ttl = null, ContainerInterface $container = null) {
-        parent::__construct($container, $ttl);
+    public function __construct(string $path, int $ttl = null) {
+        parent::__construct($ttl);
         $this->setPath($path);
         $this->makePath();
         $this->loadMap();
@@ -90,52 +90,6 @@ class OPCachePool extends BasicCachePool {
         $fn = new CachedFile(sprintf("%s.tmp", $filename));
         if ($fn->write($string)) return rename($fn->getFilename(), $filename);
         return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function clearCache(): bool {
-        if (rrmdir($this->path) and $this->makePath()) {
-            $this->map = new CacheMap();
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function createCache(string $key): CacheItemInterface {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function deleteCache($keys): bool {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCache(CacheItemInterface $item) {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function hasCache(string $key): bool {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function writeCache($items): bool {
-
     }
 
 }
