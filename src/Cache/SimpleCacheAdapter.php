@@ -96,16 +96,11 @@ class SimpleCacheAdapter implements CacheInterface {
      * {@inheritdoc}
      */
     public function getMultiple($keys, $default = null) {
-        try {
-            return (new Collection($this->pool->getItems($keys)))
-                            ->map(function ($item) use($default) {
-                                if (!$item->isHit()) return $default;
-                                return $item->get();
-                            })
-                            ->toArray();
-        } catch (Throwable $ex) {
-            throw new PSRCacheInvalidKey($ex->getMessage());
+        $result = [];
+        foreach ($keys as $key) {
+            $result[$key] = $this->get($key, $default);
         }
+        return $result;
     }
 
     /**
