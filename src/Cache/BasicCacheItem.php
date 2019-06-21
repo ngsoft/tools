@@ -8,7 +8,7 @@ use DateTime;
 use Illuminate\Support\Contracts\ArrayableInterface;
 use Psr\Cache\CacheItemInterface;
 
-class BasicCacheItem implements CacheItemInterface, ArrayableInterface {
+class BasicCacheItem implements CacheItemInterface {
 
     /**
      * @var string
@@ -31,11 +31,6 @@ class BasicCacheItem implements CacheItemInterface, ArrayableInterface {
     private $value;
 
     /**
-     * @var BasicCachePool
-     */
-    private $pool;
-
-    /**
      * @param string $key
      * @param bool $hit
      * @param int $ttl
@@ -44,8 +39,8 @@ class BasicCacheItem implements CacheItemInterface, ArrayableInterface {
     public function __construct(string $key, bool $hit, int $ttl, $value) {
         $this->key = $key;
         $this->hit = $hit;
-        $this->ttl = $ttl;
         $this->value = $value;
+        $this->expiresAfter($ttl);
     }
 
     /**
@@ -115,7 +110,7 @@ class BasicCacheItem implements CacheItemInterface, ArrayableInterface {
      * @internal
      */
     public function getExpiration() {
-        return $this->expiration;
+        return $this->expire;
     }
 
     /**
