@@ -102,6 +102,13 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     abstract protected function writeCache(array $items): bool;
 
     /**
+     * Reads the cached value for a specific key
+     * @param CacheItemInterface $item
+     * @return mixed|null
+     */
+    abstract public function getCache(CacheItemInterface $item);
+
+    /**
      * Removes multiple items from the pool.
      * @param array<string> $keys
      * @return bool
