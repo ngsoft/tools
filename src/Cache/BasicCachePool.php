@@ -24,9 +24,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     /** @var array<string,CacheItemInterface> */
     protected $loaded = [];
 
-    /** @var CacheMap */
-    protected $map = [];
-
     /** @var SplObjectStorage */
     protected $deferred;
 
@@ -89,7 +86,9 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return CacheMeta
      */
     protected function createItem(string $key): CacheMeta {
-
+        $meta = new CacheMeta($this, $key);
+        $meta->setInternalKey($this->getInternalKey($key));
+        $this->loaded[$key] = $meta->getItem();
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////

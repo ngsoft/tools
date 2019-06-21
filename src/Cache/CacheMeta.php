@@ -15,7 +15,7 @@ class CacheMeta {
     private $item;
 
     /** @var bool */
-    private $hit = false;
+    private $hit;
 
     /** @var int */
     private $expire;
@@ -38,12 +38,11 @@ class CacheMeta {
 
     /** @return bool */
     public function getHit(): bool {
-        return $this->hit === true;
+        return $this->hit = is_bool($this->hit) ? $this->hit : $this->pool->has($this->key);
     }
 
     /** @return DateTime */
     public function getExpire(): DateTime {
-
         return new DateTime(date(\DateTime::ISO8601, $this->expire));
     }
 
@@ -111,11 +110,11 @@ class CacheMeta {
 
     /**
      * @param BasicCachePool $pool
-     * @param BasicCacheItem $item
+     * @param string $key
      */
-    public function __construct(BasicCachePool $pool, BasicCacheItem $item) {
+    public function __construct(BasicCachePool $pool, string $key) {
         $this->pool = $pool;
-        $this->item = $item;
+        $this->item = new BasicCacheItem($this);
     }
 
     /**
