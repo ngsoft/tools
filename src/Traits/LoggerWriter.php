@@ -7,7 +7,7 @@ use Psr\Log\LoggerInterface;
 /**
  * To use in conjunction with \Psr\Log\LoggerAwareTrait
  */
-trait LoggerAwareWriter {
+trait LoggerWriter {
 
     /**
      * @var LoggerInterface|null
