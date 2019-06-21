@@ -12,7 +12,7 @@ use NGSOFT\Tools\Traits\LoggerAwareWriter;
 use Psr\Cache\CacheItemInterface;
 use Psr\Log\LoggerAwareTrait;
 
-class CacheItemAbstract implements CacheItemInterface {
+class BasicCacheItem implements CacheItemInterface {
 
     /**
      * @var CacheMeta

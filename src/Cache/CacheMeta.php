@@ -11,7 +11,7 @@ class CacheMeta {
     /** @var BasicCachePool */
     private $pool;
 
-    /** @var CacheItemAbstract */
+    /** @var BasicCacheItem */
     private $item;
 
     /** @var bool */
@@ -111,9 +111,9 @@ class CacheMeta {
 
     /**
      * @param BasicCachePool $pool
-     * @param CacheItemAbstract $item
+     * @param BasicCacheItem $item
      */
-    public function __construct(BasicCachePool $pool, CacheItemAbstract $item) {
+    public function __construct(BasicCachePool $pool, BasicCacheItem $item) {
         $this->pool = $pool;
         $this->item = $item;
     }
@@ -126,9 +126,9 @@ class CacheMeta {
     }
 
     /**
-     * @return CacheItemAbstract
+     * @return BasicCacheItem
      */
-    public function getItem(): CacheItemAbstract {
+    public function getItem(): BasicCacheItem {
         return $this->item;
     }
 
