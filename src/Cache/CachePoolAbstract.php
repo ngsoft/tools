@@ -2,12 +2,12 @@
 
 namespace NGSOFT\Tools\Cache;
 
-use Fig\Cache\BasicPoolTrait;
-use Fig\Cache\KeyValidatorTrait;
-use NGSOFT\Tools\Traits\LoggerAwareWriter;
+use NGSOFT\Tools\Exceptions\PSRCacheInvalidArgumentException;
+use NGSOFT\Tools\Traits\LoggerWriter;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use SplObjectStorage;
 
 class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
@@ -19,7 +19,9 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      * @var array<string,CacheManager>
      */
     protected $loaded = [];
-    protected $deferred = [];
+
+    /** @var SplObjectStorage */
+    protected $deferred;
 
     /** @var int */
     protected $ttl = 60;
@@ -61,7 +63,7 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      *
      * @param string $key
      *   The key to validate.
-     * @throws InvalidArgumentException
+     * @throws PSRCacheInvalidArgumentException
      *   An exception implementing The Cache InvalidArgumentException interface
      *   will be thrown if the key does not validate.
      * @return bool
@@ -69,14 +71,12 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      */
     protected function validateKey($key) {
         if (!is_string($key) || $key === '') {
-            throw new PSR('Key should be a non empty string');
+            throw new PSRCacheInvalidArgumentException('Key should be a non empty string');
         }
-
         $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
         if ($unsupportedMatched > 0) {
-            throw new InvalidArgumentException('Can\'t validate the specified key');
+            throw new PSRCacheInvalidArgumentException('Can\'t validate the specified key');
         }
-
         return true;
     }
 
@@ -98,14 +98,7 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      * {@inheritdoc}
      */
     public function deleteItem($key) {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function deleteItems(string $keys) {
-
+        return $this->deleteItems([$key]);
     }
 
     /**
@@ -132,14 +125,14 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
     /**
      * {@inheritdoc}
      */
-    public function save(\Psr\Cache\CacheItemInterface $item) {
+    public function save($item) {
 
     }
 
     /**
      * {@inheritdoc}
      */
-    public function saveDeferred(\Psr\Cache\CacheItemInterface $item) {
+    public function saveDeferred($item) {
 
     }
 
