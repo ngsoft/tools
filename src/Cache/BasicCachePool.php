@@ -109,6 +109,15 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     abstract public function getCache(CacheItemInterface $item);
 
     /**
+     * Get the cache internal key
+     * @param string $key
+     * @return string
+     */
+    protected function getInternalKey(string $key): string {
+        return $key;
+    }
+
+    /**
      * Removes multiple items from the pool.
      * @param array<string> $keys
      * @return bool
