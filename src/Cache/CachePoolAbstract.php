@@ -12,7 +12,6 @@ use SplObjectStorage;
 class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
-    use LoggerWriter;
 
     /**
      * Items already loaded from cache
@@ -25,6 +24,10 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
 
     /** @var int */
     protected $ttl = 60;
+
+    public function __construct() {
+
+    }
 
     /**
      * Set the default ttl value for the cache
@@ -42,6 +45,12 @@ class CachePoolAbstract implements CacheItemPoolInterface, LoggerAwareInterface 
      */
     public function getTTL(): int {
         return $this->ttl;
+    }
+
+    ////////////////////////////   LoggerInterface   ////////////////////////////
+
+    public function __log($message) {
+        if (isset($this->logger)) $this->logger->debug($message);
     }
 
     ////////////////////////////   CacheItemPool   ////////////////////////////

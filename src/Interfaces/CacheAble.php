@@ -4,6 +4,10 @@ namespace NGSOFT\Tools\Interfaces;
 
 use Illuminate\Support\Contracts\ArrayableInterface;
 
+/**
+ * If an object has to be cached it must implements that interface
+ * @method array toArray() Cache will call that method whenever the data is cached
+ */
 interface CacheAble extends ArrayableInterface {
 
     /**
@@ -12,10 +16,4 @@ interface CacheAble extends ArrayableInterface {
      * @return self instance of the CacheAble object
      */
     public static function __set_state(array $data): self;
-
-    /**
-     * Cache will call that method whenever the data is cached
-     * {@inheritdoc}
-     */
-    public function toArray();
 }
