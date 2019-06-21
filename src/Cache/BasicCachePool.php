@@ -60,10 +60,9 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @param ContainerInterface|null $container
      * @param int|null $ttl
      */
-    public function __construct(ContainerInterface $container = null, int $ttl = null) {
-        if (isset($container)) $this->setContainer($container);
+    public function __construct(int $ttl = null) {
+        if (isset($ttl)) $this->ttl = $ttl;
         $this->deferred = new \SplObjectStorage();
-        $this->map = $this->loadMap();
         //initialize PSR16
         parent::__construct($this, $ttl);
     }
@@ -85,7 +84,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @param string $key
      * @return CacheMeta
      */
-    protected function createItem(string $key): CacheMeta {
+    protected function createItem(string $key, int $ttl, $value): CacheMeta {
+
+
+
+
         $meta = new CacheMeta($this, $key);
         $meta->setInternalKey($this->getInternalKey($key));
         $this->loaded[$key] = $meta->getItem();
@@ -120,15 +123,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return mixed|null
      */
     abstract public function getCache(CacheItemInterface $item);
-
-    /**
-     * Get the cache internal key
-     * @param string $key
-     * @return string
-     */
-    protected function getInternalKey(string $key): string {
-        return md5($key);
-    }
 
     /**
      * Removes multiple items from the pool.

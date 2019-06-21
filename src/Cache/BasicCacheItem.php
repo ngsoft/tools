@@ -4,35 +4,59 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use DateInterval;
 use DateTime;
-use DateTimeInterface;
-use Fig\Cache\BasicCacheItemAccessorsTrait;
-use NGSOFT\Tools\Traits\LoggerAwareWriter;
+use Illuminate\Support\Contracts\ArrayableInterface;
 use Psr\Cache\CacheItemInterface;
-use Psr\Log\LoggerAwareTrait;
 
-class BasicCacheItem implements CacheItemInterface {
+class BasicCacheItem implements CacheItemInterface, ArrayableInterface {
 
     /**
-     * @var CacheMeta
+     * @var string
      */
-    private $meta;
+    private $key;
 
-    public function __construct(CacheMeta $meta) {
-        $this->manager = $meta;
+    /**
+     * @var bool
+     */
+    private $hit;
+
+    /**
+     * @var DateTime
+     */
+    private $expire;
+
+    /**
+     * @var mixed
+     */
+    private $value;
+
+    /**
+     * @var BasicCachePool
+     */
+    private $pool;
+
+    /**
+     * @param string $key
+     * @param bool $hit
+     * @param int $ttl
+     * @param mixed $value
+     */
+    public function __construct(string $key, bool $hit, int $ttl, $value) {
+        $this->key = $key;
+        $this->hit = $hit;
+        $this->ttl = $ttl;
+        $this->value = $value;
     }
 
     /**
      * {@inheritdoc}
      */
     public function expiresAfter($time) {
-        if ($time === null) $time = $this->meta->getPool()->getTTL() + time();
 
-        if (is_numeric($time)) $this->meta->setExpire((int) $time);
+        if (is_numeric($time)) $this->expiresAt(DateTime(sprintf("now +%d seconds", (int) $time)));
         else {
             assert($time instanceof \DateInterval);
-            $this->meta->setExpire((new \DateTime())->add($time)->getTimestamp());
+            $this->expiresAt((new \DateTime())->add($time));
         }
         return $this;
     }
@@ -44,6 +68,7 @@ class BasicCacheItem implements CacheItemInterface {
         if ($expire === null) $this->meta->setExpire($this->meta->getPool()->getTTL() + time());
         else {
             assert($expire instanceof \DateTimeInterface);
+            $this->expire = $expire;
             $this->meta->setExpire($expire->getTimestamp());
         }
         return $this;
@@ -53,28 +78,58 @@ class BasicCacheItem implements CacheItemInterface {
      * {@inheritdoc}
      */
     public function get() {
-        return $this->isHit() ? $this->meta->getValue() : null;
+        return $this->value;
     }
 
     /**
      * {@inheritdoc}
      */
     public function getKey() {
-        return $this->meta->getKey();
+        return $this->key;
     }
 
     /**
      * {@inheritdoc}
      */
     public function isHit() {
-        return $this->meta->getHit();
+        return $this->hit;
     }
 
     /**
      * {@inheritdoc}
      */
     public function set($value) {
-        $this->meta->setValue($value);
+        $this->value = $value;
+        return $this;
+    }
+
+    /**
+     * Returns the expiration timestamp.
+     *
+     * Although not part of the CacheItemInterface, this method is used by
+     * the pool for extracting information for saving.
+     *
+     * @return \DateTime
+     *   The timestamp at which this cache item should expire.
+     *
+     * @internal
+     */
+    public function getExpiration() {
+        return $this->expiration;
+    }
+
+    /**
+     * Returns the raw value, regardless of hit status.
+     *
+     * Although not part of the CacheItemInterface, this method is used by
+     * the pool for extracting information for saving.
+     *
+     * @return mixed
+     *
+     * @internal
+     */
+    public function getRawValue() {
+        return $this->value;
     }
 
 }
