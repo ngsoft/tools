@@ -53,7 +53,7 @@ class BasicCacheItem implements CacheItemInterface {
      * {@inheritdoc}
      */
     public function get() {
-        return $this->meta->getValue();
+        return $this->isHit() ? $this->meta->getValue() : null;
     }
 
     /**
