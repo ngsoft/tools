@@ -20,7 +20,7 @@ interface Storage extends \Traversable, \Countable, \ArrayAccess {
     /**
      * When passed a key name and value, will add that key to the storage, or update that key's
      * @param string $key
-     * @param type $value
+     * @param mixed $value
      * @return void
      */
     public function setItem(string $key, $value): void;
