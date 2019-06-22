@@ -76,7 +76,7 @@ interface JSArrayInterface extends Traversable {
 
     /**
      * The push() method adds one or more elements to the end of an array and returns the new length of the array.
-     * @param type $values
+     * @param mixed ...$values
      * @return int
      */
     public function push(...$values): int;
