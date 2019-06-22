@@ -4,11 +4,9 @@ namespace NGSOFT\Tools\Traits;
 
 use Psr\Container\ContainerInterface;
 
-trait ContainerAware {
+trait Container {
 
-    /**
-     * @var ContainerInterface|null
-     */
+    /** @var ContainerInterface */
     protected $container;
 
     /**
