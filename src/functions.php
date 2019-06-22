@@ -2,6 +2,26 @@
 
 namespace NGSOFT\Tools;
 
+use ReflectionClass;
+
+////////////////////////////   Some Helpers   ////////////////////////////
+
+mb_internal_encoding("UTF-8");
+@define('ds', DIRECTORY_SEPARATOR);
+@define('ns', "\\");
+@define('dot', '.');
+@define('eol', PHP_EOL);
+@define('minute', 60);
+@define('hour', minute * 60);
+@define('day', hour * 24);
+@define('week', day * 7);
+@define('year', 365 * day);
+@define('month', round(year / 12, 0));
+@define('now', time());
+
+
+
+
 ////////////////////////////   File Operations   ////////////////////////////
 
 /**
@@ -151,6 +171,17 @@ function endsWith(string $haystack, string $needle): bool {
 }
 
 /**
+ * Checks whenever $haystack contains $needle
+ * @param string $haystack The string being checked.
+ * @param string $needle The string to find in haystack
+ * @param bool $insensitive
+ * @return bool
+ */
+function contains(string $haystack, string $needle, bool $insensitive = false): bool {
+    return $insensitive ? mb_stripos($haystack, $needle) !== false : mb_strpos($haystack, $needle) !== false;
+}
+
+/**
  * Convert CamelCased to camel_cased
  * @param string $camelCased
  * @return string
@@ -168,4 +199,15 @@ function toCamelCase(string $snake_case): string {
     return preg_replace_callback('/(^|_|\.)+(.)/', function ($match) {
         return ('.' === $match[1] ? '_' : '') . strtoupper($match[2]);
     }, $snake_case);
+}
+
+/**
+ * Perform a regular expression match
+ * @param string $pattern The pattern to search for, as a string.
+ * @param string $subject The input string
+ * @param bool $global Perform a global regular expression match instead
+ * @return array
+ */
+function match(string $pattern, string $subject, bool $global = false): array {
+    return $global ? (preg_match_all($pattern, $subject, $matches) > 0 ? $matches : []) : (preg_match($pattern, $subject, $matches) > 0 ? $matches : []);
 }
