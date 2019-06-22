@@ -56,19 +56,15 @@ class CachedFile extends SplFileInfo {
             ob_start();
             $meta = @include $this->getPathname();
             ob_end_clean();
-
             if (is_array($meta)) {
-                var_dump($meta);
+                $content = $meta["contents"];
                 if ($meta["class"] !== null) {
-
-                    if ($meta["type"] === Serializable::class) $content = unserialize($meta["contents"]);
-                    elseif ($meta["type"] === CacheAble::class) {
+                    if (!is_array($content)) return false;
+                    if (($meta["type"] === Serializable::class) and is_string($content)) $content = unserialize($content);
+                    elseif (($meta["type"] === CacheAble::class) and is_array($content)) {
                         $content = $meta["class"]::createFromArray($meta["contents"]);
-                    }
-                } else $content = $meta["contents"];
-                //else $content = json_decode($meta["contents"]);
-                var_dump($content);
-                exit;
+                    } else return false;
+                }
                 return $content;
             }
         }

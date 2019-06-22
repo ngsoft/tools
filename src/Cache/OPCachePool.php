@@ -51,11 +51,10 @@ class OPCachePool extends BasicCachePool {
         $filename = $this->path . DIRECTORY_SEPARATOR . sprintf('%s.index%s', md5($this->path), $this->ext);
         $this->metaCache = new CachedFile($filename);
         $this->meta = $this->metaCache->load() ?? [];
-        var_dump($this->meta);
         $meta = array_merge([], $this->meta);
         $ct = time();
         foreach ($meta as $key => $expire) {
-            if ($ct > $expire) $this->deleteCache($key);
+            if ($ct > $expire) $this->deleteCache((string) $key);
         }
         $this->metaCache->save($this->meta);
     }
