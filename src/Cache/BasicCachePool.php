@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
+use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
 use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -11,8 +12,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use SplObjectStorage;
 use Throwable;
+use function NGSOFT\Tools\array_every;
 
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
@@ -196,11 +197,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function deleteItems(array $keys) {
         array_map([$this, 'validateKey'], $keys);
-
-
-
-
-        return $this->deleteCache($keys);
+        return array_every([$this, 'deleteItem'], $keys);
     }
 
     /**
