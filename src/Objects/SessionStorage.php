@@ -2,6 +2,7 @@
 
 namespace NGSOFT\Tools\Objects;
 
+use ArrayIterator;
 use IteratorAggregate;
 use NGSOFT\Tools\Interfaces\Storage;
 use NGSOFT\Tools\Traits\ArrayAccessTrait;
@@ -10,11 +11,9 @@ class SessionStorage implements IteratorAggregate, Storage {
 
     use ArrayAccessTrait;
 
-    /** @var array */
-    protected $storage;
-
     public function __construct() {
         if (empty(session_id())) session_start();
+        print_r(session_id());
         $this->storage = &$_SESSION;
     }
 
@@ -32,7 +31,7 @@ class SessionStorage implements IteratorAggregate, Storage {
 
     /** {@inheritdoc} */
     public function length(): int {
-        return count($this->storage);
+        return $this->count();
     }
 
     /** {@inheritdoc} */
