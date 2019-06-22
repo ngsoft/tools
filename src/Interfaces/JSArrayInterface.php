@@ -227,14 +227,15 @@ interface JSArrayInterface extends Traversable {
      * @param mixed $initial
      * @return mixed
      */
-    public function reduce(callable $callback, $initial);
+    public function reduce(callable $callback, $initial = null);
 
     /**
      * The same as reduce() but in reverse
      * @param callable $callback
+     * @param mixed $initial
      * @return mixed
      */
-    public function reduceRight(callable $callback);
+    public function reduceRight(callable $callback, $initial = null);
 
     /**
      * The reverse() method reverses an array in place. The first array element becomes the last, and the last array element becomes the first.

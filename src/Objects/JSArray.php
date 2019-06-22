@@ -88,7 +88,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
 
     /** {@inheritdoc} */
     public function __toString() {
-        return var_export($this, true);
+        return var_export($this->storage, true);
     }
 
     /** {@inheritdoc} */
@@ -100,7 +100,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
 
     /** {@inheritdoc} */
     public static function createFromArray(array $data): self {
-        return static::__set_state($data);
+        return new static($data);
     }
 
     ////////////////////////////   Static   ////////////////////////////
@@ -131,6 +131,74 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     ////////////////////////////   Instance   ////////////////////////////
 
     /** {@inheritdoc} */
+    public function reverse(): self {
+        $this->storage = array_reverse($this->storage);
+        return $this;
+    }
+
+    /** {@inheritdoc} */
+    public function pop() {
+        return array_pop($this->storage);
+    }
+
+    /** {@inheritdoc} */
+    public function push(...$values): int {
+        return array_push($this->storage, ...$values);
+    }
+
+    /** {@inheritdoc} */
+    public function shift() {
+        return array_shift($this->storage);
+    }
+
+    /** {@inheritdoc} */
+    public function unshift(...$values): int {
+        return array_unshift($this->storage, ...$values);
+    }
+
+    /** {@inheritdoc} */
+    public function reduce(callable $callback, $initial = null) {
+        return array_reduce($this->storage, $callback, $initial);
+    }
+
+    /** {@inheritdoc} */
+    public function reduceRight(callable $callback, $initial = null) {
+        return array_reduce(array_reverse($this->storage), $callback, $initial);
+    }
+
+    /** {@inheritdoc} */
+    public function toString(): string {
+        return $this->__toString();
+    }
+
+    /** {@inheritdoc} */
+    public function find(callable $callback) {
+        foreach ($this->storage as $k => $v) {
+            if ($find($v, $k) === true) return $v;
+        }
+        return false;
+    }
+
+    /** {@inheritdoc} */
+    public function findIndex(callable $callback) {
+        foreach ($this->storage as $k => $v) {
+            if ($find($v, $k) === true) return $k;
+        }
+        return false;
+    }
+
+    /** {@inheritdoc} */
+    public function indexOf($value) {
+        return array_search($value, $this->storage, true);
+    }
+
+    /** {@inheritdoc} */
+    public function lastIndexOf($value) {
+        $rev = array_reverse($array, true);
+        return array_search($value, $rev, true);
+    }
+
+    /** {@inheritdoc} */
     public function concat(...$values): JSArrayInterface {
         $merged = array_merge([], $this->storage);
         foreach ($values as $value) {
@@ -140,28 +208,34 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
         return new static($merged);
     }
 
+    /** {@inheritdoc} */
     public function entries(): iterable {
-
+        return $this->getIterator();
     }
 
+    /** {@inheritdoc} */
     public function filter(callable $callback): JSArrayInterface {
-
+        return new static(array_filter($this->storage, $callback, ARRAY_FILTER_USE_BOTH));
     }
 
+    /** {@inheritdoc} */
     public function includes($value): bool {
-
+        return in_array($value, $this->storage, true);
     }
 
+    /** {@inheritdoc} */
     public function join(string $glue): string {
-
+        return implode($glue, $this->storage);
     }
 
+    /** {@inheritdoc} */
     public function keys(): iterable {
-
+        return array_keys($this->storage);
     }
 
+    /** {@inheritdoc} */
     public function values(): iterable {
-
+        return array_values($this->storage);
     }
 
     /** {@inheritdoc} */
