@@ -7,6 +7,6 @@ namespace NGSOFT\Tools\Objects;
  * That class accepts only numeric keys
  * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
  */
-class JSCCollection extends \SplFixedArray {
+class JSCollection extends JSArray {
 
 }
