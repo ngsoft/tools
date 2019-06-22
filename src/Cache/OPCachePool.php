@@ -48,9 +48,10 @@ class OPCachePool extends BasicCachePool {
      * Loads the cached metadatas, remove entries that are expired and update the meta cache
      */
     private function loadMetaAndCleanUp() {
-        $filename = $this->path . DIRECTORY_SEPARATOR . sprintf('%s.index.%s', md5($this->path), $this->ext);
+        $filename = $this->path . DIRECTORY_SEPARATOR . sprintf('%s.index%s', md5($this->path), $this->ext);
         $this->metaCache = new CachedFile($filename);
         $this->meta = $this->metaCache->load() ?? [];
+        var_dump($this->meta);
         $meta = array_merge([], $this->meta);
         $ct = time();
         foreach ($meta as $key => $expire) {
@@ -89,6 +90,8 @@ class OPCachePool extends BasicCachePool {
     protected function hasCache(string $key): bool {
         $filename = $this->getFileName($key);
         $expire = $this->meta[$key] ?? 0;
+        //var_dump([$filename, file_exists($filename), $expire, time(), $expire > time()]);
+
         return file_exists($filename) && $expire > time();
     }
 

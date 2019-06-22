@@ -30,18 +30,16 @@ class CachedFile extends SplFileInfo {
             $meta["class"] = get_class($contents);
             if ($contents instanceof CacheAble) {
                 $meta["type"] = CacheAble::class;
-                $meta["contents"] = var_export($contents->toArray(), true);
+                $meta["contents"] = $contents->toArray();
             } elseif ($contents instanceof Serializable) {
                 $meta["type"] = Serializable::class;
                 $meta["contents"] = serialize($contents);
             } else return false;
-        } elseif ($meta["type"] === "array") $meta["contents"] = var_export($contents, true);
-        else $meta["content"] = $contents;
-        //else $meta["content"] = json_encode($contents);
+        } else $meta["contents"] = $contents;
         $tosave = sprintf('<?php return %s;', var_export($meta, true));
         $tmpfile = tempnam($this->getPath(), uniqid("", true));
         chmod($tmpfile, 0666);
-        if (file_put_contents($tmpfile, $tosave, LOCK_EX) !== false) {
+        if (file_put_contents($tmpfile, $tosave) !== false) {
             @unlink($this->getPathname());
             return rename($tmpfile, $this->getPathname());
         }
@@ -56,15 +54,21 @@ class CachedFile extends SplFileInfo {
         if ($this->isFile()) {
             $content = null;
             ob_start();
-            $meta = @include $this->getPath();
+            $meta = @include $this->getPathname();
             ob_end_clean();
+
             if (is_array($meta)) {
+                var_dump($meta);
                 if ($meta["class"] !== null) {
+
                     if ($meta["type"] === Serializable::class) $content = unserialize($meta["contents"]);
                     elseif ($meta["type"] === CacheAble::class) {
                         $content = $meta["class"]::createFromArray($meta["contents"]);
                     }
                 } else $content = $meta["contents"];
+                //else $content = json_decode($meta["contents"]);
+                var_dump($content);
+                exit;
                 return $content;
             }
         }
