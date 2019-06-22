@@ -11,25 +11,20 @@ use Psr\Cache\CacheItemInterface;
 
 class BasicCacheItem implements CacheItemInterface {
 
-    /**
-     * @var string
-     */
+    /**  @var string */
     private $key;
 
-    /**
-     * @var bool
-     */
+    /** @var bool */
     private $hit;
 
-    /**
-     * @var DateTime
-     */
+    /** @var DateTime */
     private $expire;
 
-    /**
-     * @var mixed
-     */
+    /** @var mixed */
     private $value;
+
+    /** @var int */
+    private $ttl;
 
     /**
      * @param string $key
@@ -37,10 +32,11 @@ class BasicCacheItem implements CacheItemInterface {
      * @param int $ttl
      * @param mixed $value
      */
-    public function __construct(string $key, bool $hit, int $expire, $value) {
+    public function __construct(string $key, int $ttl, bool $hit, int $expire, $value) {
         $this->key = $key;
         $this->hit = $hit;
         $this->value = $value;
+        $this->ttl = $ttl;
         $this->expiresAt($expire);
     }
 

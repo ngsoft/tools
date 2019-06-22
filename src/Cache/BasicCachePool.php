@@ -84,7 +84,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     protected function createEmptyItem(string $key): BasicCacheItem {
         $expire = new DateTime(sprintf('now +%d seconds', $this->ttl));
-        return new BasicCacheItem($key, $expire, false, null);
+        return new BasicCacheItem($key, $this->ttl, $expire, false, null);
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////

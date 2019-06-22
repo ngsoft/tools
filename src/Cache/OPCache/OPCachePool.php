@@ -92,6 +92,8 @@ class OPCachePool extends BasicCachePool {
     /** {@inheritdoc} */
     protected function writeCache(BasicCacheItem $item): bool {
 
+        $expire = $item->getExpireAt()->getTimestamp();
+        if (time() > $expire) return false;
     }
 
     protected function readCache(string $key): BasicCacheItem {
