@@ -10,10 +10,6 @@ use SplFileInfo;
 
 class CachedFile extends SplFileInfo {
 
-    public function __construct(string $file_name) {
-        parent::__construct($file_name);
-    }
-
     /**
      * Save cache contents
      * @param mixed $contents
