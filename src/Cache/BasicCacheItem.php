@@ -30,23 +30,21 @@ class BasicCacheItem implements CacheItemInterface {
      * @param string $key
      * @param int $ttl
      * @param bool $hit
-     * @param int $expire
      * @param mixed $value
      */
-    public function __construct(string $key, int $ttl, bool $hit, int $expire, $value) {
+    public function __construct(string $key, int $ttl, bool $hit, $value) {
         $this->key = $key;
         $this->hit = $hit;
         $this->value = $value;
         $this->ttl = $ttl;
-        $this->expiresAt($expire);
+        $this->expiresAt($ttl);
     }
 
     /**
      * {@inheritdoc}
      */
     public function expiresAfter($time) {
-
-        if (is_numeric($time)) $this->expiresAt(DateTime(sprintf("now +%d seconds", (int) $time)));
+        if (is_numeric($time)) $this->expiresAt(new DateTime(sprintf("now +%d seconds", (int) $time)));
         else {
             assert($time instanceof DateInterval);
             $this->expiresAt((new \DateTime())->add($time));
@@ -58,7 +56,7 @@ class BasicCacheItem implements CacheItemInterface {
      * {@inheritdoc}
      */
     public function expiresAt($expire) {
-        if ($expire === null) $this->expiresAfter($this->ttl);
+        if ($expire === null) return $this->expiresAfter($this->ttl);
         else {
             assert($expire instanceof DateTimeInterface);
             $this->expire = $expire;

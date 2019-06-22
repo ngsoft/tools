@@ -46,7 +46,7 @@ class CachedFile extends SplFileInfo {
      */
     public function load() {
         if ($this->isFile()) {
-            $meta = null; $content = null;
+            $content = null;
             ob_start();
             $meta = @include $this->getPath();
             ob_end_clean();

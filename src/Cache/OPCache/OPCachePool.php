@@ -91,14 +91,25 @@ class OPCachePool extends BasicCachePool {
 
     /** {@inheritdoc} */
     protected function writeCache(BasicCacheItem $item): bool {
-
+        $key = $item->getKey();
+        $this->deleteCache($key); //clears current value
         $expire = $item->getExpireAt()->getTimestamp();
-        if (time() > $expire) return false;
+        if (time() > $expire) return false; //that can happen
+        $cf = new CachedFile($this->getFileName($item->getKey()));
+        //update meta
+        if ($cf->save($item->getRawValue())) {
+            $this->meta[$key] = $expire;
+            $this->metaCache->save($this->meta);
+            return true;
+        }
+        return false;
     }
 
     protected function readCache(string $key): BasicCacheItem {
-
         if (!$this->hasCache($key)) return $this->createEmptyItem($key);
+        $cf = new CachedFile($this->getFileName($key));
+        $contents = $cf->load();
+        return new BasicCacheItem($key, $this->ttl, true, $contents);
     }
 
 }

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use DateTime;
 use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
-use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
@@ -34,7 +32,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     /**
      * Set the default ttl value for the cache
      * @param int $ttl
-     * @return $this
      */
     public function setTTL(int $ttl) {
         $this->ttl = $ttl;
@@ -56,7 +53,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     protected $container;
 
     /**
-     * @param ContainerInterface|null $container
      * @param int|null $ttl
      */
     public function __construct(int $ttl = null) {
@@ -80,11 +76,10 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     /**
      * Creates a empty item
      * @param string $key
-     * @return CacheMeta
+     * @return BasicCacheItem
      */
     protected function createEmptyItem(string $key): BasicCacheItem {
-        $expire = new DateTime(sprintf('now +%d seconds', $this->ttl));
-        return new BasicCacheItem($key, $this->ttl, $expire, false, null);
+        return new BasicCacheItem($key, $this->ttl, false, null);
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
@@ -157,7 +152,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      *
      * @param string $key
      *   The key to validate.
-     * @throws PSRCacheInvalidKey
+     * @throws BasicCacheInvalidKey
      *   An exception implementing The Cache InvalidArgumentException interface
      *   will be thrown if the key does not validate.
      * @return bool
@@ -215,7 +210,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function getItem($key) {
         $this->validateKey($key);
-        return $this->loadCache($key);
+        return $this->readCache($key);
     }
 
     /**
@@ -234,7 +229,8 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-        return $this->writeCache($item);
+        if ($item instanceof BasicCacheItem) return $this->writeCache($item);
+        return false;
     }
 
     /**
