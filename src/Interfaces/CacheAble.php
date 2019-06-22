@@ -4,7 +4,6 @@ namespace NGSOFT\Tools\Interfaces;
 
 /**
  * If an object has to be cached it must implements that interface
- * @method array toArray()
  */
 interface CacheAble {
 

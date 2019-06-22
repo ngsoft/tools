@@ -1,8 +1,9 @@
 <?php
 
-namespace NGSOFT\Tools\Cache\OPCache;
+namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Interfaces\CacheAble;
+use Serializable;
 use SplFileInfo;
 
 class CachedFile extends SplFileInfo {
@@ -28,8 +29,8 @@ class CachedFile extends SplFileInfo {
             if ($contents instanceof CacheAble) {
                 $meta["type"] = CacheAble::class;
                 $meta["contents"] = var_export($contents->toArray(), true);
-            } elseif ($contents instanceof \Serializable) {
-                $meta["type"] = \Serializable::class;
+            } elseif ($contents instanceof Serializable) {
+                $meta["type"] = Serializable::class;
                 $meta["contents"] = serialize($contents);
             } else return false;
         } elseif ($meta["type"] === "array") $meta["contents"] = var_export($contents, true);
@@ -52,7 +53,7 @@ class CachedFile extends SplFileInfo {
             ob_end_clean();
             if (is_array($meta)) {
                 if ($meta["class"] !== null) {
-                    if ($meta["type"] === \Serializable::class) $content = unserialize($meta["contents"]);
+                    if ($meta["type"] === Serializable::class) $content = unserialize($meta["contents"]);
                     elseif ($meta["type"] === CacheAble::class) {
                         $content = $meta["class"]::createFromArray($meta["contents"]);
                     }

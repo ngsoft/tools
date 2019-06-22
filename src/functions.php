@@ -60,8 +60,8 @@ function startsWith(string $haystack, string $needle): bool {
  * @link https://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
  * @param string $haystack
  * @param string $needle
- * @return type
+ * @return bool
  */
-function endsWith(string $haystack, string $needle) {
+function endsWith(string $haystack, string $needle): bool {
     return substr_compare($haystack, $needle, -strlen($needle)) === 0;
 }

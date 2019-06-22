@@ -1,6 +1,6 @@
 <?php
 
-namespace NGSOFT\Tools\Cache\OPCache;
+namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Cache\BasicCacheItem;
 use NGSOFT\Tools\Cache\BasicCachePool;
