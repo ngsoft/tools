@@ -45,6 +45,29 @@ function array_some(callable $callback, array $array): bool {
 }
 
 /**
+ * Flatten  a multi-dimensional array and preserves keys for non numeric ones
+ * @param array $array
+ * @param int $depth
+ * @return array
+ */
+function array_flatten(array $array, int $depth = 1) {
+    $result = [];
+    if ($depth === 0) return $array;
+    foreach ($array as $k => $v) {
+        if (is_array($v)) {
+            foreach ($v as $kk => $vv) {
+                if (is_array($vv) and $depth > 0) {
+                    $result = array_merge($result, array_flatten($vv, $depth - 1));
+                    continue;
+                }
+                is_int($kk) ? $result[] = $vv : $result[$kk] = $vv;
+            }
+        } else is_int($k) ? $result[] = $v : $result[$k] = $v;
+    }
+    return $result;
+}
+
+/**
  * Checks if haystack begins with needle
  * @link https://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
  * @param string $haystack

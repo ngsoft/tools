@@ -15,32 +15,21 @@ interface JSArrayInterface extends Traversable {
     ////////////////////////////   JS Functions Numeric   ////////////////////////////
 
     /**
-     * The copyWithin() method shallow copies part of an array to another location in the same array and returns it without modifying its length.
-     * @param int $target Zero-based index at which to copy the sequence to. If negative, target will be counted from the end.
-     * @param int $start Zero-based index at which to start copying elements from. If negative, start will be counted from the end.
-     * @param ?int $end Zero-based index at which to end copying elements from. copyWithin copies up to but not including end. If negative, end will be counted from the end.
-     * @return static The modified array.
-     * @throws \BadMethodCallException if array has no numerical indexes
-     */
-    public function copyWithin(int $target, int $start = 0, int $end = null): self;
-
-    /**
      * The fill() method fills (modifies) all the elements of an array from a start index (default zero) to an end index (default array length) with a static value. It returns the modified array.
      * @param mixed $value Value to fill an array.
+     * @param int $num Number of items to replace
      * @param int $start Start index, defaults to 0
-     * @param ?int $end Defaults to full length
      * @return static
      * @throws \BadMethodCallException if array has no numerical indexes
      */
-    public function fill($value, int $start = 0, int $end = null): self;
+    public function fill($value, int $num, int $start = 0);
 
     /**
      * The flat() method creates a new array with all sub-array elements concatenated into it recursively up to the specified depth.
      * @param int $depth
      * @return static
-     * @throws \BadMethodCallException if array has no numerical indexes
      */
-    public function flat(int $depth = 1): self;
+    public function flat(int $depth = 1);
 
     /**
      * The flatMap() method first maps each element using a mapping function, then flattens the result into a new array.
@@ -48,25 +37,25 @@ interface JSArrayInterface extends Traversable {
      * @return static
      * @throws \BadMethodCallException if array has no numerical indexes
      */
-    public function flatMap(callable $callback): self;
+    public function flatMap(callable $callback);
 
     /**
-     * The slice() method returns a shallow copy of a portion of an array into a new array object selected from begin to end (end not included). The original array will not be modified.
+     * The slice() method returns a shallow copy of a portion of an array into a new array object selected from begin with the required length.
      * @param int $start
-     * @param ?int $end
-     * @return JSArrayInterface
+     * @param ?int $length
+     * @return static
      * @throws \BadMethodCallException if array has no numerical indexes
      */
-    public function slice(int $start = 0, int $end = null): JSArrayInterface;
+    public function slice(int $start = 0, int $length = null);
 
     /**
      * The splice() method changes the contents of an array by removing or replacing existing elements and/or adding new elements in place.
      * @param int $start
      * @param mixed ...$args if first arg is int it will be used as $length
-     * @return JSArrayInterface
+     * @return static
      * @throws \BadMethodCallException if array has no numerical indexes
      */
-    public function splice(int $start, ...$args): JSArrayInterface;
+    public function splice(int $start, ...$args);
 
     /**
      * The toString() method returns a string representing the specified array and its elements.
@@ -101,9 +90,9 @@ interface JSArrayInterface extends Traversable {
      * The Array.from() method creates a new, shallow-copied Array instance from an array-like or iterable object.
      * @param string|iterable $value if string, string will be exploded as an array
      * @param ?callable $mapFn Map function to call on every element of the array.
-     * @return JSArrayInterface
+     * @return static
      */
-    public static function From($value, callable $mapFn = null): JSArrayInterface;
+    public static function From($value, callable $mapFn = null);
 
     /**
      * The Array.isArray() method determines whether the passed value is an array
@@ -122,16 +111,16 @@ interface JSArrayInterface extends Traversable {
     /**
      * The Array.of() method creates a new Array instance from a variable number of arguments, regardless of number or type of the arguments.
      * @param mixed ...$values
-     * @return JSArrayInterface
+     * @return static
      */
-    public static function of(...$values): JSArrayInterface;
+    public static function of(...$values);
 
     /**
      * The concat() method is used to merge two or more arrays. This method does not change the existing arrays, but instead returns a new array.
      * @param iterable ...$values
-     * @return JSArrayInterface A new object with the values added
+     * @return static A new object with the values added
      */
-    public function concat(iterable ...$values): JSArrayInterface;
+    public function concat(iterable ...$values);
 
     /**
      * The entries() method returns a new Array Iterator object that contains the key/value pairs for each index in the array.
@@ -142,16 +131,16 @@ interface JSArrayInterface extends Traversable {
     /**
      * The every() method tests whether all elements in the array pass the test implemented by the provided function. It returns a Boolean value.
      * @param callable $callback A function to test for each element, taking 2 arguments: element and index
-     * @return JSArrayInterface
+     * @return bool
      */
-    public function every(callable $callback): JSArrayInterface;
+    public function every(callable $callback): bool;
 
     /**
      * The filter() method creates a new array with all elements that pass the test implemented by the provided function.
      * @param callable $callback A function to test for each element, taking 2 arguments: element and index
-     * @return JSArrayInterface
+     * @return static
      */
-    public function filter(callable $callback): JSArrayInterface;
+    public function filter(callable $callback);
 
     /**
      * The find() method returns the value of the first element in the array that satisfies the provided testing function. Otherwise null is returned.
@@ -211,9 +200,9 @@ interface JSArrayInterface extends Traversable {
     /**
      * The map() method creates a new array with the results of calling a provided function on every element in the calling array.
      * @param callable $callback takes 2 arguments: element and index
-     * @return JSArrayInterface
+     * @return static
      */
-    public function map(callable $callback): JSArrayInterface;
+    public function map(callable $callback);
 
     /**
      * The pop() method removes the last element from an array and returns that element. This method changes the length of the array.
@@ -241,7 +230,7 @@ interface JSArrayInterface extends Traversable {
      * The reverse() method reverses an array in place. The first array element becomes the last, and the last array element becomes the first.
      * @return static
      */
-    public function reverse(): self;
+    public function reverse();
 
     /**
      * The shift() method removes the first element from an array and returns that removed element. This method changes the length of the array.
@@ -261,7 +250,7 @@ interface JSArrayInterface extends Traversable {
      * @param callable $callback
      * @return static
      */
-    public function sort(callable $callback): self;
+    public function sort(callable $callback);
 
     /**
      * The values() method returns a new Array Iterator object that contains the values for each index in the array.

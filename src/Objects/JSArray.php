@@ -4,6 +4,7 @@ namespace NGSOFT\Tools\Objects;
 
 use ArrayAccess;
 use ArrayIterator;
+use BadMethodCallException;
 use Countable;
 use IteratorAggregate;
 use JsonSerializable;
@@ -11,6 +12,7 @@ use NGSOFT\Tools\Interfaces\CacheAble;
 use NGSOFT\Tools\Interfaces\JSArrayInterface;
 use NGSOFT\Tools\Traits\JSArrayMethods;
 use Serializable;
+use function NGSOFT\Tools\array_flatten;
 
 /**
  * A library that reproduces the Javascript Array Object for PHP
@@ -25,12 +27,12 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
 
     /** @param iterable $input */
     public function __construct(iterable $input = []) {
-        parent::__construct($input);
+        $this->storage = (array) $input;
     }
 
     /** {@inheritdoc} */
     public function toArray(): array {
-        return $this->getArrayCopy();
+        return $this->storage;
     }
 
     /** {@inheritdoc} */
@@ -77,7 +79,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     }
 
     /** {@inheritdoc} */
-    public function unserialize(string $serialized): void {
+    public function unserialize($serialized) {
         $this->storage = unserialize($serialized);
     }
 
@@ -96,17 +98,70 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
         return new static($array);
     }
 
+    ////////////////////////////   From \ArrayObject   ////////////////////////////
+
+    /**
+     * Appends the value
+     * @param mixed $value
+     * @return void
+     */
+    public function append($value): void {
+        $this->push($value);
+    }
+
+    /**
+     * Sort the entries by key
+     * @return void
+     */
+    public function ksort(): void {
+        ksort($this->storage);
+    }
+
+    /**
+     * Sort an array using a case insensitive "natural order" algorithm
+     * @return void
+     */
+    public function natcasesort(): void {
+        natcasesort($this->storage);
+    }
+
+    /**
+     * Sort entries using a "natural order" algorithm
+     * @return void
+     */
+    public function natsort(): void {
+        natsort($this->storage);
+    }
+
+    /**
+     * Sort the entries with a user-defined comparison function and maintain key association
+     * @param callable $callback
+     * @return void
+     */
+    public function uasort(callable $callback): void {
+        $this->sort($callback);
+    }
+
+    /**
+     * Sort the entries by keys using a user-defined comparison function
+     * @param type $callback
+     * @return void
+     */
+    public function uksort($callback): void {
+        uksort($this->storage, $callback);
+    }
+
     ////////////////////////////   Cacheable   ////////////////////////////
 
     /** {@inheritdoc} */
-    public static function createFromArray(array $data): self {
+    public static function createFromArray(array $data) {
         return new static($data);
     }
 
     ////////////////////////////   Static   ////////////////////////////
 
     /** {@inheritdoc} */
-    public static function From($value, callable $mapFn = null): JSArrayInterface {
+    public static function From($value, callable $mapFn = null) {
         assert(is_iterable($value));
         $array = (array) $value;
         if (is_callable($mapFn)) $array = array_map($mapFn, $array);
@@ -124,14 +179,74 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     }
 
     /** {@inheritdoc} */
-    public static function of(...$values): JSArrayInterface {
+    public static function of(...$values) {
         return new static($values);
+    }
+
+    ////////////////////////////   With Exceptions   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function fill($value, int $num, int $start = 0) {
+        $this->hasNonNumericKeys($this->storage, __METHOD__);
+        $newarr = $this->storage;
+        for ($i = $start; $i < ($start + $num); ++$i) {
+            $newarr[$i] = $value;
+        }
+        return new static($newarr);
+    }
+
+    /** {@inheritdoc} */
+    public function splice(int $start, ...$args) {
+        $this->hasNonNumericKeys($this->storage, __METHOD__);
+        array_splice($this->storage, $start, ...$args);
+        return $this;
+    }
+
+    /** {@inheritdoc} */
+    public function slice(int $start = 0, int $length = null) {
+        $this->hasNonNumericKeys($this->storage, __METHOD__);
+        return new static(array_slice($this->storage, $start, $length));
+    }
+
+    /**
+     * Checks recursively if array has non numeric keys
+     * @param array $array
+     * @param string $method
+     * @throws BadMethodCallException
+     */
+    protected function hasNonNumericKeys(array $array, string $method) {
+
+        array_map(function ($key) use ($method) {
+            if (!is_int($key)) throw new BadMethodCallException("Array has non numeric keys, cannot call that method, $method.");
+        }, array_keys($array));
     }
 
     ////////////////////////////   Instance   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function reverse(): self {
+    public function flat(int $depth = 1) {
+        $new = array_flatten($this->storage, $depth);
+        return new static($new);
+    }
+
+    /** {@inheritdoc} */
+    public function flatMap(callable $callback) {
+        $new = [];
+        foreach ($this->storage as $k => $v) {
+            $new[$k] = $callback($v, $k);
+        }
+        $new = array_flatten($new, 1);
+        return new static($new);
+    }
+
+    /** {@inheritdoc} */
+    public function sort(callable $callback) {
+        uasort($this->storage, $callback);
+        return $this;
+    }
+
+    /** {@inheritdoc} */
+    public function reverse() {
         $this->storage = array_reverse($this->storage);
         return $this;
     }
@@ -174,7 +289,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     /** {@inheritdoc} */
     public function find(callable $callback) {
         foreach ($this->storage as $k => $v) {
-            if ($find($v, $k) === true) return $v;
+            if ($callback($v, $k) === true) return $v;
         }
         return false;
     }
@@ -182,7 +297,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     /** {@inheritdoc} */
     public function findIndex(callable $callback) {
         foreach ($this->storage as $k => $v) {
-            if ($find($v, $k) === true) return $k;
+            if ($callback($v, $k) === true) return $k;
         }
         return false;
     }
@@ -199,7 +314,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     }
 
     /** {@inheritdoc} */
-    public function concat(...$values): JSArrayInterface {
+    public function concat(iterable ...$values) {
         $merged = array_merge([], $this->storage);
         foreach ($values as $value) {
             if (!is_array($value)) $value = [$value];
@@ -214,7 +329,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     }
 
     /** {@inheritdoc} */
-    public function filter(callable $callback): JSArrayInterface {
+    public function filter(callable $callback) {
         return new static(array_filter($this->storage, $callback, ARRAY_FILTER_USE_BOTH));
     }
 
@@ -239,7 +354,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     }
 
     /** {@inheritdoc} */
-    public function map(callable $callback): JSArrayInterface {
+    public function map(callable $callback) {
         //array_map does not contains the required args
         $new = [];
         foreach ($this->storage as $k => $v) {
@@ -256,7 +371,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
     }
 
     /** {@inheritdoc} */
-    public function every(callable $callback): JSArrayInterface {
+    public function every(callable $callback): bool {
         foreach ($this->storage as $k => $v) {
             if (!$callback($v, $k)) return false;
         }
