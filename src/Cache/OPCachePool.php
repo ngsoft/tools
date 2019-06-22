@@ -35,6 +35,7 @@ class OPCachePool extends BasicCachePool {
      */
     public function __construct(string $path, int $ttl = null) {
         parent::__construct($ttl);
+        $this->path = $path;
         //make the path
         if (!file_exists($path)) @mkdir($path, 0666, true);
         if (!is_dir($path)) throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $path));

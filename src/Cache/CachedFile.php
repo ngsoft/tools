@@ -40,7 +40,12 @@ class CachedFile extends SplFileInfo {
         //else $meta["content"] = json_encode($contents);
         $tosave = sprintf('<?php return %s;', var_export($meta, true));
         $tmpfile = tempnam($this->getPath(), uniqid("", true));
-        return file_put_contents($tmpfile, $tosave, LOCK_EX) !== false ? rename($tmpfile, $this->getPathname()) : false;
+        chmod($tmpfile, 0666);
+        if (file_put_contents($tmpfile, $tosave, LOCK_EX) !== false) {
+            @unlink($this->getPathname());
+            return rename($tmpfile, $this->getPathname());
+        }
+        return false;
     }
 
     /**
