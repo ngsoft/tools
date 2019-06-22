@@ -7,12 +7,6 @@ use Traversable;
 interface JSArrayInterface extends Traversable {
 
     /**
-     * Used to determine if main class has numerical indexes
-     * or both
-     */
-    const ARRAY_IS_NUMERIC = false;
-
-    /**
      * Export to an array
      * @return array
      */
@@ -93,13 +87,6 @@ interface JSArrayInterface extends Traversable {
      * @return int
      */
     public function unshift(...$values): int;
-
-
-
-
-
-
-
 
 
     ////////////////////////////   JS Function Both   ////////////////////////////
