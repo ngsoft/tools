@@ -69,11 +69,10 @@ class SimpleCacheAdapter implements CacheInterface {
 
     /**
      * {@inheritdoc}
-     * @param array<string> $keys
      */
     public function deleteMultiple($keys) {
         try {
-            return $this->pool->deleteItems($keys);
+            return $this->pool->deleteItems((array) $keys);
         } catch (Throwable $ex) {
             throw new BasicCacheInvalidKey($ex->getMessage());
         }
