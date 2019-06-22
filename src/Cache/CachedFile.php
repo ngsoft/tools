@@ -51,24 +51,23 @@ class CachedFile extends SplFileInfo {
      * @return mixed|null
      */
     public function load() {
+        $content = null;
         if ($this->isFile()) {
-            $content = null;
             ob_start();
             $meta = @include $this->getPathname();
             ob_end_clean();
             if (is_array($meta)) {
                 $content = $meta["contents"];
                 if ($meta["class"] !== null) {
-                    if (!is_array($content)) return false;
                     if (($meta["type"] === Serializable::class) and is_string($content)) $content = unserialize($content);
                     elseif (($meta["type"] === CacheAble::class) and is_array($content)) {
                         $content = $meta["class"]::createFromArray($meta["contents"]);
-                    } else return false;
+                    } else return null;
                 }
-                return $content;
             }
         }
-        return null;
+
+        return $content;
     }
 
 }
