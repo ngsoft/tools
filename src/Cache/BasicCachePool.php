@@ -110,11 +110,11 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     abstract protected function writeCache(BasicCacheItem $item): bool;
 
     /**
-     * Removes multiple items from the pool.
-     * @param array<string> $keys
+     * Removes a single items from the pool.
+     * @param string $key
      * @return bool
      */
-    abstract protected function deleteCache(array $keys): bool;
+    abstract protected function deleteCache(string $key): bool;
 
     /**
      * Confirms if the cache contains specified cache item.
