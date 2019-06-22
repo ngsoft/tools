@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Objects;
 
-use ArrayIterator;
 use IteratorAggregate;
 use NGSOFT\Tools\Interfaces\CacheAble;
 use NGSOFT\Tools\Interfaces\JSArrayInterface;
+use NGSOFT\Tools\Traits\ArrayAccessTrait;
 use NGSOFT\Tools\Traits\JSArrayMethods;
 
 /**
@@ -17,6 +17,7 @@ use NGSOFT\Tools\Traits\JSArrayMethods;
 class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
 
     use JSArrayMethods;
+    use ArrayAccessTrait;
 
     /** {@inheritdoc} */
     protected function loadArray(array $array) {
@@ -24,37 +25,6 @@ class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
     }
 
     ////////////////////////////   ArrayAccess ...   ////////////////////////////
-
-    /** {@inheritdoc} */
-    public function offsetExists($offset) {
-        return array_key_exists($offset, $this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function offsetGet($offset) {
-        return $this->storage[$offset] ?? null;
-    }
-
-    /** {@inheritdoc} */
-    public function offsetSet($offset, $value) {
-        if ($offset === null) $this->storage[] = $value;
-        else $this->storage[$offset] = $value;
-    }
-
-    /** {@inheritdoc} */
-    public function offsetUnset($offset) {
-        unset($this->storage[$offset]);
-    }
-
-    /** {@inheritdoc} */
-    public function count(): int {
-        return count($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator() {
-        return new ArrayIterator($this->storage);
-    }
 
     /** {@inheritdoc} */
     public function serialize() {
