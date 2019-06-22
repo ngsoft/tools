@@ -2,9 +2,14 @@
 
 namespace NGSOFT\Tools\Interfaces;
 
+use ArrayAccess;
+use BadMethodCallException;
+use Countable;
+use JsonSerializable;
+use Serializable;
 use Traversable;
 
-interface JSArrayInterface extends Traversable {
+interface JSArrayInterface extends Traversable, ArrayAccess, Serializable, Countable, JsonSerializable {
 
     /**
      * Export to an array
@@ -20,7 +25,7 @@ interface JSArrayInterface extends Traversable {
      * @param int $num Number of items to replace
      * @param int $start Start index, defaults to 0
      * @return static
-     * @throws \BadMethodCallException if array has no numerical indexes
+     * @throws BadMethodCallException if array has no numerical indexes
      */
     public function fill($value, int $num, int $start = 0);
 
@@ -35,7 +40,7 @@ interface JSArrayInterface extends Traversable {
      * The flatMap() method first maps each element using a mapping function, then flattens the result into a new array.
      * @param callable $callback
      * @return static
-     * @throws \BadMethodCallException if array has no numerical indexes
+     * @throws BadMethodCallException if array has no numerical indexes
      */
     public function flatMap(callable $callback);
 
@@ -44,7 +49,7 @@ interface JSArrayInterface extends Traversable {
      * @param int $start
      * @param ?int $length
      * @return static
-     * @throws \BadMethodCallException if array has no numerical indexes
+     * @throws BadMethodCallException if array has no numerical indexes
      */
     public function slice(int $start = 0, int $length = null);
 
@@ -53,7 +58,7 @@ interface JSArrayInterface extends Traversable {
      * @param int $start
      * @param mixed ...$args if first arg is int it will be used as $length
      * @return static
-     * @throws \BadMethodCallException if array has no numerical indexes
+     * @throws BadMethodCallException if array has no numerical indexes
      */
     public function splice(int $start, ...$args);
 
