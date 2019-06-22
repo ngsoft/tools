@@ -2,26 +2,85 @@
 
 namespace NGSOFT\Tools;
 
+////////////////////////////   File Operations   ////////////////////////////
+
+/**
+ * Wrap include_once outside of the global scope
+ * @param string $file File to include
+ * @param array<string, mixed> $data Variables to export
+ * @return mixed
+ */
+function includeOnce(string $file, array $data = []) {
+    extract($data);
+    return is_file($file) ? include_once $file : false;
+}
+
+/**
+ * Wrap include_once outside of the global scope
+ * @param string $path
+ * @param array<string,mixed> $data Packed data
+ * @return mixed
+ */
+function includeFile(string $path, array $data = []) {
+    extract($data);
+    return is_file($path) ? include $path : false;
+}
+
+/**
+ * Loads all .php files found recursively
+ * @param string $path
+ * @return void
+ */
+function autoloadDir(string $path): void {
+
+    if (is_dir($path)) {
+        foreach (scandir($path) as $file) {
+            if ($file[0] === ".") continue;
+            autoloadDir($path . DIRECTORY_SEPARATOR . $file);
+        }
+    } else if (is_file($path) and endsWith($path, '.php')) includeOnce($path);
+}
+
 /**
  * Recursively remove directory
  * @param string $src
  * @return bool
  */
 function rrmdir(string $src): bool {
+    if (!is_dir($src)) return false;
     $dir = opendir($src);
     while (false !== ( $file = readdir($dir))) {
-        if (( $file != '.' ) && ( $file != '..' )) {
-            $full = $src . '/' . $file;
-            if (is_dir($full)) {
-                rrmdir($full);
-            } else {
-                unlink($full);
-            }
-        }
+        if ($file[0] === ".") continue;
+        $path = $src . DIRECTORY_SEPARATOR . $file;
+        is_dir($path) ? rrmdir($path) : unlink($path);
     }
     closedir($dir);
     return rmdir($src);
 }
+
+////////////////////////////   OOP   ////////////////////////////
+
+/**
+ * Find ClassList extending or implementing a parent Class
+ * @param string $parentClass An Interface or an extended class
+ * @return array<int, string> A list of class extending or implementing given class that are not abstract, traits, or interfaces
+ */
+function findClassesImplementing(string $parentClass): array {
+    $result = [];
+    if (
+            (class_exists($parentClass) or interface_exists($parentClass))
+            and $classList = array_reverse(get_declared_classes())
+    ) {
+        foreach ($classList as $class) {
+            $reflect = new ReflectionClass($class);
+            if ($reflect->isAbstract() or $reflect->isTrait() or $reflect->isInterface()) continue;
+            if ($reflect->isSubclassOf($parentClass)) $result[] = $class;
+        }
+    }
+    return $result;
+}
+
+////////////////////////////   Arrays   ////////////////////////////
 
 /**
  * Tests if all elements in the array pass the test implemented by the provided function.
@@ -67,6 +126,8 @@ function array_flatten(array $array, int $depth = 1) {
     return $result;
 }
 
+////////////////////////////   Strings   ////////////////////////////
+
 /**
  * Checks if haystack begins with needle
  * @link https://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
@@ -87,4 +148,24 @@ function startsWith(string $haystack, string $needle): bool {
  */
 function endsWith(string $haystack, string $needle): bool {
     return substr_compare($haystack, $needle, -strlen($needle)) === 0;
+}
+
+/**
+ * Convert CamelCased to camel_cased
+ * @param string $camelCased
+ * @return string
+ */
+function toSnake(string $camelCased): string {
+    return strtolower(preg_replace('/[A-Z]/', '_\\0', lcfirst($camelCased)));
+}
+
+/**
+ * Convert snake_case to SnakeCase
+ * @param string $snake_case
+ * @return string
+ */
+function toCamelCase(string $snake_case): string {
+    return preg_replace_callback('/(^|_|\.)+(.)/', function ($match) {
+        return ('.' === $match[1] ? '_' : '') . strtoupper($match[2]);
+    }, $snake_case);
 }
