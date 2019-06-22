@@ -28,8 +28,9 @@ class BasicCacheItem implements CacheItemInterface {
 
     /**
      * @param string $key
-     * @param bool $hit
      * @param int $ttl
+     * @param bool $hit
+     * @param int $expire
      * @param mixed $value
      */
     public function __construct(string $key, int $ttl, bool $hit, int $expire, $value) {
@@ -57,11 +58,10 @@ class BasicCacheItem implements CacheItemInterface {
      * {@inheritdoc}
      */
     public function expiresAt($expire) {
-        if ($expire === null) $this->meta->setExpire($this->meta->getPool()->getTTL() + time());
+        if ($expire === null) $this->expiresAfter($this->ttl);
         else {
             assert($expire instanceof DateTimeInterface);
             $this->expire = $expire;
-            $this->meta->setExpire($expire->getTimestamp());
         }
         return $this;
     }
