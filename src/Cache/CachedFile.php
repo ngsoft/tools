@@ -19,7 +19,7 @@ class CachedFile extends SplFileInfo {
         $meta = [
             "type" => gettype($contents),
             "class" => null,
-            "contents" => "null"
+            "contents" => null
         ];
         if (in_array($meta["type"], ["unknown type", "resource", "resource (closed)"])) return false;
         if ($meta["type"] === "object") {

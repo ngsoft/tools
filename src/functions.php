@@ -30,7 +30,7 @@ function rrmdir(string $src): bool {
  * @return bool
  */
 function array_every(callable $callback, array $array): bool {
-    $newarr = array_filter($array, $callback);
+    $newarr = array_filter($array, $callback, ARRAY_FILTER_USE_BOTH);
     return empty(array_diff_key($array, $newarr));
 }
 
