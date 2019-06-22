@@ -100,7 +100,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @param string $key
      * @return BasicCacheItem
      */
-    abstract protected function loadCache(string $key): BasicCacheItem;
+    abstract protected function readCache(string $key): BasicCacheItem;
 
     /**
      * Commits the specified cache item to storage.

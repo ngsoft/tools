@@ -110,7 +110,7 @@ class BasicCacheItem implements CacheItemInterface {
      *
      * @internal
      */
-    public function getExpiration() {
+    public function getExpireAt() {
         return $this->expire;
     }
 

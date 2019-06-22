@@ -2,7 +2,10 @@
 
 namespace NGSOFT\Tools\Cache\OPCache;
 
+use NGSOFT\Tools\Cache\BasicCacheItem;
 use NGSOFT\Tools\Cache\BasicCachePool;
+use NGSOFT\Tools\Exceptions\BasicCacheException;
+use function NGSOFT\Tools\endsWith;
 
 /**
  * Uses PHP OPCode to store data
@@ -50,28 +53,50 @@ class OPCachePool extends BasicCachePool {
         foreach ($meta as $key => $expire) {
             if ($ct > $expire) $this->deleteCache($key);
         }
+        $this->metaCache->save($this->meta);
+    }
+
+    private function getFileName(string $key): string {
+        return sprintf('%s/%s%s', $this->path, md5($key), $this->ext);
     }
 
     ////////////////////////////   OPCache Methods   ////////////////////////////
 
+    /** {@inheritdoc} */
     protected function clearCache(): bool {
-
+        $success = true;
+        foreach (scandir($this->path) as $file) {
+            if (endsWith($this->ext, $file)) {
+                if (@unlink($this->path . DIRECTORY_SEPARATOR . $file) !== true) $success = false;
+            }
+        }
+        $this->meta = [];
+        return $success;
     }
 
-    protected function deleteCache($keys): bool {
-
+    /** {@inheritdoc} */
+    protected function deleteCache(string $key): bool {
+        $fn = $this->getFileName($key);
+        if (!file_exists($fn)) return true;
+        unset($this->meta[$key]);
+        return @unlink($fn);
     }
 
+    /** {@inheritdoc} */
     protected function hasCache(string $key): bool {
+        $filename = $this->getFileName($key);
+        $expire = $this->meta[$key] ?? 0;
+        return file_exists($filename) && $expire > time();
+    }
+
+    /** {@inheritdoc} */
+    protected function writeCache(BasicCacheItem $item): bool {
 
     }
 
-    protected function loadCache(string $key): \NGSOFT\Tools\Cache\BasicCacheItem {
+    protected function readCache(string $key): BasicCacheItem {
 
-    }
-
-    protected function writeCache(\NGSOFT\Tools\Cache\BasicCacheItem $item): bool {
-
+        if (!$this->hasCache($key)) return $this->createEmptyItem($key);
     }
 
 }
