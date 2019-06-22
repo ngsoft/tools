@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
+use DateTime;
 use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
 use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
 use Psr\Cache\CacheItemInterface;
@@ -74,7 +75,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
         }
     }
 
-    ////////////////////////////   CacheMeta   ////////////////////////////
+    ////////////////////////////   Empty Item   ////////////////////////////
 
     /**
      * Creates a empty item
@@ -82,7 +83,8 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @return CacheMeta
      */
     protected function createEmptyItem(string $key): BasicCacheItem {
-        return new BasicCacheItem($key, $this->ttl, false, null);
+        $expire = new DateTime(sprintf('now +%d seconds', $this->ttl));
+        return new BasicCacheItem($key, $expire, false, null);
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
@@ -239,11 +241,8 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function commit() {
-        $items = [];
-        foreach ($this->loaded as $item) {
-            if ($this->deferred->contains($item)) $items[] = $item;
-        }
-        if ($success = $this->writeCache($items)) $this->deferred = new \SplObjectStorage();
+        $success = array_every([$this, "save"], $this->deferred);
+        $this->deferred = [];
         return $success;
     }
 
@@ -251,7 +250,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function saveDeferred(CacheItemInterface $item) {
-        $this->deferred->attach($item);
+        $this->deferred[] = $item;
     }
 
 }

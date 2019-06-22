@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
+use DateInterval;
 use DateTime;
-use Illuminate\Support\Contracts\ArrayableInterface;
+use DateTimeInterface;
 use Psr\Cache\CacheItemInterface;
 
 class BasicCacheItem implements CacheItemInterface {
@@ -36,11 +37,11 @@ class BasicCacheItem implements CacheItemInterface {
      * @param int $ttl
      * @param mixed $value
      */
-    public function __construct(string $key, bool $hit, int $ttl, $value) {
+    public function __construct(string $key, bool $hit, int $expire, $value) {
         $this->key = $key;
         $this->hit = $hit;
         $this->value = $value;
-        $this->expiresAfter($ttl);
+        $this->expiresAt($expire);
     }
 
     /**
@@ -50,7 +51,7 @@ class BasicCacheItem implements CacheItemInterface {
 
         if (is_numeric($time)) $this->expiresAt(DateTime(sprintf("now +%d seconds", (int) $time)));
         else {
-            assert($time instanceof \DateInterval);
+            assert($time instanceof DateInterval);
             $this->expiresAt((new \DateTime())->add($time));
         }
         return $this;
@@ -62,7 +63,7 @@ class BasicCacheItem implements CacheItemInterface {
     public function expiresAt($expire) {
         if ($expire === null) $this->meta->setExpire($this->meta->getPool()->getTTL() + time());
         else {
-            assert($expire instanceof \DateTimeInterface);
+            assert($expire instanceof DateTimeInterface);
             $this->expire = $expire;
             $this->meta->setExpire($expire->getTimestamp());
         }

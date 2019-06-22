@@ -4,10 +4,8 @@ namespace NGSOFT\Tools\Cache\OPCache;
 
 use NGSOFT\Tools\Cache\BasicCachePool;
 use NGSOFT\Tools\Exceptions\BasicCacheException;
-use Psr\Cache\CacheItemInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
-use function NGSOFT\Tools\rrmdir;
 
 /**
  * Uses PHP OPCode to store data
@@ -20,11 +18,8 @@ class OPCachePool extends BasicCachePool {
     /** @var CacheMap */
     private $map;
 
-    /** @var CachedFile  */
-    private $mapFile;
-
     /** @var string */
-    private $ext = ".opcache";
+    private $ext = ".opcache.php";
 
     /**  @return string */
     public function getPath(): string {

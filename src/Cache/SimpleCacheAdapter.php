@@ -2,8 +2,7 @@
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\Exceptions\PSRCacheInvalidKey;
-use NGSOFT\Tools\Objects\Collection;
+use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Throwable;
@@ -12,14 +11,12 @@ use Throwable;
  * PSR6 to PSR16 Simple Cache Adapter
  */
 class SimpleCacheAdapter implements CacheInterface {
-
     ////////////////////////////   Inject PSR6   ////////////////////////////
 
+    /** @var CacheItemPoolInterface */
     private $pool;
 
-    /**
-     * @return CacheItemPoolInterface
-     */
+    /** @return CacheItemPoolInterface */
     public function getPool(): CacheItemPoolInterface {
         return $this->pool;
     }
@@ -64,7 +61,7 @@ class SimpleCacheAdapter implements CacheInterface {
         try {
             return $this->pool->deleteItem($key);
         } catch (Throwable $ex) {
-            throw new PSRCacheInvalidKey($ex->getMessage());
+            throw new BasicCacheInvalidKey($ex->getMessage());
         }
     }
 
@@ -75,7 +72,7 @@ class SimpleCacheAdapter implements CacheInterface {
         try {
             return $this->pool->deleteItems($keys);
         } catch (Throwable $ex) {
-            throw new PSRCacheInvalidKey($ex->getMessage());
+            throw new BasicCacheInvalidKey($ex->getMessage());
         }
     }
 
@@ -88,7 +85,7 @@ class SimpleCacheAdapter implements CacheInterface {
             if (!$item->isHit()) return $default;
             return $item->get();
         } catch (Throwable $ex) {
-            throw new PSRCacheInvalidKey($ex->getMessage());
+            throw new BasicCacheInvalidKey($ex->getMessage());
         }
     }
 
@@ -110,7 +107,7 @@ class SimpleCacheAdapter implements CacheInterface {
         try {
             return $this->pool->hasItem($key);
         } catch (Throwable $ex) {
-            throw new PSRCacheInvalidKey($ex->getMessage());
+            throw new BasicCacheInvalidKey($ex->getMessage());
         }
     }
 
@@ -125,7 +122,7 @@ class SimpleCacheAdapter implements CacheInterface {
                     ->expiresAfter($ttl ?? $this->ttl);
             return $this->pool->save($item);
         } catch (Throwable $ex) {
-            throw new PSRCacheInvalidKey($ex->getMessage());
+            throw new BasicCacheInvalidKey($ex->getMessage());
         }
     }
 
