@@ -247,6 +247,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function saveDeferred(CacheItemInterface $item) {
         $this->deferred[] = $item;
+        return true;
     }
 
 }

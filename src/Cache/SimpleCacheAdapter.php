@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
@@ -67,6 +69,7 @@ class SimpleCacheAdapter implements CacheInterface {
 
     /**
      * {@inheritdoc}
+     * @param array<string> $keys
      */
     public function deleteMultiple($keys) {
         try {

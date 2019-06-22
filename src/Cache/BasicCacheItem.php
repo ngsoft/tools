@@ -37,7 +37,7 @@ class BasicCacheItem implements CacheItemInterface {
         $this->hit = $hit;
         $this->value = $value;
         $this->ttl = $ttl;
-        $this->expiresAt($ttl);
+        $this->expiresAfter($ttl);
     }
 
     /**

@@ -20,15 +20,12 @@
         "psr/log": "*",
         "psr/cache": "*",
         "psr/simple-cache": "*",
-        "fig/cache-util": "*",
 
         "symfony/polyfill-mbstring": "*",
         "kdyby/parse-use-statements": "*",
 
         "psr/container": "*",
-        "php-di/php-di": "*",
-
-        "illuminate/support": "^4"
+        "php-di/php-di": "*"
     },
     "autoload": {
         "psr-4": {
