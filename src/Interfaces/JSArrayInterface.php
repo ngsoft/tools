@@ -135,9 +135,9 @@ interface JSArrayInterface extends Traversable {
 
     /**
      * The entries() method returns a new Array Iterator object that contains the key/value pairs for each index in the array.
-     * @return Traversable
+     * @return iterable
      */
-    public function entries(): Traversable;
+    public function entries(): iterable;
 
     /**
      * The every() method tests whether all elements in the array pass the test implemented by the provided function. It returns a Boolean value.

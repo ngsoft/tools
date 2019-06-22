@@ -10,7 +10,7 @@ interface CacheAble {
     /**
      * Cache will call that method whenever the data is retrieved
      * @param array $data data to inject into the class
-     * @return self instance of the CacheAble object
+     * @return static instance of the CacheAble object
      */
     public static function createFromArray(array $data): self;
 
