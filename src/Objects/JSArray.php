@@ -144,10 +144,10 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
 
     /**
      * Sort the entries by keys using a user-defined comparison function
-     * @param type $callback
+     * @param callable $callback
      * @return void
      */
-    public function uksort($callback): void {
+    public function uksort(callable $callback): void {
         uksort($this->storage, $callback);
     }
 
@@ -309,7 +309,7 @@ class JSArray implements IteratorAggregate, ArrayAccess, Serializable, Countable
 
     /** {@inheritdoc} */
     public function lastIndexOf($value) {
-        $rev = array_reverse($array, true);
+        $rev = array_reverse($this->storage, true);
         return array_search($value, $rev, true);
     }
 
