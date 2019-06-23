@@ -55,9 +55,38 @@ class BasicCurlRequest {
     ////////////////////////////   Builder   ////////////////////////////
 
     /**
+     * Add Json data to post
+     * @link https://lornajane.net/posts/2011/posting-json-data-with-php-curl
+     * @param string $json
+     * @return static
+     */
+    public function postJson(string $json) {
+        $this;
+        return $this->addHeaders([
+                    "Content-Type" => "application/json",
+                    "Content-Lengt" => strlen($json)
+                ])->addOpts([
+                    CURLOPT_CUSTOMREQUEST => "POST",
+                    CURLOPT_POSTFIELDS => $json
+        ]);
+    }
+
+    /**
+     * Post data as key value pairs
+     * @param array $data
+     * @return static
+     */
+    public function postData(array $data) {
+        return $this->addOpts([
+                    CURLOPT_POSTREDIR => CURL_REDIR_POST_ALL,
+                    CURLOPT_POSTFIELDS => http_build_query($data)
+        ]);
+    }
+
+    /**
      * Set a cookie location for that request
      * @param string $cookieFile File where will be stored the cookies
-     * @return $this
+     * @return static
      * @throws InvalidArgumentException
      */
     public function setCookieFile(string $cookieFile) {
