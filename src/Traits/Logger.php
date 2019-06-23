@@ -20,7 +20,7 @@ trait Logger {
      * @param array $context
      * @return void
      */
-    public function log(string $message, $level = LogLevel::DEBUG, array $context = []): void {
+    public function log(string $message, $level = LogLevel::DEBUG, array $context = []) {
         $this->logger->log($level, $message, $context);
     }
 

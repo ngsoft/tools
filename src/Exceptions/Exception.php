@@ -12,9 +12,6 @@ class Exception extends Exception implements LogWriterInterface {
     use LoggerAwareTrait,
         Logger;
 
-    /** PSR Log Levels */
-    const LOGLEVELS = [];
-
     public function getLog() {
 
         return [

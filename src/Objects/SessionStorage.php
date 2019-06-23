@@ -2,7 +2,6 @@
 
 namespace NGSOFT\Tools\Objects;
 
-use ArrayIterator;
 use IteratorAggregate;
 use NGSOFT\Tools\Interfaces\Storage;
 use NGSOFT\Tools\Traits\ArrayAccessTrait;
