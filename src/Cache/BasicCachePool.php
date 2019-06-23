@@ -5,23 +5,21 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
-use NGSOFT\Tools\Interfaces\LogWriterInterface;
-use NGSOFT\Tools\Traits\Logger;
+use NGSOFT\Tools\Interfaces\ExceptionInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
-use Throwable;
 use function NGSOFT\Tools\array_every;
 
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
  */
-abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LogWriterInterface {
+abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LoggerAwareInterface {
 
-    use LoggerAwareTrait,
-        Logger;
+    use LoggerAwareTrait;
 
     /** @var array */
     protected $deferred = [];
@@ -160,9 +158,9 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
                 throw new BasicCacheInvalidKey('Can\'t validate the specified key');
             }
             return true;
-        } catch (Throwable $exc) {
+        } catch (ExceptionInterface $exc) {
             //log the message
-            $this->log($exc->getMessage());
+            if ($this->logger) $exc->logMessage($this->logger);
             throw $exc;
         }
     }
