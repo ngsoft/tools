@@ -2,8 +2,8 @@
 
 namespace NGSOFT\Tools\Reflection;
 
-use Exception;
 use Kdyby\ParseUseStatements\UseStatements;
+use NGSOFT\Tools\Exceptions\Exception;
 use NGSOFT\Tools\Interfaces\LogWriterInterface;
 use NGSOFT\Tools\Traits\Logger;
 use Psr\Log\LoggerAwareTrait;
