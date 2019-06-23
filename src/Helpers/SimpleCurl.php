@@ -8,7 +8,7 @@ use NGSOFT\Tools\Interfaces\CacheAble;
 
 if (!function_exists('curl_init')) {
 
-    throw new
+    throw new Exception();
 }
 
 class SimpleCurl {

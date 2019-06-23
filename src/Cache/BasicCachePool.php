@@ -125,16 +125,6 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     abstract protected function hasCache(string $key): bool;
 
 
-    ////////////////////////////   LoggerInterface   ////////////////////////////
-
-    /**
-     * Checks if logger is defined and logs a debug message
-     * @param string $message
-     */
-    public function log(string $message) {
-        if (isset($this->logger)) $this->logger->debug($message);
-    }
-
     ////////////////////////////   CacheItemPool   ////////////////////////////
 
     /**
