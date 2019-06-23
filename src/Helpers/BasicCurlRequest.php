@@ -6,7 +6,7 @@ namespace NGSOFT\Tools\Helpers;
 
 use NGSOFT\Tools\Exceptions\InvalidArgumentException;
 use NGSOFT\Tools\Exceptions\RuntimeException;
-use stdClass;
+use NGSOFT\Tools\Interfaces\CurlHelper;
 use function NGSOFT\Tools\validUrl;
 
 if (!function_exists('curl_init')) {
@@ -17,7 +17,7 @@ if (!function_exists('curl_init')) {
 /**
  * @phan-file-suppress PhanUnusedClosureParameter
  */
-class BasicCurlRequest {
+class BasicCurlRequest implements CurlHelper {
 
     /** where to get certs */
     const CACERT_SRC = 'https://curl.haxx.se/ca/cacert.pem';
@@ -262,10 +262,10 @@ class BasicCurlRequest {
      * Execute curl request
      * @param resource $ch
      * @param string|null $url
-     * @return stdClass
+     * @return BasicCurlResponse
      * @throws InvalidArgumentException
      */
-    protected function curlExec($ch, string $url = null): stdClass {
+    protected function curlExec($ch, string $url = null): BasicCurlResponse {
         if ($url = $url ?? curl_getinfo($ch)["url"]) {
             //check if valid url
             if (!$this->validateUrl($url)) throw new InvalidArgumentException("Url is not valid.");
@@ -287,17 +287,9 @@ class BasicCurlRequest {
                 return $len;
             };
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, $getheaders);
-            $data = curl_exec($ch);
-            $return = (object) [
-                        "error" => curl_error($ch),
-                        "errno" => curl_errno($ch),
-                        "info" => (object) curl_getinfo($ch),
-                        "request_headers" => explode("\n", trim(curl_getinfo($ch, CURLINFO_HEADER_OUT))),
-                        "response_headers" => $headers,
-                        "data" => $data
-            ];
-            curl_close($ch);
-            return $return;
+            curl_setopt($ch, CURLOPT_FILE, ($file = fopen("php://temp", "r+")));
+            curl_exec($ch);
+            return new BasicCurlResponse($ch, $headers, $file);
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
     }
