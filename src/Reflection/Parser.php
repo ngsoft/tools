@@ -4,8 +4,8 @@ namespace NGSOFT\Tools\Reflection;
 
 use Exception;
 use Kdyby\ParseUseStatements\UseStatements;
-use NGSOFT\Tools\Traits\LoggerWriter;
-use Psr\Log\LoggerAwareInterface;
+use NGSOFT\Tools\Interfaces\LogWriterInterface;
+use NGSOFT\Tools\Traits\Logger;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -16,10 +16,10 @@ use ReflectionObject;
 use ReflectionProperty;
 use Throwable;
 
-class Parser implements LoggerAwareInterface {
+class Parser implements LogWriterInterface {
 
     use LoggerAwareTrait;
-    use LoggerWriter;
+    use Logger;
 
     static public $METHODS_PARSE_ALL = [
         "getProperties",

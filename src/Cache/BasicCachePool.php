@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
+use NGSOFT\Tools\Interfaces\LogWriterInterface;
+use NGSOFT\Tools\Traits\Logger;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -17,9 +18,10 @@ use function NGSOFT\Tools\array_every;
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
  */
-abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LoggerAwareInterface {
+abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LogWriterInterface {
 
-    use LoggerAwareTrait;
+    use LoggerAwareTrait,
+        Logger;
 
     /** @var array */
     protected $deferred = [];
