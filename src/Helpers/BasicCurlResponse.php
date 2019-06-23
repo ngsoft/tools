@@ -64,18 +64,12 @@ class BasicCurlResponse implements ArrayAccess {
             "request" => $reqh,
             "response" => $resph
         ];
-
-
-        print_r($this->storage);
-
         curl_close($ch);
-
-        exit;
     }
 
     /** {@inheritdoc} */
     public function __destruct() {
-        //fclose($this->stream);
+        fclose($this->stream);
     }
 
     /**
