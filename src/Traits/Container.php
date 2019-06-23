@@ -16,7 +16,7 @@ trait Container {
      * @param string $key
      * @return mixed
      */
-    protected function get(string $key) {
+    protected function getItem(string $key) {
         return isset($this->container) ? $this->container->get($key) : null;
     }
 
@@ -25,7 +25,7 @@ trait Container {
      * @param string $key
      * @return bool
      */
-    protected function has(string $key): bool {
+    protected function hasItem(string $key): bool {
         return isset($this->container) ? $this->container->has($key) : false;
     }
 
