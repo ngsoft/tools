@@ -6,6 +6,9 @@ namespace NGSOFT\Tools\Interfaces;
 
 use Psr\Container\ContainerInterface;
 
+/**
+ * Used for Autowiring
+ */
 interface ContainerAware {
 
     /**
