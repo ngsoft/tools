@@ -49,10 +49,36 @@ class BasicCurlRequest {
     /** @var array */
     private $opts = [];
 
+    ////////////////////////////   Builder   ////////////////////////////
+
+    /**
+     * Add a single header to the stack
+     * @param string $key
+     * @param string $value
+     * @return static
+     */
+    public function addHeader(string $key, string $value) {
+        $this->headers[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Add multiple headers to the stack
+     * @param array<string,string> $keyValuePair
+     * @return static
+     */
+    public function addHeaders(array $keyValuePair) {
+        foreach ($keyValuePair as $k => $v) {
+
+            $this->addHeader($k, $v);
+        }
+        return $this;
+    }
+
     /**
      * Add an option to curl
-     * @param int $curlopt
-     * @param type $value
+     * @param int $curlopt CURLOPT_...
+     * @param mixed $value
      * @return static
      */
     public function addOpt(int $curlopt, $value) {
@@ -64,17 +90,20 @@ class BasicCurlRequest {
      * Add Multiples options to curl
      * @param array $options
      * @return $this
-     * @throws InvalidArgumentException
      */
     public function addOpts(array $options) {
         foreach ($options as $k => $v) {
-            if (!is_int($k)) throw new InvalidArgumentException("Cannot set option for curl, invalid key.");
             $this->addOpt($k, $v);
         }
-
         return $this;
     }
 
+    ////////////////////////////   Utils   ////////////////////////////
+
+    /**
+     * Encode key value pairs to a valid curl input
+     * @return array
+     */
     protected function makeHeaders(): array {
         $lines = [];
         foreach ($this->headers as $k => $v) {
@@ -137,7 +166,7 @@ class BasicCurlRequest {
             };
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, $getheaders);
             $data = curl_exec($ch);
-            return (object) [
+            $return = (object) [
                         "error" => curl_error($ch),
                         "errno" => curl_errno($ch),
                         "info" => (object) curl_getinfo($ch),
@@ -145,6 +174,8 @@ class BasicCurlRequest {
                         "response_headers" => $headers,
                         "data" => $data
             ];
+            //? curl_close($ch);
+            return $return;
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
     }
@@ -177,7 +208,12 @@ class BasicCurlRequest {
         return $path;
     }
 
-    protected function validateUrl(string $url) {
+    /**
+     * Checks if URL is valid
+     * @param string $url
+     * @return bool
+     */
+    protected function validateUrl(string $url): bool {
         return validUrl($url);
     }
 
