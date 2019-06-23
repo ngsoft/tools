@@ -35,13 +35,13 @@ class BasicCurlRequest {
     const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0";
 
     /** @var string */
-    private $userAgent = static::DEFAULT_USER_AGENT;
+    private $userAgent = self::DEFAULT_USER_AGENT;
 
     /** @var int */
     private $timeout = 15;
 
     /** @var array<string,string> */
-    private $headers;
+    private $headers = [];
 
     /**
      * Where to store the certs (folder)
@@ -69,6 +69,24 @@ class BasicCurlRequest {
     }
 
     ////////////////////////////   Builder   ////////////////////////////
+
+    /**
+     * Set the proxy for the request
+     * @param string $protocol
+     * @param string $host
+     * @param int $port
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public function setProxy(string $protocol, string $host, int $port) {
+        if (!in_array($protocol, ['http', 'https', 'socks4', 'socks5'])) {
+            throw new InvalidArgumentException("Invalid protocol $protocol for proxy");
+        }
+        return $this->addOpts([
+                    CURLOPT_HTTPPROXYTUNNEL => 0,
+                    CURLOPT_PROXY => sprintf("%s://%s:%d", $protocol, $host, $port)
+        ]);
+    }
 
     /**
      * Add Json data to post
