@@ -49,7 +49,59 @@ class BasicCurlRequest {
     /** @var array */
     private $opts = [];
 
+    /** @var string */
+    private $cookieFile = "";
+
     ////////////////////////////   Builder   ////////////////////////////
+
+    /**
+     * Set a cookie location for that request
+     * @param string $cookieFile File where will be stored the cookies
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function setCookieFile(string $cookieFile) {
+        $dirname = dirname($cookieFile);
+        if (!is_dir($dirname) or ! is_writable($dirname)) {
+            throw new InvalidArgumentException("$dirname for cookie file does not exists or is not writable.");
+        }
+        $this->cookieFile = $cookieFile;
+        return $this;
+    }
+
+    /**
+     * Set User Agen for the Request
+     * @param string $userAgent
+     * @return static
+     */
+    public function setUserAgent(string $userAgent) {
+        $this->userAgent = $userAgent;
+        return $this;
+    }
+
+    /**
+     * Set Request and Connection timeout for the request
+     * @param type $timeout
+     * @return static
+     */
+    public function setTimeout(int $timeout) {
+        $this->timeout = $timeout;
+        return $this;
+    }
+
+    /**
+     * Set the Certifications download folder
+     * @param string $certlocation
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public function setCertlocation(string $certlocation) {
+        if (!is_dir($certlocation) or ! is_writable($certlocation)) {
+            throw new InvalidArgumentException("$certlocation is not an existing directory or is not writable.");
+        }
+        $this->certlocation = $certlocation;
+        return $this;
+    }
 
     /**
      * Add a single header to the stack
@@ -126,6 +178,13 @@ class BasicCurlRequest {
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_USERAGENT => $this->userAgent
         ]);
+        //enables cookies r/w
+        if (!empty($this->cookieFile)) {
+            curl_setopt_array($ch, [
+                CURLOPT_COOKIEFILE => $this->cookieFile,
+                CURLOPT_COOKIEJAR => $this->cookieFile
+            ]);
+        }
         //curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         if ($capath = $this->getCA())
                 curl_setopt_array($ch, [
