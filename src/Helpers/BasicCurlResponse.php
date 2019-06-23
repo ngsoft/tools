@@ -90,8 +90,11 @@ class BasicCurlResponse implements ArrayAccess {
      * @return string
      */
     public function getContents(): string {
-        rewind($this->stream);
-        $contents = stream_get_contents($this->steam);
+        if (is_resource($this->stream)) {
+            var_dump($this->stream);
+            $contents = stream_get_contents($this->stream);
+        }
+
         return $contents ?? "";
     }
 

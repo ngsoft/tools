@@ -226,5 +226,5 @@ function match(string $pattern, string $subject, bool $global = false): array {
  * @return bool
  */
 function validUrl(string $url, bool $webonly = false) {
-    return preg_match($webonly === true ? weburl : localurl, $url, $matches) > 0;
+    return preg_match($webonly === true ? weburl : localurl, $url) > 0;
 }

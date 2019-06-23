@@ -287,9 +287,9 @@ class BasicCurlRequest implements CurlHelper {
                 return $len;
             };
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, $getheaders);
-            curl_setopt($ch, CURLOPT_FILE, ($file = fopen("php://temp", "r+")));
+            if (!isset($this->opts[CURLOPT_FILE])) curl_setopt($ch, CURLOPT_FILE, ($file = fopen("php://temp", "r+")));
             curl_exec($ch);
-            return new BasicCurlResponse($ch, $headers, $file);
+            return new BasicCurlResponse($ch, $headers, $file ?? null);
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
     }
@@ -305,18 +305,24 @@ class BasicCurlRequest implements CurlHelper {
             $file = sprintf("%s/%s", $this->certlocation, basename(self::CACERT_SRC));
             if (!is_file($file)) {
 
-                if ($fileh = fopen($file, 'w')) {
+                if (id_dir(dirname($file)) and $fileh = fopen($file, 'w')) {
                     $ch = curl_init();
                     $this->curl_setopt_array($ch, [
-                        CURLOPT_ENCODING => 'gzip,deflate',
+                        CURLOPT_RETURNTRANSFER => 1,
+                        CURLOPT_ENCODING => "gzip,deflate",
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_AUTOREFERER => true,
+                        CURLINFO_HEADER_OUT => true,
                         CURLOPT_URL => static::CACERT_SRC,
                         CURLOPT_SSL_VERIFYPEER => false,
                         CURLOPT_FILE => $fileh
                     ]);
-                    $response = $this->curlexec($ch);
+                    $response = curl_exec($ch);
+                    $error = curl_error($ch);
                     fclose($fileh);
                     curl_close($ch);
-                    return $response->error ? null : $path = realpath($file);
+                    if ($error) @unlink($file);
+                    return $error ? null : $path = realpath($file);
                 }
             } else $path = $file;
         }
