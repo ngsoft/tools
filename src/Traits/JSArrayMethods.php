@@ -13,7 +13,9 @@ trait JSArrayMethods {
     /** @var array */
     protected $storage;
 
-    /** @param iterable $input */
+    /**
+     * @param iterable $input
+     */
     public function __construct(iterable $input = []) {
         $this->loadArray((array) $input);
     }
@@ -88,7 +90,9 @@ trait JSArrayMethods {
 
     ////////////////////////////   Static   ////////////////////////////
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     */
     public static function From($value, callable $mapFn = null) {
         assert(is_iterable($value));
         $array = (array) $value;
@@ -106,7 +110,9 @@ trait JSArrayMethods {
         return is_iterable($value);
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     */
     public static function of(...$values) {
         return new static($values);
     }

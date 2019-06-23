@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Helpers;
 
+use NGSOFT\Tools\Exceptions\InvalidArgumentException;
+use NGSOFT\Tools\Exceptions\RuntimeException;
 use stdClass;
-use UI\Exception\InvalidArgumentException;
-use UI\Exception\RuntimeException;
 use function NGSOFT\Tools\validUrl;
 
 if (!function_exists('curl_init')) {
@@ -14,6 +14,9 @@ if (!function_exists('curl_init')) {
     throw new RuntimeException("Curl Extension not loaded.");
 }
 
+/**
+ * @phan-file-suppress PhanUnusedClosureParameter
+ */
 class BasicCurlRequest {
 
     /** where to get certs */
@@ -52,6 +55,19 @@ class BasicCurlRequest {
     /** @var string */
     private $cookieFile = "";
 
+    ////////////////////////////   Send The Request   ////////////////////////////
+
+    /**
+     * Fetch the given url, retunrs if a handler is specified handler return, else a data object
+     * @param string $url
+     * @param callable|null $handler
+     * @return mixed
+     */
+    public function fetch(string $url, callable $handler = null) {
+        $data = $this->curlExec($this->curlinit(), $url);
+        return is_callable($handler) ? $handler($data) : $data;
+    }
+
     ////////////////////////////   Builder   ////////////////////////////
 
     /**
@@ -61,10 +77,9 @@ class BasicCurlRequest {
      * @return static
      */
     public function postJson(string $json) {
-        $this;
         return $this->addHeaders([
                     "Content-Type" => "application/json",
-                    "Content-Lengt" => strlen($json)
+                    "Content-Length" => (string) strlen($json)
                 ])->addOpts([
                     CURLOPT_CUSTOMREQUEST => "POST",
                     CURLOPT_POSTFIELDS => $json
@@ -110,7 +125,7 @@ class BasicCurlRequest {
 
     /**
      * Set Request and Connection timeout for the request
-     * @param type $timeout
+     * @param int $timeout
      * @return static
      */
     public function setTimeout(int $timeout) {
@@ -188,7 +203,7 @@ class BasicCurlRequest {
     protected function makeHeaders(): array {
         $lines = [];
         foreach ($this->headers as $k => $v) {
-            $lines[] = sprintf('%s: %s');
+            $lines[] = sprintf('%s: %s', $k, $v);
         }
         return $lines;
     }
@@ -197,7 +212,7 @@ class BasicCurlRequest {
      * Creates a curl Handle with default values
      * @return resource
      */
-    protected function curlinit(): resource {
+    protected function curlinit() {
         $ch = curl_init();
         //Basic Opts working with all requests
         if (count($this->headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
@@ -232,14 +247,15 @@ class BasicCurlRequest {
      * @return stdClass
      * @throws InvalidArgumentException
      */
-    protected function curlExec(resource $ch, string $url = null): stdClass {
-        if ($url = $url ?? curl_getinfo($ch, $opt)["url"]) {
+    protected function curlExec($ch, string $url = null): stdClass {
+        if ($url = $url ?? curl_getinfo($ch)["url"]) {
             //check if valid url
             if (!$this->validateUrl($url)) throw new InvalidArgumentException("Url is not valid.");
             curl_setopt($ch, CURLOPT_URL, $url);
             $headers = [];
             $index = 0;
             $getheaders = function($c, $header) use (&$headers, &$index) {
+
                 $len = strlen($header);
                 if (empty($header[$index])) {
                     $headers[$index] = [];
