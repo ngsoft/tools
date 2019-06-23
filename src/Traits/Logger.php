@@ -21,7 +21,7 @@ trait Logger {
      * @return void
      */
     public function log(string $message, $level = LogLevel::DEBUG, array $context = []) {
-        $this->logger->log($level, $message, $context);
+        if ($this->logger instanceof LoggerInterface) $this->logger->log($level, $message, $context);
     }
 
 }
