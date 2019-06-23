@@ -2,10 +2,21 @@
 
 namespace NGSOFT\Tools\Exceptions;
 
-use Psr\Cache\CacheException as CacheException2;
-use Psr\SimpleCache\CacheException;
+use NGSOFT\Tools\Interfaces\ExceptionInterface;
+use NGSOFT\Tools\Traits\Logger;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 
-class BasicCacheException extends RuntimeException implements CacheException, CacheException2 {
+class BasicCacheException extends RuntimeException implements \Psr\Cache\CacheException, \Psr\SimpleCache\CacheException, ExceptionInterface {
+
+    use LoggerAwareTrait,
+        Logger;
+
+    public function logMessage(LoggerInterface $logger) {
+
+        $this->setLogger($logger);
+        $this->log($this->getMessage());
+    }
 
 }
