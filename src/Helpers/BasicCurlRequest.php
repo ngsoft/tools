@@ -234,27 +234,27 @@ class BasicCurlRequest {
         $ch = curl_init();
         //Basic Opts working with all requests
         if (count($this->headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
-        curl_setopt_array($ch, static::CURL_DEFAULTS);
-        curl_setopt_array($ch, [
+        $this->curl_setopt_array($ch, static::CURL_DEFAULTS);
+        $this->curl_setopt_array($ch, [
             CURLOPT_CONNECTTIMEOUT => $this->timeout,
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_USERAGENT => $this->userAgent
         ]);
         //enables cookies r/w
         if (!empty($this->cookieFile)) {
-            curl_setopt_array($ch, [
+            $this->curl_setopt_array($ch, [
                 CURLOPT_COOKIEFILE => $this->cookieFile,
                 CURLOPT_COOKIEJAR => $this->cookieFile
             ]);
         }
         //curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         if ($capath = $this->getCA())
-                curl_setopt_array($ch, [
+                $this->curl_setopt_array($ch, [
                 CURLOPT_CAINFO => $capath,
                 CURLOPT_SSL_VERIFYPEER => true
             ]);
         else curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        if (count($this->opts)) curl_setopt_array($ch, $this->opts);
+        if (count($this->opts)) $this->curl_setopt_array($ch, $this->opts);
         return $ch;
     }
 
@@ -296,7 +296,7 @@ class BasicCurlRequest {
                         "response_headers" => $headers,
                         "data" => $data
             ];
-            //? curl_close($ch);
+            curl_close($ch);
             return $return;
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
@@ -315,7 +315,7 @@ class BasicCurlRequest {
 
                 if ($fileh = fopen($file, 'w')) {
                     $ch = curl_init();
-                    curl_setopt_array($ch, [
+                    $this->curl_setopt_array($ch, [
                         CURLOPT_ENCODING => 'gzip,deflate',
                         CURLOPT_URL => static::CACERT_SRC,
                         CURLOPT_SSL_VERIFYPEER => false,
@@ -323,6 +323,7 @@ class BasicCurlRequest {
                     ]);
                     $response = $this->curlexec($ch);
                     fclose($fileh);
+                    curl_close($ch);
                     return $response->error ? null : $path = realpath($file);
                 }
             } else $path = $file;
@@ -337,6 +338,17 @@ class BasicCurlRequest {
      */
     protected function validateUrl(string $url): bool {
         return validUrl($url);
+    }
+
+    /**
+     * Prevents a bug in Curl that prevents some properties from being written using curl_setopt_array
+     * @param resource $ch
+     * @param array $options
+     */
+    protected function curl_setopt_array($ch, array $options) {
+        foreach ($options as $k => $v) {
+            curl_setopt($ch, $k, $v);
+        }
     }
 
 }
