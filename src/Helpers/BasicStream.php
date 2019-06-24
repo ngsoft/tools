@@ -148,7 +148,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
 
     /** {@inheritdoc} */
     public function close() {
-        if (!$this->closed) fclose($this->resource);
+        if (!$this->closed and isset($this->resource)) fclose($this->resource);
         $this->closed = true;
     }
 

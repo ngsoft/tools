@@ -283,7 +283,6 @@ class BasicCurlRequest implements CurlHelper {
             $headers = [];
             $index = 0;
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($c, $header) use (&$headers, &$index) {
-
                 $len = strlen($header);
                 $clean = trim($header);
                 if (empty($clean)) {
@@ -335,7 +334,8 @@ class BasicCurlRequest implements CurlHelper {
                     }
                 }
                 return null;
-            } else $path = $file;
+            }
+            $path = realpath($file);
         }
         return $path;
     }
