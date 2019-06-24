@@ -7,7 +7,6 @@ namespace NGSOFT\Tools\Helpers;
 use NGSOFT\Tools\Exceptions\InvalidArgumentException;
 use NGSOFT\Tools\Exceptions\RuntimeException;
 use NGSOFT\Tools\Interfaces\CurlHelper;
-use function NGSOFT\Tools\validUrl;
 
 if (!function_exists('curl_init')) {
 
@@ -77,7 +76,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      */
     public function setAuth(string $user, string $password) {
-        return $this->addHeader("Authorization", sprintf("Basic %s"), base64_encode("$user:$password"));
+        return $this->addHeader("Authorization", sprintf("Basic %s", base64_encode("$user:$password")));
     }
 
     /**
@@ -298,8 +297,9 @@ class BasicCurlRequest implements CurlHelper {
             });
 
 
-            if (!isset($this->opts[CURLOPT_FILE])) curl_setopt($ch, CURLOPT_FILE, ($file = fopen("php://temp", "r+")));
+            if (!isset($this->opts[CURLOPT_FILE]) and ( $file = fopen("php://temp", "r+"))) curl_setopt($ch, CURLOPT_FILE, $file);
             curl_exec($ch);
+
             return new BasicCurlResponse($ch, $headers, $file ?? null);
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
@@ -315,14 +315,23 @@ class BasicCurlRequest implements CurlHelper {
         if ($path === null) {
             $file = sprintf("%s/%s", $this->certlocation, basename(self::CACERT_SRC));
             if (!is_file($file)) {
+                if (is_dir(dirname($file)) and $fileh = fopen($file, 'w')) {
 
-                if (id_dir(dirname($file)) and $fileh = fopen($file, 'w')) {
+
+                    try {
+
+                    } catch (Exception $ex) {
+
+                    }
+
+
+
+
+
+
                     $ch = curl_init();
+                    $this->curl_setopt_array($ch, self::CURL_DEFAULTS);
                     $this->curl_setopt_array($ch, [
-                        CURLOPT_RETURNTRANSFER => 1,
-                        CURLOPT_ENCODING => "gzip,deflate",
-                        CURLOPT_FOLLOWLOCATION => true,
-                        CURLOPT_AUTOREFERER => true,
                         CURLINFO_HEADER_OUT => true,
                         CURLOPT_URL => static::CACERT_SRC,
                         CURLOPT_SSL_VERIFYPEER => false,
