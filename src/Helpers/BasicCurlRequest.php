@@ -71,6 +71,16 @@ class BasicCurlRequest implements CurlHelper {
     ////////////////////////////   Builder   ////////////////////////////
 
     /**
+     * Add Basic authorization to request
+     * @param string $user
+     * @param string $password
+     * @return static
+     */
+    public function setAuth(string $user, string $password) {
+        return $this->addHeader("Authorization", sprintf("Basic %s"), base64_encode("$user:$password"));
+    }
+
+    /**
      * Set the proxy for the request
      * @param string $protocol
      * @param string $host
