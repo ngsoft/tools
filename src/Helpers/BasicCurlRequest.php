@@ -61,7 +61,7 @@ class BasicCurlRequest implements CurlHelper {
      * Fetch the given url, retunrs if a handler is specified handler return, else a data object
      * @param string $url
      * @param callable|null $handler
-     * @return mixed
+     * @return BasicCurlResponse|mixed
      */
     public function fetch(string $url, callable $handler = null) {
         $data = $this->curlExec($this->curlinit(), $url);
@@ -282,12 +282,12 @@ class BasicCurlRequest implements CurlHelper {
             curl_setopt($ch, CURLOPT_URL, $url);
             $headers = [];
             $index = 0;
-            $getheaders = function($c, $header) use (&$headers, &$index) {
+            curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($c, $header) use (&$headers, &$index) {
 
                 $len = strlen($header);
-                if (empty($header[$index])) {
-                    $headers[$index] = [];
-                }
+                /* if (empty($header[$index])) {
+                  $headers[$index] = [];
+                  } */
                 $clean = trim($header);
                 if (empty($clean)) {
                     $index++;
@@ -295,8 +295,9 @@ class BasicCurlRequest implements CurlHelper {
                     $headers[$index][] = $clean;
                 }
                 return $len;
-            };
-            curl_setopt($ch, CURLOPT_HEADERFUNCTION, $getheaders);
+            });
+
+
             if (!isset($this->opts[CURLOPT_FILE])) curl_setopt($ch, CURLOPT_FILE, ($file = fopen("php://temp", "r+")));
             curl_exec($ch);
             return new BasicCurlResponse($ch, $headers, $file ?? null);
@@ -345,7 +346,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return bool
      */
     protected function validateUrl(string $url): bool {
-        return preg_match(static::VALID_URL, $url) > 0;
+        return preg_match(static::VALID_URL_REGEX, $url) > 0;
     }
 
     /**
