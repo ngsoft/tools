@@ -345,7 +345,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return bool
      */
     protected function validateUrl(string $url): bool {
-        return validUrl($url);
+        return preg_match(static::VALID_URL, $url) > 0;
     }
 
     /**

@@ -10,7 +10,6 @@
             "homepage": "https://github.com/ngsoft"
         }],
     "require-dev": {
-        "phan/phan": "^2.2"
 
     },
     "require": {
