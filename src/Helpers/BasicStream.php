@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Helpers;
 
+use NGSOFT\Tools\Exceptions\InvalidArgumentException;
 use NGSOFT\Tools\Exceptions\RuntimeException;
-use NGSOFT\Tools\Interfaces\StreamFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
+use function NGSOFT\Tools\set_error_handler;
 
 class BasicStream implements StreamInterface, StreamFactoryInterface {
     ////////////////////////////   StreamFactoryInterface   ////////////////////////////
@@ -24,11 +26,6 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
         return self::$staticInstance;
     }
 
-    /** {@inheritdoc} */
-    public function getResource() {
-        return $this->resource;
-    }
-
     /**
      * Create a new stream from a string.
      *
@@ -39,7 +36,6 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
      * @return StreamInterface
      */
     public function createStream(string $content = ''): StreamInterface {
-
         $handle = fopen("php://temp", "w+");
         $stream = new static($handle);
         $stream->write($content);
@@ -48,9 +44,11 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
 
     /** {@inheritdoc} */
     public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface {
-
+        if (!preg_match(self::VALID_STREAM_MODES, $mode)) throw new InvalidArgumentException("Mode $mode is invalid.");
+        set_error_handler();
         $handle = fopen($filename, $mode);
-
+        restore_error_handler();
+        if ($handle === false) throw new RuntimeException("The file $filename cannot be opened.");
         return new static($handle);
     }
 
@@ -70,6 +68,8 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
 
     ////////////////////////////   StreamInterface   ////////////////////////////
 
+
+    const VALID_STREAM_MODES = '/^[rwxacbt+]{1,3}$/';
     const READABLE_STREAM_HASH = [
         'r', 'w+', 'r+', 'x+', 'c+', 'rb', 'w+b', 'r+b', 'x+b',
         'c+b', 'rt', 'w+t', 'r+t', 'x+t', 'c+t', 'a+', 'rb+',
@@ -104,6 +104,9 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
     /** @var array */
     protected $meta;
 
+    /** @var bool */
+    protected $closed = false;
+
     /**
      * @param resource $resource
      * @param array $options
@@ -111,9 +114,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
     public function __construct($resource, array $options = []) {
         assert(is_resource($resource));
         $options = array_merge([], self::DEFAULT_OPTIONS, $options);
-
         if (isset($options["size"])) $this->size = is_int($options["size"]) ? $options["size"] : null;
-
         $this->resource = $resource;
         $meta = stream_get_meta_data($resource);
         $this->seekable = $meta["seekable"];
@@ -131,6 +132,11 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
     }
 
     /** {@inheritdoc} */
+    public function getResource() {
+        return $this->resource;
+    }
+
+    /** {@inheritdoc} */
     public function __toString() {
         try {
             $this->seek(0);
@@ -142,7 +148,8 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
 
     /** {@inheritdoc} */
     public function close() {
-        if (isset($this->resource)) fclose($this->resource);
+        if (!$this->closed) fclose($this->resource);
+        $this->closed = true;
     }
 
     /** {@inheritdoc} */
@@ -150,7 +157,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
         $stream = $this->resource ?? null;
         unset($this->resource);
         $this->size = $this->uri = null;
-        $this->readable = $this->writable = $this->seekable = false;
+        $this->readable = $this->writable = $this->seekable = $this->closed = false;
         return $stream;
     }
 

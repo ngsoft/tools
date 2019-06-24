@@ -5,41 +5,18 @@ namespace NGSOFT\Tools;
 use ReflectionClass;
 
 ////////////////////////////   Error Handler   ////////////////////////////
-//$intercept_status = false;
 
 /**
- * Intercepts error as exception
- * A best practice is to use that function and end_intercept_errors into the same block
- * to intercept one error
- * @global boolean $intercept_status
- * @param string $handler Exception class to use
- * @return void
+ * Set Error handler
+ * @param callable|null $callback
+ * @return type
  */
-function start_intercept_errors(string $handler = Exceptions\ErrorException::class) {
-    global $intercept_status;
-    if ($intercept_status === true) return;
+function set_error_handler(callable $callback = null) {
+    //set en emty function to "eat" errors
+    $callback = is_callable($callback) ? $callback : function () {
 
-    if (in_array(\ErrorException::class, class_parents($handler)) or $handler === \ErrorException::class) {
-        set_error_handler(function ($no, $str, $file, $line, array $cont) use($handler) {
-            if (0 === error_reporting()) return false;
-
-            throw new $handler($str, 0, $no, $file, $line);
-        });
-        $intercept_status = true;
-    }
-}
-
-/**
- * Stops error interception and restore old error handler (if any)
- * @global boolean $intercept_status
- * @return void
- */
-function stop_intercept_errors() {
-    global $intercept_status;
-    if ($intercept_status === true) {
-        restore_error_handler();
-        $intercept_status = false;
-    }
+    };
+    return \set_error_handler($callback);
 }
 
 ////////////////////////////   Some Helpers   ////////////////////////////

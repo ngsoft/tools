@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Helpers;
 
+use NGSOFT\Tools\Exceptions\ErrorException;
 use NGSOFT\Tools\Exceptions\InvalidArgumentException;
 use NGSOFT\Tools\Exceptions\RuntimeException;
 use NGSOFT\Tools\Interfaces\CurlHelper;
@@ -315,40 +316,31 @@ class BasicCurlRequest implements CurlHelper {
         if ($path === null) {
             $file = sprintf("%s/%s", $this->certlocation, basename(self::CACERT_SRC));
             if (!is_file($file) and is_dir(dirname($file))) {
-
-                $stream = BasicStream::helper()->createStream();
-
+                $handle = fopen("php://temp", "r+");
+                $stream = BasicStream::helper()->createStreamFromResource($handle);
                 $ch = curl_init();
                 $this->curl_setopt_array($ch, self::CURL_DEFAULTS);
                 $this->curl_setopt_array($ch, [
-                CURLINFO_HEADER_OUT => true,
-                CURLOPT_URL => static::CACERT_SRC,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_FILE =>
+                    CURLINFO_HEADER_OUT => true,
+                    CURLOPT_URL => static::CACERT_SRC,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_FILE => $handle
                 ]);
-
-
-
-
-                //and $fileh = fopen($file, 'w')
-                try {
-
-                } catch (\Exception $ex) {
-
-                }
-
-
-
-
-
-
-
-                $response = curl_exec($ch);
-                $error = curl_error($ch);
-                fclose($fileh);
+                curl_exec($ch);
+                $err = curl_errno($ch);
                 curl_close($ch);
-                if ($error) @unlink($file);
-                return $error ? null : $path = realpath($file);
+                if (!$err and $stream->getSize()) {
+                    try {
+                        $tosave = BasicStream::helper()->createStreamFromFile($file, "w");
+                        $tosave->write((string) $stream);
+                        $tosave->close();
+                        $stream->close();
+                        return $path = realpath($file);
+                    } catch (\Throwable $ex) {
+                        $ex->getCode();
+                    }
+                }
+                return null;
             } else $path = $file;
         }
         return $path;
