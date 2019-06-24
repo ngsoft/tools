@@ -5,12 +5,29 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Helpers;
 
 use NGSOFT\Tools\Exceptions\RuntimeException;
-use Psr\Http\Message\StreamFactoryInterface;
+use NGSOFT\Tools\Interfaces\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
 
 class BasicStream implements StreamInterface, StreamFactoryInterface {
     ////////////////////////////   StreamFactoryInterface   ////////////////////////////
+
+    /** @var static */
+    private static $staticInstance;
+
+    /** @return StreamFactoryInterface */
+    public static function helper(): StreamFactoryInterface {
+        if (!isset(self::$staticInstance)) {
+            self::$staticInstance = new static(fopen("php://temp", "r"));
+            self::$staticInstance->detach();
+        }
+        return self::$staticInstance;
+    }
+
+    /** {@inheritdoc} */
+    public function getResource() {
+        return $this->resource;
+    }
 
     /**
      * Create a new stream from a string.
@@ -23,25 +40,18 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
      */
     public function createStream(string $content = ''): StreamInterface {
 
+        $handle = fopen("php://temp", "w+");
+        $stream = new static($handle);
+        $stream->write($content);
+        return $stream;
     }
 
-    /**
-     * Create a stream from an existing file.
-     *
-     * The file MUST be opened using the given mode, which may be any mode
-     * supported by the `fopen` function.
-     *
-     * The `$filename` MAY be any string supported by `fopen()`.
-     *
-     * @param string $filename Filename or stream URI to use as basis of stream.
-     * @param string $mode Mode with which to open the underlying filename/stream.
-     *
-     * @return StreamInterface
-     * @throws \RuntimeException If the file cannot be opened.
-     * @throws \InvalidArgumentException If the mode is invalid.
-     */
+    /** {@inheritdoc} */
     public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface {
 
+        $handle = fopen($filename, $mode);
+
+        return new static($handle);
     }
 
     /**
@@ -54,7 +64,8 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
      * @return StreamInterface
      */
     public function createStreamFromResource($resource): StreamInterface {
-
+        assert(is_resource($resource));
+        return new static($resource);
     }
 
     ////////////////////////////   StreamInterface   ////////////////////////////
@@ -131,7 +142,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
 
     /** {@inheritdoc} */
     public function close() {
-        fclose($this->resource);
+        if (isset($this->resource)) fclose($this->resource);
     }
 
     /** {@inheritdoc} */

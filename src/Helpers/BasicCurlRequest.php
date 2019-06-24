@@ -314,36 +314,41 @@ class BasicCurlRequest implements CurlHelper {
         static $path = null;
         if ($path === null) {
             $file = sprintf("%s/%s", $this->certlocation, basename(self::CACERT_SRC));
-            if (!is_file($file)) {
-                if (is_dir(dirname($file)) and $fileh = fopen($file, 'w')) {
+            if (!is_file($file) and is_dir(dirname($file))) {
+
+                $stream = BasicStream::helper()->createStream();
+
+                $ch = curl_init();
+                $this->curl_setopt_array($ch, self::CURL_DEFAULTS);
+                $this->curl_setopt_array($ch, [
+                CURLINFO_HEADER_OUT => true,
+                CURLOPT_URL => static::CACERT_SRC,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FILE =>
+                ]);
 
 
-                    try {
-
-                    } catch (\Exception $ex) {
-
-                    }
 
 
+                //and $fileh = fopen($file, 'w')
+                try {
 
+                } catch (\Exception $ex) {
 
-
-
-                    $ch = curl_init();
-                    $this->curl_setopt_array($ch, self::CURL_DEFAULTS);
-                    $this->curl_setopt_array($ch, [
-                        CURLINFO_HEADER_OUT => true,
-                        CURLOPT_URL => static::CACERT_SRC,
-                        CURLOPT_SSL_VERIFYPEER => false,
-                        CURLOPT_FILE => $fileh
-                    ]);
-                    $response = curl_exec($ch);
-                    $error = curl_error($ch);
-                    fclose($fileh);
-                    curl_close($ch);
-                    if ($error) @unlink($file);
-                    return $error ? null : $path = realpath($file);
                 }
+
+
+
+
+
+
+
+                $response = curl_exec($ch);
+                $error = curl_error($ch);
+                fclose($fileh);
+                curl_close($ch);
+                if ($error) @unlink($file);
+                return $error ? null : $path = realpath($file);
             } else $path = $file;
         }
         return $path;
