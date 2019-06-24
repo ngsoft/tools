@@ -19,7 +19,7 @@ function start_intercept_errors(string $handler = Exceptions\ErrorException::cla
     global $intercept_status;
     if ($intercept_status === true) return;
 
-    if (in_array(\Throwable::class, class_implements($handler))) {
+    if (in_array(\ErrorException::class, class_parents($handler)) or $handler === \ErrorException::class) {
         set_error_handler(function ($no, $str, $file, $line, array $cont) use($handler) {
             if (0 === error_reporting()) return false;
 
