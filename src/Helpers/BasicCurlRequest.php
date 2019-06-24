@@ -285,9 +285,6 @@ class BasicCurlRequest implements CurlHelper {
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($c, $header) use (&$headers, &$index) {
 
                 $len = strlen($header);
-                /* if (empty($header[$index])) {
-                  $headers[$index] = [];
-                  } */
                 $clean = trim($header);
                 if (empty($clean)) {
                     $index++;
@@ -296,12 +293,9 @@ class BasicCurlRequest implements CurlHelper {
                 }
                 return $len;
             });
-
-
             if (!isset($this->opts[CURLOPT_FILE]) and ( $file = fopen("php://temp", "r+"))) curl_setopt($ch, CURLOPT_FILE, $file);
             curl_exec($ch);
-
-            return new BasicCurlResponse($ch, $headers, $file ?? null);
+            return new BasicCurlResponse($ch, $headers, isset($file) ? new BasicStream($file) : BasicStream::helper()->createStream());
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
     }

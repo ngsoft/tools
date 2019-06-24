@@ -4,6 +4,7 @@ namespace NGSOFT\Tools\Helpers;
 
 use NGSOFT\Tools\Interfaces\ArrayAccess;
 use NGSOFT\Tools\Traits\ArrayAccessTrait;
+use Psr\Http\Message\StreamInterface;
 
 /**
  * @phan-file-suppress PhanUnusedPublicMethodParameter
@@ -45,12 +46,12 @@ class BasicCurlResponse implements ArrayAccess {
 
     use ArrayAccessTrait;
 
-    /** @var resource */
+    /** @var StreamInterface */
     private $stream;
 
-    public function __construct($ch, array $responseHeaders, $data) {
+    public function __construct($ch, array $responseHeaders, StreamInterface $stream) {
 
-        $this->stream = $data;
+        $this->stream = $stream;
         $info = $this->storage = (array) curl_getinfo($ch);
         $this->storage["errno"] = curl_errno($ch);
         $this->storage["error"] = curl_error($ch);
@@ -65,11 +66,6 @@ class BasicCurlResponse implements ArrayAccess {
             "response" => $resph
         ];
         curl_close($ch);
-    }
-
-    /** {@inheritdoc} */
-    public function __destruct() {
-        fclose($this->stream);
     }
 
     /**
@@ -90,12 +86,7 @@ class BasicCurlResponse implements ArrayAccess {
      * @return string
      */
     public function getContents(): string {
-        if (is_resource($this->stream)) {
-            rewind($this->stream);
-            $contents = stream_get_contents($this->stream);
-        }
-
-        return $contents ?? "";
+        return (string) $this->stream ?? "";
     }
 
     /**
