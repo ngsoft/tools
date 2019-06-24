@@ -5,8 +5,7 @@ namespace NGSOFT\Tools;
 use ReflectionClass;
 
 ////////////////////////////   Error Handler   ////////////////////////////
-
-$intercept_status = false;
+//$intercept_status = false;
 
 /**
  * Intercepts error as exception
@@ -16,14 +15,14 @@ $intercept_status = false;
  * @param string $handler Exception class to use
  * @return void
  */
-function start_intercept_errors(string $handler = null) {
+function start_intercept_errors(string $handler = Exceptions\ErrorException::class) {
     global $intercept_status;
     if ($intercept_status === true) return;
-    $handler = $handler ?? Exceptions\ErrorException::class;
 
     if (in_array(\Throwable::class, class_implements($handler))) {
         set_error_handler(function ($no, $str, $file, $line, array $cont) use($handler) {
             if (0 === error_reporting()) return false;
+
             throw new $handler($str, 0, $no, $file, $line);
         });
         $intercept_status = true;
@@ -37,9 +36,10 @@ function start_intercept_errors(string $handler = null) {
  */
 function stop_intercept_errors() {
     global $intercept_status;
-    if ($intercept_status !== true) return;
-    restore_error_handler();
-    $intercept_status = false;
+    if ($intercept_status === true) {
+        restore_error_handler();
+        $intercept_status = false;
+    }
 }
 
 ////////////////////////////   Some Helpers   ////////////////////////////

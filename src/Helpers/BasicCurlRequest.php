@@ -320,7 +320,7 @@ class BasicCurlRequest implements CurlHelper {
 
                     try {
 
-                    } catch (Exception $ex) {
+                    } catch (\Exception $ex) {
 
                     }
 

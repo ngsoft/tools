@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Helpers;
 
-use NGSOFT\Tools\Exceptions\InvalidArgumentException;
 use NGSOFT\Tools\Exceptions\RuntimeException;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
@@ -89,7 +88,7 @@ class BasicStream implements StreamInterface {
     /** {@inheritdoc} */
     public function detach() {
         $stream = $this->resource ?? null;
-        unset($this->stream);
+        unset($this->resource);
         $this->size = $this->uri = null;
         $this->readable = $this->writable = $this->seekable = false;
         return $stream;
@@ -100,7 +99,7 @@ class BasicStream implements StreamInterface {
         if ($this->size !== null) return $this->size;
         if (isset($this->resource)) {
             isset($this->uri) && clearstatcache(true, $this->uri);
-            $stats = fstat($this->stream);
+            $stats = fstat($this->resource);
             return $this->size = $stats["size"] ?? null;
         }
         return null;
@@ -203,7 +202,7 @@ class BasicStream implements StreamInterface {
 
     /** {@inheritdoc} */
     public function getMetadata($key = null) {
-        if (!isset($this->stream)) return is_string($key) ? null : [];
+        if (!isset($this->resource)) return is_string($key) ? null : [];
         $meta = array_merge(stream_get_meta_data($this->resource), $this->meta);
         return isset($key) ? $meta[$key] ?? null : $meta;
     }
