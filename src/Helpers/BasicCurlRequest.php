@@ -58,9 +58,9 @@ class BasicCurlRequest implements CurlHelper {
     ////////////////////////////   Send The Request   ////////////////////////////
 
     /**
-     * Fetch the given url, retunrs if a handler is specified handler return, else a data object
+     * Fetch the given url, returns if a handler is specified handler return, else a data object
      * @param string $url
-     * @param callable|null $handler
+     * @param callable|null $handler accepts one argument BasicCurlResponse
      * @return BasicCurlResponse|mixed
      */
     public function fetch(string $url, callable $handler = null) {
@@ -314,7 +314,6 @@ class BasicCurlRequest implements CurlHelper {
                 $ch = curl_init();
                 $this->curl_setopt_array($ch, self::CURL_DEFAULTS);
                 $this->curl_setopt_array($ch, [
-                    CURLINFO_HEADER_OUT => true,
                     CURLOPT_URL => static::CACERT_SRC,
                     CURLOPT_SSL_VERIFYPEER => false,
                     CURLOPT_FILE => $handle
