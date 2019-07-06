@@ -57,7 +57,7 @@ class CachedFile extends SplFileInfo {
                 if ($meta["class"] !== null) {
                     if (($meta["type"] === Serializable::class) and is_string($content)) $content = unserialize($content);
                     elseif (($meta["type"] === CacheAble::class) and is_array($content)) {
-                        $content = $meta["class"]::createFromArray($meta["contents"]);
+                        $content = $meta["class"]::__set_state($meta["contents"]);
                     } else return null;
                 }
             }
