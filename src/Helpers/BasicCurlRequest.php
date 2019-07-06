@@ -47,7 +47,7 @@ class BasicCurlRequest implements CurlHelper {
      * Where to store the certs (folder)
      * @var string
      */
-    private $certlocation = __DIR__ . "/../Data";
+    private static $certlocation = __DIR__ . "/../Data";
 
     /** @var array */
     private $opts = [];
@@ -167,11 +167,11 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      * @throws InvalidArgumentException
      */
-    public function setCertlocation(string $certlocation) {
+    public static function setCertlocation(string $certlocation) {
         if (!is_dir($certlocation) or ! is_writable($certlocation)) {
             throw new InvalidArgumentException("$certlocation is not an existing directory or is not writable.");
         }
-        $this->certlocation = $certlocation;
+        self::$certlocation = $certlocation;
         return $this;
     }
 
@@ -307,7 +307,7 @@ class BasicCurlRequest implements CurlHelper {
     protected function getCA() {
         static $path = null;
         if ($path === null) {
-            $file = sprintf("%s/%s", $this->certlocation, basename(self::CACERT_SRC));
+            $file = sprintf("%s/%s", self::$certlocation, basename(self::CACERT_SRC));
             if (!is_file($file) and is_dir(dirname($file))) {
                 $handle = fopen("php://temp", "r+");
                 $stream = BasicStream::helper()->createStreamFromResource($handle);
