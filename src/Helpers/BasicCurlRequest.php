@@ -164,7 +164,6 @@ class BasicCurlRequest implements CurlHelper {
     /**
      * Set the Certifications download folder
      * @param string $certlocation
-     * @return static
      * @throws InvalidArgumentException
      */
     public static function setCertlocation(string $certlocation) {
@@ -172,7 +171,6 @@ class BasicCurlRequest implements CurlHelper {
             throw new InvalidArgumentException("$certlocation is not an existing directory or is not writable.");
         }
         self::$certlocation = $certlocation;
-        return $this;
     }
 
     /**
