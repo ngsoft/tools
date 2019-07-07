@@ -86,7 +86,7 @@ class BasicCurlResponse implements ArrayAccess {
      * @return string
      */
     public function getContents(): string {
-        return (string) $this->stream ?? "";
+        return (string) $this->stream;
     }
 
     /** @return StreamInterface */

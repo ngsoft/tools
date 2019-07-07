@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Helpers;
 
-use NGSOFT\Tools\Exceptions\ErrorException;
 use NGSOFT\Tools\Exceptions\InvalidArgumentException;
 use NGSOFT\Tools\Exceptions\RuntimeException;
 use NGSOFT\Tools\Interfaces\CurlHelper;
+use Throwable;
 
 if (!function_exists('curl_init')) {
 
@@ -343,7 +343,7 @@ class BasicCurlRequest implements CurlHelper {
                         $tosave->close();
                         $stream->close();
                         return $path = realpath($file);
-                    } catch (\Throwable $ex) {
+                    } catch (Throwable $ex) {
                         $ex->getCode();
                     }
                 }

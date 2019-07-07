@@ -44,7 +44,7 @@ class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
     ////////////////////////////   Cacheable   ////////////////////////////
 
     /** {@inheritdoc} */
-    public static function __set_state($array) {
+    public static function __set_state(array $array) {
         return new static($array);
     }
 

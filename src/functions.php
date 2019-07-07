@@ -9,7 +9,7 @@ use ReflectionClass;
 /**
  * Set Error handler
  * @param callable|null $callback
- * @return type
+ * @return callable|null
  */
 function set_error_handler(callable $callback = null) {
     //set en emty function to "eat" errors

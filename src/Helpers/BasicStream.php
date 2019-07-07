@@ -14,7 +14,7 @@ use function NGSOFT\Tools\set_error_handler;
 class BasicStream implements StreamInterface, StreamFactoryInterface {
     ////////////////////////////   StreamFactoryInterface   ////////////////////////////
 
-    /** @var static */
+    /** @var StreamFactoryInterface */
     private static $staticInstance;
 
     /** @return StreamFactoryInterface */
@@ -83,7 +83,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
         "meta" => []
     ];
 
-    /** @var resource */
+    /** @var resource|null */
     protected $resource;
 
     /** @var bool */
@@ -142,6 +142,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
             $this->seek(0);
             return stream_get_contents($this->resource);
         } catch (Throwable $ex) {
+            $ex->getCode();
             return "";
         }
     }
@@ -155,7 +156,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
     /** {@inheritdoc} */
     public function detach() {
         $stream = $this->resource ?? null;
-        unset($this->resource);
+        $this->resource = null;
         $this->size = $this->uri = null;
         $this->readable = $this->writable = $this->seekable = $this->closed = false;
         return $stream;
