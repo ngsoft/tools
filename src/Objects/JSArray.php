@@ -38,7 +38,7 @@ class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
 
     /** {@inheritdoc} */
     public function jsonSerialize() {
-        return json_encode($this->toArray());
+        return $this->toArray();
     }
 
     ////////////////////////////   Cacheable   ////////////////////////////
