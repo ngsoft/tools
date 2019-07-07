@@ -15,7 +15,6 @@ class BasicObject extends JSArray {
 
     /** {@inheritdoc} */
     public function &offsetGet($offset) {
-        print __METHOD__ . $offset . "\n";
         $value = null;
         if ($this->offsetExists($offset)) $value = &$this->storage[$offset];
         elseif ($offset === null) {
@@ -27,7 +26,6 @@ class BasicObject extends JSArray {
 
     /** {@inheritdoc} */
     public function offsetSet($offset, $value) {
-        print __METHOD__ . "\n";
         if (is_array($value)) $value = new static($value);
         parent::offsetSet($offset, $value);
     }
