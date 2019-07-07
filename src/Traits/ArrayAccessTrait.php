@@ -7,7 +7,7 @@ use ArrayIterator;
 trait ArrayAccessTrait {
 
     /** @var array */
-    protected $storage;
+    protected $storage = [];
 
     /** {@inheritdoc} */
     public function offsetExists($offset) {

@@ -11,7 +11,7 @@ use function NGSOFT\Tools\array_flatten;
 trait JSArrayMethods {
 
     /** @var array */
-    protected $storage;
+    protected $storage = [];
 
     /**
      * @param iterable $input

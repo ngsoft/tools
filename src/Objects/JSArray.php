@@ -21,7 +21,10 @@ class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
 
     /** {@inheritdoc} */
     protected function loadArray(array $array) {
-        $this->storage = $array;
+        foreach ($array as $key => $value) {
+            if (is_array($value)) $this->storage[$key] = new static($value);
+            else $this->storage[$key] = $value;
+        }
     }
 
     ////////////////////////////   ArrayAccess ...   ////////////////////////////
