@@ -4,6 +4,15 @@ namespace NGSOFT\Tools\Objects;
 
 class BasicObject extends JSArray {
 
+    public function toArray(): array {
+        $arr = parent::toArray();
+
+        foreach ($arr as &$value) {
+            if ($value instanceof static) $value = $value->toArray();
+        }
+        return $arr;
+    }
+
     /** {@inheritdoc} */
     protected function loadArray(array $array) {
         $this->storage = [];
