@@ -55,6 +55,9 @@ class BasicCurlRequest implements CurlHelper {
     /** @var string */
     private $cookieFile = "";
 
+    /** @var int */
+    private $retry = 0;
+
     ////////////////////////////   Send The Request   ////////////////////////////
 
     /**
@@ -64,7 +67,11 @@ class BasicCurlRequest implements CurlHelper {
      * @return BasicCurlResponse|mixed
      */
     public function fetch(string $url, callable $handler = null) {
-        $data = $this->curlExec($this->curlinit(), $url);
+
+        for ($i = 0; $i < ($this->retry + 1); $i++) {
+            $data = $this->curlExec($this->curlinit(), $url);
+            if ($data->errno !== 28) break;
+        }
         return is_callable($handler) ? $handler($data) : $data;
     }
 
@@ -142,12 +149,22 @@ class BasicCurlRequest implements CurlHelper {
     }
 
     /**
-     * Set User Agen for the Request
+     * Set User Agent for the Request
      * @param string $userAgent
      * @return static
      */
     public function setUserAgent(string $userAgent) {
         $this->userAgent = $userAgent;
+        return $this;
+    }
+
+    /**
+     * Set number of retry (on timeout)
+     * @param int $retry
+     * @return static
+     */
+    public function setRetry(int $retry) {
+        $this->retry = $retry;
         return $this;
     }
 
