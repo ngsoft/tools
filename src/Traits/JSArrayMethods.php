@@ -32,7 +32,12 @@ trait JSArrayMethods {
 
     /** {@inheritdoc} */
     public function __toString() {
-        return var_export($this->storage, true);
+        return var_export($this->toArray(), true);
+    }
+
+    /** {@inheritdoc} */
+    public function toArray(): array {
+        return $this->storage;
     }
 
     ////////////////////////////   From \ArrayObject   ////////////////////////////
@@ -122,7 +127,7 @@ trait JSArrayMethods {
     /** {@inheritdoc} */
     public function fill($value, int $num, int $start = 0) {
         $this->hasNonNumericKeys($this->storage, __METHOD__);
-        $newarr = $this->storage;
+        $newarr = $this->toArray();
         for ($i = $start; $i < ($start + $num); ++$i) {
             $newarr[$i] = $value;
         }
@@ -133,14 +138,17 @@ trait JSArrayMethods {
     /** {@inheritdoc} */
     public function splice(int $start, ...$args) {
         $this->hasNonNumericKeys($this->storage, __METHOD__);
-        array_splice($this->storage, $start, ...$args);
+        $array = $this->toArray();
+        array_splice($array, $start, ...$args);
+        $this->loadArray($array);
         return $this;
     }
 
     /** {@inheritdoc} */
     public function slice(int $start = 0, int $length = null) {
         $this->hasNonNumericKeys($this->storage, __METHOD__);
-        return new static(array_slice($this->storage, $start, $length));
+        $array = $this->toArray();
+        return new static(array_slice($array, $start, $length));
     }
 
     /**
@@ -160,7 +168,7 @@ trait JSArrayMethods {
 
     /** {@inheritdoc} */
     public function flat(int $depth = 1) {
-        $new = array_flatten($this->storage, $depth);
+        $new = array_flatten($this->toArray(), $depth);
         return new static($new);
     }
 
@@ -169,6 +177,7 @@ trait JSArrayMethods {
         $new = [];
         foreach ($this->storage as $k => $v) {
             $new[$k] = $callback($v, $k);
+            if ($new[$k] instanceof static) $new[$k] = $new[$k]->toArray();
         }
         $new = array_flatten($new, 1);
         return new static($new);
@@ -193,7 +202,10 @@ trait JSArrayMethods {
 
     /** {@inheritdoc} */
     public function push(...$values): int {
-        return array_push($this->storage, ...$values);
+        $array = $this->toArray();
+        array_push($array, ...$values);
+        $this->loadArray($array);
+        return count($this);
     }
 
     /** {@inheritdoc} */
@@ -203,7 +215,10 @@ trait JSArrayMethods {
 
     /** {@inheritdoc} */
     public function unshift(...$values): int {
-        return array_unshift($this->storage, ...$values);
+        $array = $this->toArray();
+        array_unshift($array, ...$values);
+        $this->loadArray($array);
+        return count($this);
     }
 
     /** {@inheritdoc} */
@@ -250,7 +265,7 @@ trait JSArrayMethods {
 
     /** {@inheritdoc} */
     public function concat(iterable ...$values) {
-        $merged = array_merge([], $this->storage);
+        $merged = $this->toArray();
         foreach ($values as $value) {
             if (!is_array($value)) $value = [$value];
             $merged = array_merge($merged, $value);
@@ -275,7 +290,7 @@ trait JSArrayMethods {
 
     /** {@inheritdoc} */
     public function join(string $glue): string {
-        return implode($glue, $this->storage);
+        return implode($glue, $this->toArray());
     }
 
     /** {@inheritdoc} */
@@ -294,6 +309,7 @@ trait JSArrayMethods {
         $new = [];
         foreach ($this->storage as $k => $v) {
             $new[$k] = $callback($v, $k);
+            if ($new[$k] instanceof static) $new[$k] = $new[$k]->toArray();
         }
         return new static($new);
     }
