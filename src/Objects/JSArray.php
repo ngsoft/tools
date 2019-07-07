@@ -21,39 +21,31 @@ class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
 
     /** {@inheritdoc} */
     protected function loadArray(array $array) {
-        foreach ($array as $key => $value) {
-            if (is_array($value)) $this->storage[$key] = new static($value);
-            else $this->storage[$key] = $value;
-        }
+        $this->storage = $array;
     }
 
     ////////////////////////////   ArrayAccess ...   ////////////////////////////
 
     /** {@inheritdoc} */
     public function serialize() {
-        return serialize($this->storage);
+        return serialize($this->toArray());
     }
 
     /** {@inheritdoc} */
     public function unserialize($serialized) {
-        $this->storage = unserialize($serialized);
+        $this->loadArray(unserialize($serialized));
     }
 
     /** {@inheritdoc} */
     public function jsonSerialize() {
-        return json_encode($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public static function __set_state($array) {
-        return new static($array);
+        return json_encode($this->toArray());
     }
 
     ////////////////////////////   Cacheable   ////////////////////////////
 
     /** {@inheritdoc} */
-    public static function createFromArray(array $data) {
-        return new static($data);
+    public static function __set_state($array) {
+        return new static($array);
     }
 
     /** {@inheritdoc} */
