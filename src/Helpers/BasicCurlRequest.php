@@ -88,6 +88,23 @@ class BasicCurlRequest implements CurlHelper {
     }
 
     /**
+     * Set the Referer
+     * @param string $referer
+     * @return static
+     */
+    public function setReferer(string $referer) {
+        return $this->addOpt(CURLOPT_REFERER, $referer);
+    }
+
+    /**
+     * Add AJAX Header
+     * @return static
+     */
+    public function withAJAX() {
+        return $this->addHeader("X-Requested-With", "XMLHttpRequest");
+    }
+
+    /**
      * Set the proxy for the request
      * @param string $protocol
      * @param string $host
@@ -258,7 +275,17 @@ class BasicCurlRequest implements CurlHelper {
     protected function curlinit() {
         $ch = curl_init();
         //Basic Opts working with all requests
-        if (count($this->headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
+
+
+
+        if (count($this->headers)) {
+            $headers = [];
+            foreach ($this->headers as $k => $v) {
+                $headers[] = $k . ': ' . $v;
+            }
+
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        }
         $this->curl_setopt_array($ch, static::CURL_DEFAULTS);
         $this->curl_setopt_array($ch, [
             CURLOPT_CONNECTTIMEOUT => $this->timeout,

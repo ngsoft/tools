@@ -18,7 +18,7 @@ class BasicObject extends JSArray {
         $this->storage = [];
         foreach ($array as $key => $value) {
             if (is_array($value)) $this->storage[$key] = new static($value);
-            elseif ($value instanceof static) $value = clone $value;
+            elseif ($value instanceof static) $this->storage[$key] = clone $value;
             else $this->storage[$key] = $value;
         }
     }
