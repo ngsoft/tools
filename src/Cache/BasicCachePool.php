@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\Exceptions\BasicCacheInvalidKey;
-use NGSOFT\Tools\Interfaces\ExceptionInterface;
-use Psr\Cache\CacheItemInterface;
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
+use NGSOFT\Tools\{
+    Exceptions\BasicCacheInvalidKey, Interfaces\ExceptionInterface
+};
+use Psr\{
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Container\ContainerInterface, Log\LoggerAwareInterface,
+    Log\LoggerAwareTrait, Log\LoggerInterface
+};
 use function NGSOFT\Tools\array_every;
 
 /**

@@ -30,7 +30,7 @@ class OPCachePool extends BasicCachePool {
     private $meta;
 
     /** @var string */
-    private $metafile = "%s.meta.php";
+    private $metafile;
 
     /**
      * @param string $path Directory where to store cached items
@@ -39,16 +39,12 @@ class OPCachePool extends BasicCachePool {
     public function __construct(string $path, int $ttl = null) {
         parent::__construct($ttl);
         //normalize path
-        $this->path = preg_replace('/[\\\/]+/', '/', $path . DIRECTORY_SEPARATOR);
-
-        $this->metafile = sprintf($this->metafile, basename($this->path));
-
-
-
-
-
-
-        $this->loadMetaAndCleanUp();
+        $this->path = preg_replace('#[\\\/]+#', '/', $path . DIRECTORY_SEPARATOR);
+        $this->metafile = sprintf("%s.meta.php", basename($this->path));
+        //loads meta from disk
+        $this->meta = $this->loadmeta();
+        //clean up expired items and cache miss
+        $this->doClean();
     }
 
     ////////////////////////////   Metadatas   ////////////////////////////
@@ -98,29 +94,32 @@ class OPCachePool extends BasicCachePool {
 
         if (is_dir($dir)) {
             if (is_object($data)) {
-                if ($data instanceof \Serializable) $value = '<?php return unserialize(' . serialize($value) . ');';
+                if ($data instanceof Serializable) $value = '<?php return unserialize(' . serialize($data) . ');';
                 elseif ($data instanceof CacheAble) {
                     $value = '<?php return '
                             . get_class($data) . '::__set_state('
                             . var_export($data->toArray(), true) . ');';
-                }
-                return false;
-            } else $value = '<?php return ' . var_export($value, true) . ';';
+                } else return false;
+            } else $value = '<?php return ' . var_export($data, true) . ';';
             set_time_limit(60);
             $old = umask(0);
             file_exists($dir) || @mkdir($filename);
-            if (!is_dir($dir)) throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
+            if (!is_dir($dir)) {
+                umask($old);
+                throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
+            }
             is_file($filename) && @unlink($filename);
             umask(022);
             if (@file_put_contents($tmp, $value, LOCK_EX)) {
                 usleep(200000);
-                $i = 0;
+
                 do {
                     //rename seems to not run well on big files
                     if (($retval = @rename($tmp, $filename))) break;
-                    if ($i === 5) break;
-                    usleep(400000);
+                    if (!isset($i)) $i = 1;
+                    if ($i == 5) break;
                     ++$i;
+                    usleep(400000);
                 }while (true);
             }
             umask($old);
@@ -140,87 +139,75 @@ class OPCachePool extends BasicCachePool {
 
     ////////////////////////////   OPCache Methods   ////////////////////////////
 
+    /**
+     * Cleans up cache path from expired items
+     * And cache miss
+     */
+    protected function doClean() {
+        $path = realpath($this->path);
+        if ($path and is_dir($path)) {
+            foreach (scandir($path) as $file) {
+                if (endsWith($file, ".tmp")) @unlink($path . DIRECTORY_SEPARATOR . $file);
+            }
+        }
 
-
-
-    protected function doContains(string $key): bool {
-
+        $now = time();
+        foreach ($this->meta as $key => $expire) {
+            if ($now > $expire) $this->doDelete($key);
+        }
     }
 
-    protected function doDelete(string $key): bool {
+    /** {@inheritdoc} */
+    protected function doContains(string $key): bool {
+        $expire = $this->meta[$key] ?? 0;
+        if (time() > $expire) return false;
+        return is_file($this->getFileName($key));
+    }
 
+    /** {@inheritdoc} */
+    protected function doDelete(string $key): bool {
+        // do not clear the expiration to prevent a file write
+        // as doContains checks for the file presence
+        $filename = $this->getFileName($key);
+        if (is_file($key)) return @unlink($filename);
+        // file does not exists so we can say it has been removed
+        return true;
     }
 
     protected function doFetch(string $key): BasicCacheItem {
-
+        if (!$this->doContains($key)) return $this->createEmptyItem($key);
+        return new BasicCacheItem($key, $this->getTTL(), true, $this->opload($this->getFileName($key)));
     }
 
     protected function doFlush(): bool {
-
+        $path = realpath($this->path);
+        if ($path and is_dir($path)) {
+            foreach (scandir($path) as $file) {
+                if (
+                        (endsWith($file, $this->ext))
+                        //tmpfiles created by tempnam()
+                        or ( endsWith($file, ".tmp"))
+                ) {
+                    @unlink($path . DIRECTORY_SEPARATOR . $file);
+                }
+            }
+            //clears meta and sync
+            $this->meta = [];
+            $this->savemeta();
+        }
+        return true;
     }
 
     protected function doSave(BasicCacheItem $item): bool {
-
-    }
-
-    /** {@inheritdoc} */
-    protected function clearCache(): bool {
-        $success = true;
-        foreach (scandir($this->path) as $file) {
-            if (endsWith($this->ext, $file)) {
-                if (@unlink($this->path . DIRECTORY_SEPARATOR . $file) !== true) $success = false;
-            }
-        }
-        $this->meta = [];
-        $this->savemeta();
-        return $success;
-    }
-
-    /** {@inheritdoc} */
-    protected function deleteCache(string $key): bool {
-        $fn = $this->getFileName($key);
-        if (!file_exists($fn)) return true;
-        unset($this->meta[$key]);
-        return @unlink($fn);
-    }
-
-    /** {@inheritdoc} */
-    protected function hasCache(string $key): bool {
-        $filename = $this->getFileName($key);
-        $expire = $this->meta[$key] ?? 0;
-        return file_exists($filename) && $expire > time();
-    }
-
-    /** {@inheritdoc} */
-    protected function writeCache(BasicCacheItem $item): bool {
-        $key = $item->getKey();
-        $this->deleteCache($key); //clears current value
         $expire = $item->getExpireAt()->getTimestamp();
         if (time() > $expire) return false;
-
+        $key = $item->getKey();
         $value = $item->getRawValue();
-        if (in_array(gettype($value), ["unknown type", "resource", "resource (closed)", "null"])) return false;
-        if ($value instanceof CacheAble) {
-            $tosave = '<?php return ' . var_export($value, true) . ';';
-        } elseif ($value instanceof Serializable) {
-            $tosave = '<?php return unserialize(' . serialize($value) . ');';
-        } elseif (is_object($value)) return false;
-        else $tosave = '<?php return ' . var_export($value, true) . ';';
-        $this->meta[$key] = $expire;
-        $this->savemeta();
-        $tmp = tempnam($this->path, $key);
-        $file = $this->getFileName($key);
-        if (file_put_contents($tmp, $tosave, LOCK_EX)) {
-            return rename($tmp, $file);
+        if (($retval = $this->opsave($this->getFileName($key), $value))) {
+            $this->meta[$key] = $expire;
+            $this->savemeta();
         }
-        return false;
-    }
-
-    /** {@inheritdoc} */
-    protected function readCache(string $key): BasicCacheItem {
-        if (!$this->hasCache($key)) return $this->createEmptyItem($key);
-        $value = includeFile($this->getFileName($key));
-        return new BasicCacheItem($key, $this->ttl, true, $value);
+        return $retval;
     }
 
 }

@@ -17,7 +17,7 @@ function noop() {
  * Execute a callback and hides all errors that can be thrown
  * @param callable $callback
  * @param mixed ...$args args to be passed to the callback
- * @return callable|null
+ * @return mixed
  */
 function safe_exec(callable $callback, ...$args) {
     \set_error_handler("noop");
