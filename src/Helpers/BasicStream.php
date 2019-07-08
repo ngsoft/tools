@@ -13,20 +13,8 @@ use Psr\Http\Message\{
 use Throwable;
 use function NGSOFT\Tools\safe_exec;
 
-class BasicStream implements StreamInterface, StreamFactoryInterface {
-    ////////////////////////////   StreamFactoryInterface   ////////////////////////////
-
-    /** @var StreamFactoryInterface */
-    private static $staticInstance;
-
-    /** @return StreamFactoryInterface */
-    public static function helper(): StreamFactoryInterface {
-        if (!isset(self::$staticInstance)) {
-            self::$staticInstance = new static(fopen("php://temp", "r"));
-            self::$staticInstance->detach();
-        }
-        return self::$staticInstance;
-    }
+class BasicStream implements StreamInterface {
+    ////////////////////////////   StreamFactoryInterface (Static)   ////////////////////////////
 
     /**
      * Create a new stream from a string.
@@ -37,15 +25,29 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
      *
      * @return StreamInterface
      */
-    public function createStream(string $content = ''): StreamInterface {
+    public static function createStream(string $content = ''): StreamInterface {
         $handle = fopen("php://temp", "w+");
         $stream = new static($handle);
         $stream->write($content);
         return $stream;
     }
 
-    /** {@inheritdoc} */
-    public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface {
+    /**
+     * Create a stream from an existing file.
+     *
+     * The file MUST be opened using the given mode, which may be any mode
+     * supported by the `fopen` function.
+     *
+     * The `$filename` MAY be any string supported by `fopen()`.
+     *
+     * @param string $filename Filename or stream URI to use as basis of stream.
+     * @param string $mode Mode with which to open the underlying filename/stream.
+     *
+     * @return StreamInterface
+     * @throws \RuntimeException If the file cannot be opened.
+     * @throws \InvalidArgumentException If the mode is invalid.
+     */
+    public static function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface {
         if (!preg_match(self::VALID_STREAM_MODES, $mode)) throw new InvalidArgumentException("Mode $mode is invalid.");
         $handle = safe_exec(function ($fn, $m) {
             return fopen($fn, $m);
@@ -64,7 +66,7 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
      *
      * @return StreamInterface
      */
-    public function createStreamFromResource($resource): StreamInterface {
+    public static function createStreamFromResource($resource): StreamInterface {
         assert(is_resource($resource));
         return new static($resource);
     }
