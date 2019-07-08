@@ -55,7 +55,7 @@ class OPCachePool extends BasicCachePool {
     private function loadMetaAndCleanUp() {
         $this->metafile = sprintf('/%s.db.php', basename($this->path));
 
-        loadMeta();
+        $this->loadMeta();
         $ct = time();
         $meta = $this->meta;
         $c = 0;
