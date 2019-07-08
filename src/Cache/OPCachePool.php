@@ -77,7 +77,7 @@ class OPCachePool extends BasicCachePool {
     }
 
     private function savemeta(): bool {
-        $tosave = sprintf('<?php return %s;', var_export($this->meta, true));
+        $tosave = '<?php return ' . var_export($this->meta, true) . ';';
         $tmp = tempnam($this->path, basename($this->path));
         if (file_put_contents($tmp, $tosave, LOCK_EX)) {
             return rename($tmp, $this->path . $this->metafile);
