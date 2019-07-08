@@ -83,7 +83,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param string $password
      * @return static
      */
-    public function setAuth(string $user, string $password) {
+    public function withAuth(string $user, string $password) {
         return $this->addHeader("Authorization", sprintf("Basic %s", base64_encode("$user:$password")));
     }
 
@@ -92,7 +92,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param string $referer
      * @return static
      */
-    public function setReferer(string $referer) {
+    public function withReferer(string $referer) {
         return $this->addOpt(CURLOPT_REFERER, $referer);
     }
 
@@ -112,7 +112,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      * @throws InvalidArgumentException
      */
-    public function setProxy(string $protocol, string $host, int $port) {
+    public function withProxy(string $protocol, string $host, int $port) {
         if (!in_array($protocol, ['http', 'https', 'socks4', 'socks5'])) {
             throw new InvalidArgumentException("Invalid protocol $protocol for proxy");
         }
@@ -156,7 +156,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      * @throws InvalidArgumentException
      */
-    public function setCookieFile(string $cookieFile) {
+    public function withCookieFile(string $cookieFile) {
         $dirname = dirname($cookieFile);
         if (!is_dir($dirname) or ! is_writable($dirname)) {
             throw new InvalidArgumentException("$dirname for cookie file does not exists or is not writable.");
@@ -170,7 +170,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param string $userAgent
      * @return static
      */
-    public function setUserAgent(string $userAgent) {
+    public function withUserAgent(string $userAgent) {
         $this->userAgent = $userAgent;
         return $this;
     }
@@ -180,7 +180,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param int $retry
      * @return static
      */
-    public function setRetry(int $retry) {
+    public function withRetry(int $retry) {
         $this->retry = $retry;
         return $this;
     }
@@ -190,7 +190,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param int $timeout
      * @return static
      */
-    public function setTimeout(int $timeout) {
+    public function withTimeout(int $timeout) {
         $this->timeout = $timeout;
         return $this;
     }
@@ -213,7 +213,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param string $value
      * @return static
      */
-    public function addHeader(string $key, string $value) {
+    public function withHeader(string $key, string $value) {
         $this->headers[$key] = $value;
         return $this;
     }
@@ -223,7 +223,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param array<string,string> $keyValuePair
      * @return static
      */
-    public function addHeaders(array $keyValuePair) {
+    public function withHeaders(array $keyValuePair) {
         foreach ($keyValuePair as $k => $v) {
 
             $this->addHeader($k, $v);
@@ -237,7 +237,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param mixed $value
      * @return static
      */
-    public function addOpt(int $curlopt, $value) {
+    public function withOpt(int $curlopt, $value) {
         $this->opts[$curlopt] = $value;
         return $this;
     }
@@ -247,7 +247,7 @@ class BasicCurlRequest implements CurlHelper {
      * @param array $options
      * @return $this
      */
-    public function addOpts(array $options) {
+    public function withOpts(array $options) {
         foreach ($options as $k => $v) {
             $this->addOpt($k, $v);
         }

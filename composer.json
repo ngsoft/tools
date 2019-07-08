@@ -10,24 +10,26 @@
             "homepage": "https://github.com/ngsoft"
         }],
     "require-dev": {
-        "phan/phan": "*"
+        "phan/phan": "*",
+        "psr/container": "*",
+        "psr/http-client": "^1.0"
     },
     "require": {
         "php": ">=7.1",
-
+        "symfony/polyfill-mbstring": "*",
 
         "psr/log": "*",
         "psr/cache": "*",
         "psr/simple-cache": "*",
 
-        "symfony/polyfill-mbstring": "*",
+
         "kdyby/parse-use-statements": "*",
 
-        "psr/container": "*",
+
         "psr/http-message": "^1.0",
         "psr/http-factory": "^1.0",
-        "fig/http-message-util": "^1.1",
-        "psr/http-client": "^1.0"
+        "fig/http-message-util": "^1.1"
+
     },
     "autoload": {
         "psr-4": {
