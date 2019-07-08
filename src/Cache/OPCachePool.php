@@ -53,10 +53,7 @@ class OPCachePool extends BasicCachePool {
      * Loads the cached metadatas, remove entries that are expired and update the meta cache
      */
     private function loadMetaAndCleanUp() {
-
-        //sprintf('%u', crc32($this->icon));
-
-        $this->metafile = sprintf('/%s.db.php', basename($path));
+        $this->metafile = sprintf('/%s.db.php', basename($this->path));
 
         loadMeta();
         $ct = time();
