@@ -31,7 +31,7 @@ function safe_exec(callable $callback, ...$args) {
  * @return callable|null
  */
 function errors_as_exceptions() {
-    return \set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcnt) {
+    return \set_error_handler(function ($errno, $errstr, $errfile, $errline) {
         if (!error_reporting()) return false;
         throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     });
