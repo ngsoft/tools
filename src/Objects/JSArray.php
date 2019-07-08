@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Objects;
 
-use IteratorAggregate;
-use NGSOFT\Tools\Interfaces\CacheAble;
-use NGSOFT\Tools\Interfaces\JSArrayInterface;
-use NGSOFT\Tools\Traits\ArrayAccessTrait;
-use NGSOFT\Tools\Traits\JSArrayMethods;
+use ArrayIterator,
+    IteratorAggregate;
+use NGSOFT\Tools\{
+    Exceptions\BadMethodCallException, Interfaces\CacheAble, Interfaces\JSArrayInterface, Traits\ArrayAccessTrait
+};
+use function NGSOFT\Tools\array_flatten;
 
 /**
  * A library that reproduces the Javascript Array Object for PHP
@@ -16,7 +17,6 @@ use NGSOFT\Tools\Traits\JSArrayMethods;
  */
 class JSArray implements IteratorAggregate, CacheAble, JSArrayInterface {
 
-    use JSArrayMethods;
     use ArrayAccessTrait;
 
     /** @var array */

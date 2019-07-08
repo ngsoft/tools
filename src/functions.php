@@ -20,7 +20,7 @@ function noop() {
  * @return mixed
  */
 function safe_exec(callable $callback, ...$args) {
-    \set_error_handler("noop");
+    \set_error_handler('NGSOFT\\Tools\\noop');
     $retval = call_user_func_array($callback, $args);
     \restore_error_handler();
     return $retval;
