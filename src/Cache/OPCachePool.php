@@ -144,6 +144,7 @@ class OPCachePool extends BasicCachePool {
         return false;
     }
 
+    /** {@inheritdoc} */
     protected function readCache(string $key): BasicCacheItem {
         if (!$this->hasCache($key)) return $this->createEmptyItem($key);
         $value = includeFile($this->getFileName($key));
