@@ -21,7 +21,7 @@ class OPCachePool extends BasicCachePool {
     private $path;
 
     /** @var string */
-    private $ext = ".opcache.php";
+    private $ext = ".opc.php";
 
     /**
      * Contains correspondances between keys and their expire date
@@ -30,7 +30,7 @@ class OPCachePool extends BasicCachePool {
     private $meta;
 
     /** @var string */
-    private $metafile;
+    private $metafile = "%s.meta.php";
 
     /**
      * @param string $path Directory where to store cached items
@@ -38,57 +38,130 @@ class OPCachePool extends BasicCachePool {
      */
     public function __construct(string $path, int $ttl = null) {
         parent::__construct($ttl);
-        $this->path = $path;
-        //make the path
-        if (!file_exists($path)) @mkdir($path, 0666, true);
-        if (!is_dir($path)) {
-            throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $path));
-        }
+        //normalize path
+        $this->path = preg_replace('/[\\\/]+/', '/', $path . DIRECTORY_SEPARATOR);
+
+        $this->metafile = sprintf($this->metafile, basename($this->path));
+
+
+
+
+
+
         $this->loadMetaAndCleanUp();
     }
 
     ////////////////////////////   Metadatas   ////////////////////////////
 
     /**
-     * Loads the cached metadatas, remove entries that are expired and update the meta cache
+     * Get the saved metadata
+     * @return array
      */
-    private function loadMetaAndCleanUp() {
-        $this->metafile = sprintf('/%s.db.php', basename($this->path));
-
-        $this->loadMeta();
-        $ct = time();
-        $meta = $this->meta;
-        $c = 0;
-        foreach ($meta as $key => $expire) {
-            if ($ct > $expire) {
-                $this->deleteCache((string) $key);
-                unset($this->meta[$key]);
-                $c++;
-            }
-        }
-        if ($c > 0) $this->savemeta();
+    private function loadmeta(): array {
+        $filename = $this->path . $this->metafile;
+        return $this->opload($filename) ?? [];
     }
 
-    private function loadMeta() {
-        $meta = includeFile($this->path . $this->metafile);
-        if (is_array($meta)) $this->meta = $meta;
-        else $this->meta = [];
-    }
-
+    /**
+     * Convenient method to update metadatas on disk
+     * @return bool
+     */
     private function savemeta(): bool {
-        $tosave = '<?php return ' . var_export($this->meta, true) . ';';
-        $tmp = tempnam($this->path, basename($this->path));
-        if (file_put_contents($tmp, $tosave, LOCK_EX)) {
-            return rename($tmp, $this->path . $this->metafile);
-        }
-        return false;
+        $filename = $this->path . $this->metafile;
+        return $this->opsave($filename, $this->meta);
     }
 
+    ////////////////////////////   Files Operations   ////////////////////////////
+
+    /**
+     * Defines the filename to use to save the cache
+     * @param string $key
+     * @return string
+     */
     private function getFileName(string $key): string {
-        return sprintf('%s/%u%s', $this->path, crc32($key), $this->ext);
+        return sprintf('%s%u%s', $this->path, crc32($key), $this->ext);
+    }
+
+    /**
+     * Save opcodes into a file
+     * @param string $filename
+     * @param mixed $data
+     * @throws BasicCacheException
+     * @return bool
+     */
+    private function opsave(string $filename, $data): bool {
+        if (in_array(gettype($data), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
+        if (is_dir($filename)) return false;
+        $retval = false;
+        $dir = dirname($filename);
+        $tmp = @tempnam($dir, basename($filename));
+
+        if (is_dir($dir)) {
+            if (is_object($data)) {
+                if ($data instanceof \Serializable) $value = '<?php return unserialize(' . serialize($value) . ');';
+                elseif ($data instanceof CacheAble) {
+                    $value = '<?php return '
+                            . get_class($data) . '::__set_state('
+                            . var_export($data->toArray(), true) . ');';
+                }
+                return false;
+            } else $value = '<?php return ' . var_export($value, true) . ';';
+            set_time_limit(60);
+            $old = umask(0);
+            file_exists($dir) || @mkdir($filename);
+            if (!is_dir($dir)) throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
+            is_file($filename) && @unlink($filename);
+            umask(022);
+            if (@file_put_contents($tmp, $value, LOCK_EX)) {
+                usleep(200000);
+                $i = 0;
+                do {
+                    //rename seems to not run well on big files
+                    if (($retval = @rename($tmp, $filename))) break;
+                    if ($i === 5) break;
+                    usleep(400000);
+                    ++$i;
+                }while (true);
+            }
+            umask($old);
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Loads opcodes
+     * @param string $filename
+     * @return mixed|false
+     */
+    private function opload(string $filename) {
+        return includeFile($filename);
     }
 
     ////////////////////////////   OPCache Methods   ////////////////////////////
+
+
+
+
+    protected function doContains(string $key): bool {
+
+    }
+
+    protected function doDelete(string $key): bool {
+
+    }
+
+    protected function doFetch(string $key): BasicCacheItem {
+
+    }
+
+    protected function doFlush(): bool {
+
+    }
+
+    protected function doSave(BasicCacheItem $item): bool {
+
+    }
 
     /** {@inheritdoc} */
     protected function clearCache(): bool {

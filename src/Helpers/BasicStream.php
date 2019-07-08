@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Helpers;
 
-use NGSOFT\Tools\Exceptions\InvalidArgumentException;
-use NGSOFT\Tools\Exceptions\RuntimeException;
-use Psr\Http\Message\StreamFactoryInterface;
-use Psr\Http\Message\StreamInterface;
+use NGSOFT\Tools\Exceptions\{
+    InvalidArgumentException, RuntimeException
+};
+use Psr\Http\Message\{
+    StreamFactoryInterface, StreamInterface
+};
 use Throwable;
-use function NGSOFT\Tools\set_error_handler;
+use function NGSOFT\Tools\safe_exec;
 
 class BasicStream implements StreamInterface, StreamFactoryInterface {
     ////////////////////////////   StreamFactoryInterface   ////////////////////////////
@@ -45,9 +47,10 @@ class BasicStream implements StreamInterface, StreamFactoryInterface {
     /** {@inheritdoc} */
     public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface {
         if (!preg_match(self::VALID_STREAM_MODES, $mode)) throw new InvalidArgumentException("Mode $mode is invalid.");
-        set_error_handler();
-        $handle = fopen($filename, $mode);
-        restore_error_handler();
+        $handle = safe_exec(function ($fn, $m) {
+            return fopen($fn, $m);
+        }, $filename, $mode);
+
         if ($handle === false) throw new RuntimeException("The file $filename cannot be opened.");
         return new static($handle);
     }

@@ -88,28 +88,28 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * Deletes all items in the pool.
      * @return bool
      */
-    abstract protected function clearCache(): bool;
+    abstract protected function doFlush(): bool;
 
     /**
      * Loads an item from the cache
      * @param string $key
      * @return BasicCacheItem
      */
-    abstract protected function readCache(string $key): BasicCacheItem;
+    abstract protected function doFetch(string $key): BasicCacheItem;
 
     /**
      * Commits the specified cache item to storage.
      * @param BasicCacheItem $item
      * @return bool
      */
-    abstract protected function writeCache(BasicCacheItem $item): bool;
+    abstract protected function doSave(BasicCacheItem $item): bool;
 
     /**
      * Removes a single items from the pool.
      * @param string $key
      * @return bool
      */
-    abstract protected function deleteCache(string $key): bool;
+    abstract protected function doDelete(string $key): bool;
 
     /**
      * Confirms if the cache contains specified cache item.
@@ -120,7 +120,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @param string $key
      * @return bool
      */
-    abstract protected function hasCache(string $key): bool;
+    abstract protected function doContains(string $key): bool;
 
 
     ////////////////////////////   CacheItemPool   ////////////////////////////
@@ -169,14 +169,14 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function clear() {
-        return $this->clearCache();
+        return $this->doFlush();
     }
 
     /**
      * {@inheritdoc}
      */
     public function hasItem($key) {
-        return $this->hasCache($key);
+        return $this->doContains($key);
     }
 
     /**
@@ -192,7 +192,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function deleteItem($key) {
         $this->validateKey($key);
-        return $this->deleteCache($key);
+        return $this->doDelete($key);
     }
 
     /**
@@ -200,7 +200,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function getItem($key) {
         $this->validateKey($key);
-        return $this->readCache($key);
+        return $this->doFetch($key);
     }
 
     /**
@@ -219,7 +219,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-        if ($item instanceof BasicCacheItem) return $this->writeCache($item);
+        if ($item instanceof BasicCacheItem) return $this->doSave($item);
         return false;
     }
 

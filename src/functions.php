@@ -7,16 +7,34 @@ use ReflectionClass;
 ////////////////////////////   Error Handler   ////////////////////////////
 
 /**
- * Set Error handler
- * @param callable|null $callback
+ * A function that does nothing
+ */
+function noop() {
+
+}
+
+/**
+ * Execute a callback and hides all errors that can be thrown
+ * @param callable $callback
+ * @param mixed ...$args args to be passed to the callback
  * @return callable|null
  */
-function set_error_handler(callable $callback = null) {
-    //set en emty function to "eat" errors
-    $callback = is_callable($callback) ? $callback : function () {
+function safe_exec(callable $callback, ...$args) {
+    \set_error_handler("noop");
+    $retval = call_user_func_array($callback, $args);
+    \restore_error_handler();
+    return $retval;
+}
 
-    };
-    return \set_error_handler($callback);
+/**
+ * Convenient Function used to convert php errors, warning, ... as Throwable
+ * @return callable|null
+ */
+function errors_as_exceptions() {
+    return \set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcnt) {
+        if (!error_reporting()) return false;
+        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+    });
 }
 
 ////////////////////////////   Some Helpers   ////////////////////////////
