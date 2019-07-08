@@ -4,6 +4,18 @@ namespace NGSOFT\Tools\Objects;
 
 class BasicObject extends JSArray {
 
+    /** {@inheritdoc} */
+    public function concat(iterable ...$values) {
+        $array = $this->toArray();
+        foreach ($values as $value) {
+            if ($value instanceof static) $value = $value->toArray();
+            if (!is_array($value)) $value = [$value];
+            $array = array_merge($array, $value);
+        }
+        return new static($array);
+    }
+
+    /** {@inheritdoc} */
     public function toArray(): array {
         $arr = parent::toArray();
 
