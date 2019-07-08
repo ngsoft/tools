@@ -7,6 +7,8 @@ namespace NGSOFT\Tools\Cache;
 use NGSOFT\Tools\Cache\BasicCacheItem;
 use NGSOFT\Tools\Cache\BasicCachePool;
 use NGSOFT\Tools\Exceptions\BasicCacheException;
+use NGSOFT\Tools\Interfaces\CacheAble;
+use Serializable;
 use function NGSOFT\Tools\endsWith;
 use function NGSOFT\Tools\includeFile;
 
@@ -127,11 +129,11 @@ class OPCachePool extends BasicCachePool {
         if (time() > $expire) return false;
 
         $value = $item->getRawValue();
-        if (in_array(gettype($value), ["unknown type", "resource", "resource (closed)"])) return false;
-        if ($value instanceof \Serializable) {
-            $tosave = '<?php return unserialize(' . serialize($value) . ');';
-        } elseif ($value instanceof \NGSOFT\Tools\Interfaces\CacheAble) {
+        if (in_array(gettype($value), ["unknown type", "resource", "resource (closed)", "null"])) return false;
+        if ($value instanceof CacheAble) {
             $tosave = '<?php return ' . var_export($value, true) . ';';
+        } elseif ($value instanceof Serializable) {
+            $tosave = '<?php return unserialize(' . serialize($value) . ');';
         } elseif (is_object($value)) return false;
         else $tosave = '<?php return ' . var_export($value, true) . ';';
         $this->meta[$key] = $expire;
