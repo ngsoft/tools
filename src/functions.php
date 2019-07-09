@@ -168,6 +168,18 @@ function array_every(callable $callback, array $array): bool {
 }
 
 /**
+ * A foreach loop for an array
+ * @param callable $callback
+ * @param array $array
+ * @return void
+ */
+function array_foreach(callable $callback, array $array): void {
+    foreach ($array as $k => $v) {
+        $callback($v, $k, $array);
+    }
+}
+
+/**
  * Tests if at least one element in the array passes the test implemented by the provided function..
  * @param callable $callback A function to test for each element
  * @param array $array
