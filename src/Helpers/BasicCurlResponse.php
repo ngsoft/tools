@@ -42,16 +42,12 @@ use Psr\Http\Message\StreamInterface;
  * @property-read string $error
  * @property-read int $errno
  */
-class BasicCurlResponse implements ArrayAccess {
+class BasicCurlResponse extends HTTPResponse implements ArrayAccess {
 
     use ArrayAccessTrait;
 
-    /** @var StreamInterface */
-    private $stream;
-
     public function __construct($ch, array $responseHeaders, StreamInterface $stream) {
 
-        $this->stream = $stream;
         $info = $this->storage = (array) curl_getinfo($ch);
         $this->storage["errno"] = curl_errno($ch);
         $this->storage["error"] = curl_error($ch);
@@ -66,6 +62,31 @@ class BasicCurlResponse implements ArrayAccess {
             "response" => $resph
         ];
         curl_close($ch);
+
+        foreach ($resph as $r) {
+            foreach ($r as $k => $v) {
+                if (($k === 0) && preg_match('/HTTP\/([0-9](\.[0-9])?)/', $v, $m)) {
+                    list(, $version) = $m;
+                }
+                if (is_string($k)) {
+                    $pheaders[$k][] = trim($v);
+                }
+            }
+        }
+
+
+
+        parent::__construct([
+            "status" => $this->http_code,
+            "body" => $stream,
+            "protocol" => $version ?? null,
+            "headers" => $pheaders ?? []
+        ]);
+
+
+        print_r($this);
+
+        exit;
     }
 
     /**
@@ -86,12 +107,12 @@ class BasicCurlResponse implements ArrayAccess {
      * @return string
      */
     public function getContents(): string {
-        return (string) $this->stream;
+        return (string) $this->getStream();
     }
 
     /** @return StreamInterface */
     public function getStream(): StreamInterface {
-        return $this->stream;
+        return $this->getBody();
     }
 
     /**

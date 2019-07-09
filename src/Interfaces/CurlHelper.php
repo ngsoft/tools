@@ -58,10 +58,8 @@ interface CurlHelper extends StatusCodeInterface {
         424 => "Failed Dependency",
         425 => "Too Early",
         426 => "Upgrade Required",
-        427 => "Unassigned",
         428 => "Precondition Required",
         429 => "Too Many Requests",
-        430 => "Unassigned",
         431 => "Request Header Fields Too Large",
         451 => "Unavailable For Legal Reasons",
         500 => "Internal Server Error",
@@ -73,7 +71,6 @@ interface CurlHelper extends StatusCodeInterface {
         506 => "Variant Also Negotiates",
         507 => "Insufficient Storage",
         508 => "Loop Detected",
-        509 => "Unassigned",
         510 => "Not Extended",
         511 => "Network Authentication Required",
     ];
