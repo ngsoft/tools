@@ -92,38 +92,40 @@ class OPCachePool extends BasicCachePool {
         $dir = dirname($filename);
         $tmp = @tempnam($dir, basename($filename));
 
-        if (is_dir($dir)) {
-            if (is_object($data)) {
-                if ($data instanceof Serializable) $value = '<?php return unserialize(' . serialize($data) . ');';
-                elseif ($data instanceof CacheAble) {
-                    $value = '<?php return '
-                            . get_class($data) . '::__set_state('
-                            . var_export($data->toArray(), true) . ');';
-                } else return false;
-            } else $value = '<?php return ' . var_export($data, true) . ';';
-            set_time_limit(60);
-            $old = umask(0);
-            file_exists($dir) || @mkdir($filename);
-            if (!is_dir($dir)) {
-                umask($old);
-                throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
-            }
-            is_file($filename) && @unlink($filename);
-            umask(022);
-            if (@file_put_contents($tmp, $value, LOCK_EX)) {
-                usleep(200000);
+        // Set File Contents
+        if (is_object($data)) {
+            if ($data instanceof Serializable) $value = '<?php return unserialize(\'' . serialize($data) . '\');';
+            elseif ($data instanceof CacheAble) {
+                $value = '<?php return '
+                        . get_class($data) . '::__set_state('
+                        . var_export($data->toArray(), true) . ');';
+            } else return false;
+        } else $value = '<?php return ' . var_export($data, true) . ';';
 
-                do {
-                    //rename seems to not run well on big files
-                    if (($retval = @rename($tmp, $filename))) break;
-                    if (!isset($i)) $i = 1;
-                    if ($i == 5) break;
-                    ++$i;
-                    usleep(400000);
-                }while (true);
-            }
+        // Write
+        set_time_limit(60);
+        $old = umask(0);
+        file_exists($dir) || @mkdir($dir, 0777, true);
+        if (!is_dir($dir)) {
             umask($old);
+            throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
         }
+        is_file($filename) && @unlink($filename);
+        umask(022);
+        if (@file_put_contents($tmp, $value, LOCK_EX)) {
+            usleep(200000);
+
+            do {
+                //rename seems to not run well on big files
+                if (($retval = @rename($tmp, $filename))) break;
+                if (!isset($i)) $i = 1;
+                if ($i == 5) break;
+                ++$i;
+                usleep(400000);
+            }while (true);
+        }
+        umask($old);
+
 
         return $retval;
     }
