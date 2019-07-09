@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\Cache\BasicCacheItem;
-use NGSOFT\Tools\Cache\BasicCachePool;
-use NGSOFT\Tools\Exceptions\BasicCacheException;
-use NGSOFT\Tools\Interfaces\CacheAble;
+use NGSOFT\Tools\{
+    Cache\BasicCacheItem, Cache\BasicCachePool, Exceptions\BasicCacheException, Interfaces\CacheAble
+};
 use Serializable;
-use function NGSOFT\Tools\endsWith;
-use function NGSOFT\Tools\includeFile;
+use function NGSOFT\Tools\{
+    endsWith, includeFile, safe_exec
+};
 
 /**
  * Uses PHP OPCode to store data
@@ -104,29 +104,27 @@ class OPCachePool extends BasicCachePool {
 
         // Write
         set_time_limit(60);
-        $old = umask(0);
         file_exists($dir) || @mkdir($dir, 0777, true);
         if (!is_dir($dir)) {
-            umask($old);
             throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
         }
         is_file($filename) && @unlink($filename);
-        umask(022);
         if (@file_put_contents($tmp, $value, LOCK_EX)) {
             usleep(200000);
 
             do {
                 //rename seems to not run well on big files
-                if (($retval = @rename($tmp, $filename))) break;
+                if (($retval = @rename($tmp, $filename))) {
+                    // cli mode can have a different user from http mode
+                    chmod($filename, 0777);
+                    break;
+                }
                 if (!isset($i)) $i = 1;
                 if ($i == 5) break;
                 ++$i;
                 usleep(400000);
             }while (true);
         }
-        umask($old);
-
-
         return $retval;
     }
 
@@ -136,7 +134,9 @@ class OPCachePool extends BasicCachePool {
      * @return mixed|false
      */
     private function opload(string $filename) {
-        return includeFile($filename);
+        return safe_exec(function () use($filename) {
+            return includeFile($filename);
+        });
     }
 
     ////////////////////////////   OPCache Methods   ////////////////////////////
