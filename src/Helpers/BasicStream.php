@@ -7,10 +7,8 @@ namespace NGSOFT\Tools\Helpers;
 use NGSOFT\Tools\Exceptions\{
     InvalidArgumentException, RuntimeException
 };
-use Psr\Http\Message\{
-    StreamFactoryInterface, StreamInterface
-};
-use Throwable;
+use Psr\Http\Message\StreamInterface,
+    Throwable;
 use function NGSOFT\Tools\safe_exec;
 
 class BasicStream implements StreamInterface {

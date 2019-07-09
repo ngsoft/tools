@@ -84,7 +84,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      */
     public function withAuth(string $user, string $password) {
-        return $this->addHeader("Authorization", sprintf("Basic %s", base64_encode("$user:$password")));
+        return $this->withHeader("Authorization", sprintf("Basic %s", base64_encode("$user:$password")));
     }
 
     /**
@@ -93,7 +93,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      */
     public function withReferer(string $referer) {
-        return $this->addOpt(CURLOPT_REFERER, $referer);
+        return $this->withOpt(CURLOPT_REFERER, $referer);
     }
 
     /**
@@ -101,7 +101,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      */
     public function withAJAX() {
-        return $this->addHeader("X-Requested-With", "XMLHttpRequest");
+        return $this->withHeader("X-Requested-With", "XMLHttpRequest");
     }
 
     /**
@@ -116,7 +116,7 @@ class BasicCurlRequest implements CurlHelper {
         if (!in_array($protocol, ['http', 'https', 'socks4', 'socks5'])) {
             throw new InvalidArgumentException("Invalid protocol $protocol for proxy");
         }
-        return $this->addOpts([
+        return $this->withOpts([
                     CURLOPT_HTTPPROXYTUNNEL => 0,
                     CURLOPT_PROXY => sprintf("%s://%s:%d", $protocol, $host, $port)
         ]);
@@ -129,10 +129,10 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      */
     public function postJson(string $json) {
-        return $this->addHeaders([
+        return $this->withHeaders([
                     "Content-Type" => "application/json",
                     "Content-Length" => (string) strlen($json)
-                ])->addOpts([
+                ])->withOpts([
                     CURLOPT_CUSTOMREQUEST => "POST",
                     CURLOPT_POSTFIELDS => $json
         ]);
@@ -144,7 +144,7 @@ class BasicCurlRequest implements CurlHelper {
      * @return static
      */
     public function postData(array $data) {
-        return $this->addOpts([
+        return $this->withOpts([
                     CURLOPT_POSTREDIR => CURL_REDIR_POST_ALL,
                     CURLOPT_POSTFIELDS => http_build_query($data)
         ]);
@@ -226,7 +226,7 @@ class BasicCurlRequest implements CurlHelper {
     public function withHeaders(array $keyValuePair) {
         foreach ($keyValuePair as $k => $v) {
 
-            $this->addHeader($k, $v);
+            $this->withHeader($k, $v);
         }
         return $this;
     }
@@ -249,7 +249,7 @@ class BasicCurlRequest implements CurlHelper {
      */
     public function withOpts(array $options) {
         foreach ($options as $k => $v) {
-            $this->addOpt($k, $v);
+            $this->withOpt($k, $v);
         }
         return $this;
     }
@@ -336,7 +336,7 @@ class BasicCurlRequest implements CurlHelper {
             });
             if (!isset($this->opts[CURLOPT_FILE]) and ( $file = fopen("php://temp", "r+"))) curl_setopt($ch, CURLOPT_FILE, $file);
             curl_exec($ch);
-            return new BasicCurlResponse($ch, $headers, isset($file) ? new BasicStream($file) : BasicStream::helper()->createStream());
+            return new BasicCurlResponse($ch, $headers, isset($file) ? new BasicStream($file) : BasicStream::createStream());
         }
         throw new InvalidArgumentException("Url not set cannot process request.");
     }
@@ -352,7 +352,7 @@ class BasicCurlRequest implements CurlHelper {
             $file = sprintf("%s/%s", self::$certlocation, basename(self::CACERT_SRC));
             if (!is_file($file) and is_dir(dirname($file))) {
                 $handle = fopen("php://temp", "r+");
-                $stream = BasicStream::helper()->createStreamFromResource($handle);
+                $stream = BasicStream::createStreamFromResource($handle);
                 $ch = curl_init();
                 $this->curl_setopt_array($ch, self::CURL_DEFAULTS);
                 $this->curl_setopt_array($ch, [
@@ -365,7 +365,7 @@ class BasicCurlRequest implements CurlHelper {
                 curl_close($ch);
                 if (!$err and $stream->getSize()) {
                     try {
-                        $tosave = BasicStream::helper()->createStreamFromFile($file, "w");
+                        $tosave = BasicStream::createStreamFromFile($file, "w");
                         $tosave->write((string) $stream);
                         $tosave->close();
                         $stream->close();

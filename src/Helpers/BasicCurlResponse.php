@@ -62,7 +62,7 @@ class BasicCurlResponse extends HTTPResponse implements ArrayAccess {
             "response" => $resph
         ];
         curl_close($ch);
-
+        $pheaders = [];
         foreach ($resph as $r) {
             foreach ($r as $k => $v) {
                 if (($k === 0) && preg_match('/HTTP\/([0-9](\.[0-9])?)/', $v, $m)) {
@@ -79,8 +79,8 @@ class BasicCurlResponse extends HTTPResponse implements ArrayAccess {
         parent::__construct([
             "status" => $this->http_code,
             "body" => $stream,
-            "protocol" => $version ?? null,
-            "headers" => $pheaders ?? []
+            "version" => $version ?? null,
+            "headers" => $pheaders
         ]);
 
 

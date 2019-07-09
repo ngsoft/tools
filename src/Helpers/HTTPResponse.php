@@ -23,7 +23,7 @@ class HTTPResponse implements ResponseInterface, CurlHelper {
     private $body;
 
     /** @var string */
-    private $protocol;
+    private $version;
 
     /** @var array<string,array> */
     private $headers;
@@ -36,8 +36,8 @@ class HTTPResponse implements ResponseInterface, CurlHelper {
         $this->status = $data["status"] ?? 0;
         $this->phrase = $data["phrase"] ?? null;
         $this->body = $data["body"] instanceof StreamInterface ? $data["body"] : BasicStream::createStream();
-        $protocol = $data["protocol"] ?? "1.1";
-        $this->protocol = preg_match('/^[0-9](\.[0-9])?$/', $protocol) ? $protocol : "1.1";
+        $protocol = $data["version"] ?? "1.1";
+        $this->version = preg_match('/^[0-9](\.[0-9])?$/', $protocol) ? $protocol : "1.1";
         $this->headers = $data["headers"] ?? [];
 
         foreach (array_keys($this->headers) as $key) {
@@ -63,7 +63,7 @@ class HTTPResponse implements ResponseInterface, CurlHelper {
         if (!is_int($code) or $code < 100 or $code >= 600) {
             throw new InvalidArgumentException('Status code must be an integer value between 1xx and 5xx.');
         }
-        if ($code === $this->code && $reasonPhrase === ($this->phrase ?: "")) return $this;
+        if ($code === $this->status && $reasonPhrase === ($this->phrase ?: "")) return $this;
         $c = clone $this;
         $c->status = $code;
         if (!empty($reasonPhrase) && is_string($reasonPhrase)) $c->phrase = $reasonPhrase;
@@ -82,20 +82,20 @@ class HTTPResponse implements ResponseInterface, CurlHelper {
         if ($body === $this->body) return $this;
         $c = clone $this;
         $c->body = $body;
-        return $body;
+        return $c;
     }
 
     /** {@inheritdoc} */
     public function getProtocolVersion() {
-        return $this->protocol;
+        return $this->version;
     }
 
     /** {@inheritdoc} */
     public function withProtocolVersion($version) {
         assert(is_string($version) && preg_match('/^[0-9](\.[0-9])?$/', $version) > 0);
-        if ($version === $this->protocol) return $this;
+        if ($version === $this->version) return $this;
         $c = clone $this;
-        $c->protocol = $version;
+        $c->version = $version;
         return $c;
     }
 
@@ -121,7 +121,7 @@ class HTTPResponse implements ResponseInterface, CurlHelper {
     /** {@inheritdoc} */
     public function hasHeader($name) {
         $this->validateHeaderName($name);
-        return ( $name = $this->hmap[strtolower($name)] ?? null) !== null;
+        return ( $this->hmap[strtolower($name)] ?? null) !== null;
     }
 
     public function withAddedHeader($name, $value) {
