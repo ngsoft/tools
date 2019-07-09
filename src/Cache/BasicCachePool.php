@@ -183,7 +183,8 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      */
     public function deleteItems(array $keys) {
         array_map([$this, 'validateKey'], $keys);
-        return array_every([$this, 'deleteItem'], $keys);
+        $val = array_map([$this, 'deleteItem'], $keys);
+        return !in_array(false, $val);
     }
 
     /**
@@ -226,9 +227,9 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function commit() {
-        $success = array_every([$this, "save"], $this->deferred);
-        $this->deferred = [];
-        return $success;
+        array_map([$this, 'save'], $keys);
+        $val = array_map([$this, 'deleteItem'], $keys);
+        return !in_array(false, $val);
     }
 
     /**

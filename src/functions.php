@@ -148,10 +148,11 @@ function findClassesImplementing(string $parentClass): array {
  * @return array
  */
 function array_map(callable $callback, array $array): array {
+    $new = [];
     foreach ($array as $k => $v) {
-        $array[$k] = $callback($v, $k, $array);
+        $new[$k] = $callback($v, $k, $array);
     }
-    return $array;
+    return $new;
 }
 
 /**
