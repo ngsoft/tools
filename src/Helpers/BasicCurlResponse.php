@@ -74,19 +74,12 @@ class BasicCurlResponse extends HTTPResponse implements ArrayAccess {
             }
         }
 
-
-
         parent::__construct([
             "status" => $this->http_code,
             "body" => $stream,
             "version" => $version ?? null,
             "headers" => $pheaders
         ]);
-
-
-        print_r($this);
-
-        exit;
     }
 
     /**

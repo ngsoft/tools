@@ -55,7 +55,7 @@ class OPCachePool extends BasicCachePool {
      */
     private function loadmeta(): array {
         $filename = $this->path . $this->metafile;
-        return $this->opload($filename) ?? [];
+        return $this->opload($filename) ?: [];
     }
 
     /**
