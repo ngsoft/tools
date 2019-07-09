@@ -142,14 +142,29 @@ function findClassesImplementing(string $parentClass): array {
 ////////////////////////////   Arrays   ////////////////////////////
 
 /**
+ * Same as the original except callback accepts more arguments
+ * @param callable $callback
+ * @param array $array
+ * @return array
+ */
+function array_map(callable $callback, array $array): array {
+    foreach ($array as $k => $v) {
+        $array[$k] = $callback($v, $k, $array);
+    }
+    return $array;
+}
+
+/**
  * Tests if all elements in the array pass the test implemented by the provided function.
  * @param callable $callback A function to test for each element
  * @param array $array
  * @return bool
  */
 function array_every(callable $callback, array $array): bool {
-    $newarr = array_filter($array, $callback, ARRAY_FILTER_USE_BOTH);
-    return empty(array_diff_key($array, $newarr));
+    foreach ($array as $k => $v) {
+        if (true !== $callback($k, $v, $array)) return false;
+    }
+    return true;
 }
 
 /**
@@ -159,7 +174,10 @@ function array_every(callable $callback, array $array): bool {
  * @return bool
  */
 function array_some(callable $callback, array $array): bool {
-    return !array_every($callback, $array);
+    foreach ($array as $k => $v) {
+        if (true === $callback($k, $v, $array)) return true;
+    }
+    return false;
 }
 
 /**
