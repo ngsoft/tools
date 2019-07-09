@@ -6,7 +6,7 @@
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
-            "email": "daedelus.git@gmail.com",
+            "role": "Developer",
             "homepage": "https://github.com/ngsoft"
         }],
     "require-dev": {
