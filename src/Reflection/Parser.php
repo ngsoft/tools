@@ -228,7 +228,6 @@ class Parser implements LogWriterInterface {
      * @return string
      */
     public function expandClassName(ReflectionClass $refl, string $shortName): string {
-
         return UseStatements::expandClassName($shortName, $refl);
     }
 
