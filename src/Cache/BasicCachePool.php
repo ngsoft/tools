@@ -11,7 +11,6 @@ use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Container\ContainerInterface, Log\LoggerAwareInterface,
     Log\LoggerAwareTrait, Log\LoggerInterface
 };
-use function NGSOFT\Tools\array_every;
 
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
@@ -227,8 +226,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function commit() {
-        array_map([$this, 'save'], $keys);
-        $val = array_map([$this, 'deleteItem'], $keys);
+        $val = array_map([$this, 'save'], $this->deferred);
         return !in_array(false, $val);
     }
 
