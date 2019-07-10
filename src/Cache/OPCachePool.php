@@ -95,7 +95,14 @@ class OPCachePool extends BasicCachePool {
         // Set File Contents
         if (is_object($data)) {
             if ($data instanceof Serializable) $value = '<?php return unserialize(\'' . serialize($data) . '\');';
-            elseif ($data instanceof CacheAble) {
+            //Cacheable
+            elseif (
+                    (method_exists($data, 'toArray') and method_exists($data, '__set_state'))
+                    and ( $m = new \ReflectionMethod($data, 'toArray'))
+                    and $m->isPublic() and ! $m->isStatic()
+                    and ( $m = new \ReflectionMethod($data, '__set_state'))
+                    and $m->isPublic() and $m->isStatic()
+            ) {
                 $value = '<?php return '
                         . get_class($data) . '::__set_state('
                         . var_export($data->toArray(), true) . ');';
