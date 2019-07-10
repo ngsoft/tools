@@ -1,8 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NGSOFT\Tools;
 
-use ReflectionClass;
+use ErrorException,
+    JsonSerializable,
+    ReflectionClass,
+    stdClass;
+use const day,
+          hour,
+          localurl,
+          minute,
+          weburl,
+          year;
+use function mb_internal_encoding,
+             mb_stripos,
+             mb_strpos;
 
 ////////////////////////////   Error Handler   ////////////////////////////
 
@@ -33,7 +47,7 @@ function safe_exec(callable $callback, ...$args) {
 function errors_as_exceptions() {
     return \set_error_handler(function ($errno, $errstr, $errfile, $errline) {
         if (!error_reporting()) return false;
-        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
     });
 }
 
@@ -140,6 +154,34 @@ function findClassesImplementing(string $parentClass): array {
 }
 
 ////////////////////////////   Arrays   ////////////////////////////
+
+/**
+ * Convert an object to array
+ * @param JsonSerializable|stdClass $object
+ * @return array|null
+ */
+function object_to_array(object $object) {
+    if (
+            ($object instanceof JsonSerializable)
+            or ( $object instanceof stdClass)
+    ) {
+        $json = json_encode($object);
+        return json_decode($json, true);
+    }
+    return null;
+}
+
+/**
+ * Convert array to object
+ * @param array $array
+ * @return stdClass|array<stdClass>|null
+ */
+function array_to_object(array $array) {
+    if ($json = json_encode($array)) {
+        return json_decode($json);
+    }
+    return null;
+}
 
 /**
  * Same as the original except callback accepts more arguments
