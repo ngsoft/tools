@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\{
-    Cache\BasicCacheItem, Cache\BasicCachePool, Exceptions\BasicCacheException, Interfaces\CacheAble
+    Cache\BasicCacheItem, Cache\BasicCachePool, Exceptions\BasicCacheException
 };
-use Serializable;
+use ReflectionMethod,
+    Serializable;
 use function NGSOFT\Tools\{
     endsWith, includeFile, safe_exec
 };
@@ -98,9 +99,9 @@ class OPCachePool extends BasicCachePool {
             //Cacheable
             elseif (
                     (method_exists($data, 'toArray') and method_exists($data, '__set_state'))
-                    and ( $m = new \ReflectionMethod($data, 'toArray'))
+                    and ( $m = new ReflectionMethod($data, 'toArray'))
                     and $m->isPublic() and ! $m->isStatic()
-                    and ( $m = new \ReflectionMethod($data, '__set_state'))
+                    and ( $m = new ReflectionMethod($data, '__set_state'))
                     and $m->isPublic() and $m->isStatic()
             ) {
                 $value = '<?php return '

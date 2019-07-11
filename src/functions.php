@@ -23,7 +23,7 @@ use function mb_internal_encoding,
 /**
  * A function that does nothing
  */
-function noop() {
+function noop(...$arg) {
 
 }
 
