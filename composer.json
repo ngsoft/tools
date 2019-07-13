@@ -2,7 +2,7 @@
     "name": "ngsoft/tools",
     "description": "A set of reusable tools used on my projects.",
     "keywords": [],
-    "homepage": "https://github.com/ngsoft/manju",
+    "homepage": "https://github.com/ngsoft/tools",
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
@@ -12,8 +12,9 @@
     "require-dev": {
         "phan/phan": "*",
         "psr/container": "*",
-        "psr/http-client": "^1.0",
-        "psr/http-factory": "^1.0"
+        "psr/http-factory": "^1.0",
+        "nyholm/psr7": ">=1.0"
+
     },
     "require": {
         "php": ">=7.1",
@@ -24,9 +25,10 @@
         "psr/simple-cache": "*",
 
         "kdyby/parse-use-statements": "*",
+        "psr/http-client": "*",
+        "psr/http-message": "*",
 
-        "psr/http-message": "^1.0",
-        "fig/http-message-util": "^1.1"
+        "fig/http-message-util": "*"
 
     },
     "autoload": {
