@@ -64,6 +64,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * @param ContainerInterface $container
      */
     public function setContainer(ContainerInterface $container) {
+        $this->container = $container;
         if ($container->has(LoggerInterface::class)) {
             $this->setLogger($container->get(LoggerInterface::class));
         }
