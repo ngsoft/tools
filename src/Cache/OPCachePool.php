@@ -7,8 +7,7 @@ namespace NGSOFT\Tools\Cache;
 use NGSOFT\Tools\Cache\{
     CacheItem, CachePool, Exceptions\PSRCacheException
 };
-use ReflectionMethod,
-    Serializable;
+use Serializable;
 use function NGSOFT\Tools\{
     endsWith, includeFile, safe_exec
 };

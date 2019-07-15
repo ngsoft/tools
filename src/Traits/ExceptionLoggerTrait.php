@@ -8,10 +8,10 @@ trait ExceptionLoggerTrait {
 
     /**
      * Log The Exception Message
-     * @param \NGSOFT\Tools\Traits\LoggerInterface $logger
+     * @param LoggerInterface $logger
      */
     public function logMessage(LoggerInterface $logger) {
-        $logger->error($this->getMessage());
+        if ($this instanceof \Throwable) $logger->debug($this->getMessage());
     }
 
 }
