@@ -10,15 +10,7 @@
         }],
     "require-dev": {
         "psr/log": "*",
-        "psr/container": "*",
-        "psr/http-factory": "^1.0",
-        "nyholm/psr7": ">=1.0",
-        "kdyby/parse-use-statements": "*",
-
-        "psr/http-client": "*",
-        "psr/http-message": "*",
-
-        "fig/http-message-util": "*"
+        "psr/container": "*"
     },
     "require": {
         "php": ">=7.1",
