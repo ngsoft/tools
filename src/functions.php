@@ -52,6 +52,7 @@ function errors_as_exceptions() {
 ////////////////////////////   Some Helpers   ////////////////////////////
 
 mb_internal_encoding("UTF-8");
+
 @define('ds', DIRECTORY_SEPARATOR);
 @define('ns', "\\");
 @define('dot', '.');
