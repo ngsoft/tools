@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\{
-    Exceptions\BasicCacheInvalidKey, Interfaces\ExceptionInterface
+use NGSOFT\Tools\Cache\Exceptions\{
+    InvalidArgument, PSRCacheException
 };
 use Psr\{
     Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Container\ContainerInterface, Log\LoggerAwareInterface,
@@ -141,7 +141,7 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
      *
      * @param string $key
      *   The key to validate.
-     * @throws BasicCacheInvalidKey
+     * @throws InvalidArgument
      *   An exception implementing The Cache InvalidArgumentException interface
      *   will be thrown if the key does not validate.
      * @return bool
@@ -150,14 +150,14 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
     protected function validateKey($key) {
         try {
             if (!is_string($key) || $key === '') {
-                throw new BasicCacheInvalidKey('Key should be a non empty string');
+                throw new InvalidArgument('Key should be a non empty string');
             }
             $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
             if ($unsupportedMatched > 0) {
-                throw new BasicCacheInvalidKey('Can\'t validate the specified key');
+                throw new InvalidArgument('Can\'t validate the specified key');
             }
             return true;
-        } catch (ExceptionInterface $exc) {
+        } catch (InvalidArgument $exc) {
             //log the message
             if ($this->logger) $exc->logMessage($this->logger);
             throw $exc;
@@ -219,7 +219,12 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-        if ($item instanceof CacheItem) return $this->doSave($item);
+        try {
+            if ($item instanceof CacheItem) return $this->doSave($item);
+        } catch (PSRCacheException $exc) {
+            if ($this->logger) $exc->logMessage($this->logger);
+            throw $exc;
+        }
         return false;
     }
 

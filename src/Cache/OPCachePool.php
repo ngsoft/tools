@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\{
-    Cache\CacheItem, Cache\CachePool, Exceptions\BasicCacheException
+use NGSOFT\Tools\Cache\{
+    CacheItem, CachePool, Exceptions\PSRCacheException
 };
 use ReflectionMethod,
     Serializable;
@@ -83,7 +83,7 @@ class OPCachePool extends CachePool {
      * Save opcodes into a file
      * @param string $filename
      * @param mixed $data
-     * @throws BasicCacheException
+     * @throws PSRCacheException
      * @return bool
      */
     private function opsave(string $filename, $data): bool {
@@ -114,7 +114,7 @@ class OPCachePool extends CachePool {
         set_time_limit(60);
         file_exists($dir) || @mkdir($dir, 0777, true);
         if (!is_dir($dir)) {
-            throw new BasicCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
+            throw new PSRCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
         }
         is_file($filename) && @unlink($filename);
         if (@file_put_contents($tmp, $value, LOCK_EX)) {
