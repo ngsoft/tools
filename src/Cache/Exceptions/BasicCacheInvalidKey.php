@@ -1,22 +1,14 @@
 <?php
 
-namespace NGSOFT\Tools\Exceptions;
+namespace NGSOFT\Tools\Cache\Exceptions;
 
-use InvalidArgumentException;
-use NGSOFT\Tools\Interfaces\ExceptionInterface;
-use NGSOFT\Tools\Traits\Logger;
-use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 
-class BasicCacheInvalidKey extends InvalidArgumentException implements \Psr\Cache\InvalidArgumentException, \Psr\SimpleCache\InvalidArgumentException, ExceptionInterface {
+class InvalidArgument extends InvalidArgumentException implements \Psr\Cache\InvalidArgumentException, \Psr\SimpleCache\InvalidArgumentException {
 
-    use LoggerAwareTrait,
-        Logger;
+    public function logMessage(LoggerInterface $logger = null) {
 
-    public function logMessage(LoggerInterface $logger) {
-
-        $this->setLogger($logger);
-        $this->log($this->getMessage());
+        if ($logger instanceof LoggerInterface) $logger->debug($this->getMessage());
     }
 
 }
