@@ -15,7 +15,7 @@ use Psr\{
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
  */
-abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LoggerAwareInterface {
+abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LoggerAwareInterface {
 
     use LoggerAwareTrait;
 
@@ -75,10 +75,10 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     /**
      * Creates a empty item
      * @param string $key
-     * @return BasicCacheItem
+     * @return CacheItem
      */
-    protected function createEmptyItem(string $key): BasicCacheItem {
-        return new BasicCacheItem($key, $this->ttl, false, null);
+    protected function createEmptyItem(string $key): CacheItem {
+        return new CacheItem($key, $this->ttl, false, null);
     }
 
     ////////////////////////////   Abstract Methods   ////////////////////////////
@@ -92,16 +92,16 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
     /**
      * Loads an item from the cache
      * @param string $key
-     * @return BasicCacheItem
+     * @return CacheItem
      */
-    abstract protected function doFetch(string $key): BasicCacheItem;
+    abstract protected function doFetch(string $key): CacheItem;
 
     /**
      * Commits the specified cache item to storage.
-     * @param BasicCacheItem $item
+     * @param CacheItem $item
      * @return bool
      */
-    abstract protected function doSave(BasicCacheItem $item): bool;
+    abstract protected function doSave(CacheItem $item): bool;
 
     /**
      * Removes a single items from the pool.
@@ -219,7 +219,7 @@ abstract class BasicCachePool extends SimpleCacheAdapter implements CacheItemPoo
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-        if ($item instanceof BasicCacheItem) return $this->doSave($item);
+        if ($item instanceof CacheItem) return $this->doSave($item);
         return false;
     }
 

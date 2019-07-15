@@ -9,7 +9,7 @@
             "homepage": "https://github.com/ngsoft"
         }],
     "require-dev": {
-        "phan/phan": "*",
+
         "psr/container": "*",
         "psr/http-factory": "^1.0",
         "nyholm/psr7": ">=1.0"

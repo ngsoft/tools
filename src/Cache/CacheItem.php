@@ -9,7 +9,7 @@ use DateTime;
 use DateTimeInterface;
 use Psr\Cache\CacheItemInterface;
 
-class BasicCacheItem implements CacheItemInterface {
+class CacheItem implements CacheItemInterface {
 
     /**  @var string */
     private $key;

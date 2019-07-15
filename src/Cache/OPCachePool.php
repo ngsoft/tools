@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\{
-    Cache\BasicCacheItem, Cache\BasicCachePool, Exceptions\BasicCacheException
+    Cache\CacheItem, Cache\CachePool, Exceptions\BasicCacheException
 };
 use ReflectionMethod,
     Serializable;
@@ -16,7 +16,7 @@ use function NGSOFT\Tools\{
 /**
  * Uses PHP OPCode to store data
  */
-class OPCachePool extends BasicCachePool {
+class OPCachePool extends CachePool {
 
     /** @var string */
     private $path;
@@ -184,9 +184,9 @@ class OPCachePool extends BasicCachePool {
         return true;
     }
 
-    protected function doFetch(string $key): BasicCacheItem {
+    protected function doFetch(string $key): CacheItem {
         if (!$this->doContains($key)) return $this->createEmptyItem($key);
-        return new BasicCacheItem($key, $this->getTTL(), true, $this->opload($this->getFileName($key)));
+        return new CacheItem($key, $this->getTTL(), true, $this->opload($this->getFileName($key)));
     }
 
     protected function doFlush(): bool {
@@ -208,7 +208,7 @@ class OPCachePool extends BasicCachePool {
         return true;
     }
 
-    protected function doSave(BasicCacheItem $item): bool {
+    protected function doSave(CacheItem $item): bool {
         $expire = $item->getExpireAt()->getTimestamp();
         if (time() > $expire) return false;
         $key = $item->getKey();
