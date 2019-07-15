@@ -12,23 +12,19 @@
         "psr/log": "*",
         "psr/container": "*",
         "psr/http-factory": "^1.0",
-        "nyholm/psr7": ">=1.0"
-
-    },
-    "require": {
-        "php": ">=7.1",
-        "symfony/polyfill-mbstring": "*",
-
-
-        "psr/cache": "*",
-        "psr/simple-cache": "*",
-
+        "nyholm/psr7": ">=1.0",
         "kdyby/parse-use-statements": "*",
+
         "psr/http-client": "*",
         "psr/http-message": "*",
 
         "fig/http-message-util": "*"
-
+    },
+    "require": {
+        "php": ">=7.1",
+        "symfony/polyfill-mbstring": "*",
+        "psr/cache": "*",
+        "psr/simple-cache": "*"
     },
     "autoload": {
         "psr-4": {
