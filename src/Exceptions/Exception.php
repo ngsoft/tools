@@ -2,14 +2,11 @@
 
 namespace NGSOFT\Tools\Exceptions;
 
-use Exception,
-    NGSOFT\Tools\Interfaces\ExceptionInterface,
-    Psr\Log\LoggerInterface;
+use NGSOFT\Tools\{
+    Interfaces\ExceptionInterface, Traits\ExceptionLoggerTrait
+};
 
-class Exception extends Exception implements ExceptionInterface {
+class Exception extends \Exception implements ExceptionInterface {
 
-    public function logMessage(LoggerInterface $logger) {
-        $logger->error($this->getMessage());
-    }
-
+    use ExceptionLoggerTrait;
 }

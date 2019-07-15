@@ -2,14 +2,11 @@
 
 namespace NGSOFT\Tools\Exceptions;
 
-use NGSOFT\Tools\Interfaces\ExceptionInterface,
-    Psr\Log\LoggerInterface;
+use NGSOFT\Tools\{
+    Interfaces\ExceptionInterface, Traits\ExceptionLoggerTrait
+};
 
-class BadMethodCallException extends BadMethodCallException implements ExceptionInterface {
+class BadMethodCallException extends \BadMethodCallException implements ExceptionInterface {
 
-    public function logMessage(LoggerInterface $logger) {
-
-        $logger->debug($this->getMessage());
-    }
-
+    use ExceptionLoggerTrait;
 }
