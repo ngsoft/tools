@@ -8,16 +8,24 @@ use NGSOFT\Tools\Cache\Exceptions\{
     InvalidArgument, PSRCacheException
 };
 use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Container\ContainerInterface, Log\LoggerAwareInterface,
-    Log\LoggerAwareTrait, Log\LoggerInterface
+    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Container\ContainerInterface, Log\LoggerInterface
 };
 
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
  */
-abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInterface, LoggerAwareInterface {
+abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInterface {
 
-    use LoggerAwareTrait;
+    /**
+     * @inject
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var ContainerInterface
+     */
+    protected $container;
 
     /** @var array */
     protected $deferred = [];
@@ -46,11 +54,6 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
     ////////////////////////////   ContainerAware   ////////////////////////////
 
     /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
      * @param int|null $ttl
      */
     public function __construct(int $ttl = null) {
@@ -68,6 +71,16 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
         if ($container->has(LoggerInterface::class)) {
             $this->setLogger($container->get(LoggerInterface::class));
         }
+    }
+
+    ////////////////////////////   LoggerAware   ////////////////////////////
+
+    /**
+     * Inject The Logger
+     * @param LoggerInterface $logger
+     */
+    public function setLogger(LoggerInterface $logger) {
+        $this->logger = $logger;
     }
 
     ////////////////////////////   Empty Item   ////////////////////////////
@@ -205,7 +218,7 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
 
     /**
      * {@inheritdoc}
-     * @return array<string,BasicCacheItem>
+     * @return array<string,CacheItem>
      */
     public function getItems(array $keys = []) {
         array_map([$this, 'validateKey'], $keys); $list = [];

@@ -20,10 +20,8 @@ use function mb_internal_encoding,
 
 ////////////////////////////   Error Handler   ////////////////////////////
 
-/**
- * A function that does nothing
- */
-function noop(...$arg) {
+
+function noop() {
 
 }
 
@@ -34,7 +32,7 @@ function noop(...$arg) {
  * @return mixed
  */
 function safe_exec(callable $callback, ...$args) {
-    \set_error_handler('NGSOFT\\Tools\\noop');
+    \set_error_handler('NGSOFT\Tools\noop');
     $retval = call_user_func_array($callback, $args);
     \restore_error_handler();
     return $retval;

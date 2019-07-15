@@ -9,7 +9,7 @@
             "homepage": "https://github.com/ngsoft"
         }],
     "require-dev": {
-
+        "psr/log": "*",
         "psr/container": "*",
         "psr/http-factory": "^1.0",
         "nyholm/psr7": ">=1.0"
@@ -19,7 +19,7 @@
         "php": ">=7.1",
         "symfony/polyfill-mbstring": "*",
 
-        "psr/log": "*",
+
         "psr/cache": "*",
         "psr/simple-cache": "*",
 

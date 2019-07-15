@@ -81,6 +81,7 @@ class OPCachePool extends CachePool {
 
     /**
      * Save opcodes into a file
+     * @suppress PhanRedundantCondition
      * @param string $filename
      * @param mixed $data
      * @throws PSRCacheException
