@@ -189,7 +189,7 @@ function array_to_object(array $array) {
  * @param array $array
  * @return array
  */
-function array_map(callable $callback, array $array): array {
+function _array_map(callable $callback, array $array): array {
     $new = [];
     foreach ($array as $k => $v) {
         $new[$k] = $callback($v, $k, $array);
