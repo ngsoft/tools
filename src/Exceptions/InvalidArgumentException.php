@@ -2,20 +2,14 @@
 
 namespace NGSOFT\Tools\Exceptions;
 
-use NGSOFT\Tools\Interfaces\ExceptionInterface;
-use NGSOFT\Tools\Traits\Logger;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use InvalidArgumentException,
+    NGSOFT\Tools\Interfaces\ExceptionInterface,
+    Psr\Log\LoggerInterface;
 
-class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface {
-
-    use LoggerAwareTrait,
-        Logger;
+class InvalidArgumentException extends InvalidArgumentException implements ExceptionInterface {
 
     public function logMessage(LoggerInterface $logger) {
-        $this->setLogger($logger);
-        $this->log($this->getMessage(), LogLevel::CRITICAL);
+        $logger->error($this->getMessage());
     }
 
 }

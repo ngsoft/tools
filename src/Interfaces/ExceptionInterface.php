@@ -8,7 +8,7 @@ interface ExceptionInterface {
 
     /**
      * Log the message
-     * @param LoggerInterface|null $logger
+     * @param LoggerInterface $logger
      */
-    public function logMessage(LoggerInterface $logger = null);
+    public function logMessage(LoggerInterface $logger);
 }
