@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Tools\Interfaces;
+namespace NGSOFT\Tools\Cache\Contracts;
 
 /**
  * If an object has to be cached it must implements that interface

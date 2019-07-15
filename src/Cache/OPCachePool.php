@@ -100,10 +100,6 @@ class OPCachePool extends CachePool {
             //Cacheable
             elseif (
                     (method_exists($data, 'toArray') and method_exists($data, '__set_state'))
-                    and ( $m = new ReflectionMethod($data, 'toArray'))
-                    and $m->isPublic() and ! $m->isStatic()
-                    and ( $m = new ReflectionMethod($data, '__set_state'))
-                    and $m->isPublic() and $m->isStatic()
             ) {
                 $value = '<?php return '
                         . get_class($data) . '::__set_state('
