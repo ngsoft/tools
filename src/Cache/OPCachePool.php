@@ -114,8 +114,6 @@ class OPCachePool extends CachePool {
         }
         is_file($filename) && @unlink($filename);
         if (@file_put_contents($tmp, $value, LOCK_EX)) {
-            usleep(200000);
-
             do {
                 //rename seems to not run well on big files
                 if (($retval = @rename($tmp, $filename))) {
@@ -126,7 +124,8 @@ class OPCachePool extends CachePool {
                 if (!isset($i)) $i = 1;
                 if ($i == 5) break;
                 ++$i;
-                usleep(400000);
+                // wait for lock to be removed (big files)
+                usleep(2000);
             }while (true);
         }
         return $retval;
