@@ -7,9 +7,11 @@ namespace NGSOFT\Tools\Objects;
 use ArrayAccess,
     ArrayIterator,
     Countable,
+    InvalidArgumentException,
     IteratorAggregate,
     JsonSerializable,
-    NGSOFT\Tools\Exceptions\InvalidArgumentException,
+    OutOfBoundsException,
+    OutOfRangeException,
     Serializable,
     stdClass;
 
@@ -153,8 +155,8 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
                 $return = static::create();
                 $return->storage = &$array;
             } else $return = $this->storage[$offset];
-        }
-
+        } elseif (!is_numeric($offset)) throw new OutOfBoundsException("Trying to access undefined offset $offset");
+        else throw new OutOfRangeException("Trying to access undefined index $offset");
         return $return;
     }
 
