@@ -307,8 +307,8 @@ function toSnake(string $camelCased): string {
  * @return string
  */
 function toCamelCase(string $snake_case): string {
-    return preg_replace_callback('/(^|_|\.)+(.)/', function ($match) {
-        return ('.' === $match[1] ? '_' : '') . strtoupper($match[2]);
+    return preg_replace_callback('/(^|_|\.|\-)+(.)/', function ($match) {
+        return strtoupper($match[2]);
     }, $snake_case);
 }
 
