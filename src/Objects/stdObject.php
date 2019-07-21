@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Objects;
 
 use ArrayAccess,
-    ArrayIterator,
     Countable,
     InvalidArgumentException,
     IteratorAggregate,
