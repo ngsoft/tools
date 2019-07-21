@@ -182,7 +182,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
 
     /** {@inheritdoc} */
     public function getIterator() {
-        return new stdObjectIterator($this->storage);
+        return new stdObjectIterator($this->storage, static::class);
     }
 
     ////////////////////////////   PropertyAccess   ////////////////////////////
