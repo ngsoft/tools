@@ -14,6 +14,9 @@ use ArrayAccess,
     Serializable,
     stdClass;
 
+/**
+ * A Base Array Like Object
+ */
 class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggregate, Serializable, JsonSerializable {
 
     /** @var array */
