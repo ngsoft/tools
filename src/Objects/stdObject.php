@@ -20,16 +20,20 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
     /** @var array */
     protected $storage = [];
 
+    /**
+     * Instanciate a new instance using the given array
+     * @param array $array
+     */
     public function __construct(array $array = []) {
         $this->import($array);
     }
 
     /**
      * Instanciate a new instance using the given array
-     * @param array $array
+     * @param iterable $array
      * @return static
      */
-    public static function from(array $array): self {
+    public static function from(array $array) {
         $self = new static();
         $self->import($array);
         return $self;
@@ -41,7 +45,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
      * @return static
      * @throws InvalidArgumentException
      */
-    public static function fromJson(string $json): self {
+    public static function fromJson(string $json) {
         $array = json_decode($json, true);
         if (
                 (json_last_error() === JSON_ERROR_NONE)
@@ -54,7 +58,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
      * Instanciate a new instance with an empty array
      * @return static
      */
-    public static function create(): self {
+    public static function create() {
         return new static();
     }
 
