@@ -13,7 +13,7 @@ class stdObjectIterator extends \ArrayIterator {
      * Imports an Array into the iterator
      * @param array $array
      * @param string $classname A class extending stdObject
-     * @param int $flags
+     * @param int $flags flags from \ArrayIterator
      */
     public function __construct(array $array = array(), string $classname = stdObject::class, int $flags = 0) {
         if (class_exists($classname) and in_array(stdObject::class, class_parents($classname))) $this->stdObjectClass = $classname;
