@@ -31,7 +31,7 @@ trait ArrayAccessTrait {
     }
 
     /** {@inheritdoc} */
-    public function count(): int {
+    public function count() {
         return count($this->storage);
     }
 

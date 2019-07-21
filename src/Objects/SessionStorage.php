@@ -12,7 +12,6 @@ class SessionStorage implements IteratorAggregate, Storage {
 
     public function __construct() {
         if (empty(session_id())) session_start();
-        print_r(session_id());
         $this->storage = &$_SESSION;
     }
 
