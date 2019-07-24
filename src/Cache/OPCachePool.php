@@ -174,7 +174,7 @@ class OPCachePool extends CachePool {
         // do not clear the expiration to prevent a file write
         // as doContains checks for the file presence
         $filename = $this->getFileName($key);
-        if (is_file($key)) return @unlink($filename);
+        if (is_file($filename)) return @unlink($filename);
         // file does not exists so we can say it has been removed
         return true;
     }
