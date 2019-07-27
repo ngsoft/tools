@@ -204,7 +204,7 @@ function _array_map(callable $callback, array $array): array {
  */
 function array_every(callable $callback, array $array): bool {
     foreach ($array as $k => $v) {
-        if (true !== $callback($k, $v, $array)) return false;
+        if (true !== $callback($v, $k, $array)) return false;
     }
     return true;
 }
@@ -229,7 +229,7 @@ function array_foreach(callable $callback, array $array): void {
  */
 function array_some(callable $callback, array $array): bool {
     foreach ($array as $k => $v) {
-        if (true === $callback($k, $v, $array)) return true;
+        if (true === $callback($v, $k, $array)) return true;
     }
     return false;
 }
