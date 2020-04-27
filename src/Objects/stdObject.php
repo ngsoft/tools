@@ -57,6 +57,20 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
     }
 
     /**
+     * Instanciate a new instance using the given json file
+     * @param string $filename
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public static function fromJsonFile(string $filename) {
+        if (is_file($filename)) {
+            $string = file_get_contents($filename);
+            if (false !== $string) return static::fromJson($string);
+        }
+        throw new InvalidArgumentException("Cannot import: Invalid JSON File");
+    }
+
+    /**
      * Instanciate a new instance with an empty array
      * @return static
      */
@@ -153,7 +167,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
         $return = null;
         if ($offset === null) {
             $this->storage[] = [];
-            $offset = $this->getLastNumericKey();
+            $offset = array_key_last($this->storage);
         }
         if (array_key_exists($offset, $this->storage)) {
             if (is_array($this->storage[$offset])) {
@@ -168,9 +182,9 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
 
     /** {@inheritdoc} */
     public function offsetSet($offset, $value) {
-        if ($offset === null) $offset = $this->getLastNumericKey() + 1;
         if ($value instanceof self) $value = $value->toArray();
-        $this->storage[$offset] = $value;
+        if ($offset === null) $this->storage[$offset] = $value;
+        else $this->storage[$offset] = $value;
     }
 
     /** {@inheritdoc} */

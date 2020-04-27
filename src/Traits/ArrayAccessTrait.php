@@ -35,9 +35,4 @@ trait ArrayAccessTrait {
         return count($this->storage);
     }
 
-    /** {@inheritdoc} */
-    public function getIterator() {
-        return new ArrayIterator($this->storage);
-    }
-
 }
