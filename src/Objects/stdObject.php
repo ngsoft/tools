@@ -9,6 +9,7 @@ use ArrayAccess,
     InvalidArgumentException,
     Iterator,
     JsonSerializable,
+    NGSOFT\Tools\Exceptions\RuntimeException,
     Serializable,
     stdClass;
 
@@ -90,6 +91,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
     /**
      * Normalize keys removing [_\-\.] from it
      * to access properties with camelCasedNames to replace camel-cased_names
+     * also can use snake_cased to access snake.cased or snake-cased
      * @param string $prop
      * @return string
      */
@@ -153,7 +155,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
 
     /** {@inheritdoc} */
     public function &offsetGet($offset) {
-        $return = null;
         if ($offset === null) {
             $this->storage[] = [];
             $offset = array_key_last($this->storage);
@@ -164,8 +165,9 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
                 $return = clone $this;
                 $return->storage = &$array;
             } else $return = $this->storage[$offset];
-        } //else throw new RuntimeException('Undefined index: ' . $offset, E_USER_NOTICE);
-        return $return;
+            return $return;
+        }
+        throw new RuntimeException('Undefined index: ' . $offset, E_USER_NOTICE);
     }
 
     /** {@inheritdoc} */
