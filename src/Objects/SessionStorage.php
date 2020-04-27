@@ -4,10 +4,8 @@ namespace NGSOFT\Tools\Objects;
 
 use Iterator;
 use NGSOFT\Tools\{
-    Interfaces\Storage, Traits\ArrayAccessTrait
+    Exceptions\RuntimeException, Interfaces\Storage, Traits\ArrayAccessTrait
 };
-use OutOfBoundsException,
-    OutOfRangeException;
 
 class SessionStorage implements Iterator, Storage {
 
@@ -24,7 +22,6 @@ class SessionStorage implements Iterator, Storage {
         if ($offset === null) {
             $this->offsetSet(null, []);
             $offset = array_key_last($this->storage);
-            var_dump($offset);
         }
         if (array_key_exists($offset, $this->storage)) {
             if (is_array($this->storage[$offset])) {
@@ -32,15 +29,14 @@ class SessionStorage implements Iterator, Storage {
                 $return = clone $this;
                 $return->storage = &$array;
             } else $return = $this->storage[$offset];
-        } elseif (!is_numeric($offset)) throw new OutOfBoundsException("Trying to access undefined offset $offset");
-        else throw new OutOfRangeException("Trying to access undefined index $offset");
+        }
         return $return;
     }
 
     /** {@inheritdoc} */
     public function offsetSet($offset, $value) {
         if ($offset === null) {
-            if ($this->storage === $_SESSION) throw new OutOfRangeException("Trying to set a numeric key on session");
+            if ($this->storage === $_SESSION) throw new RuntimeException("Trying to set a numeric key on session");
             $this->storage[] = $value;
         } else $this->storage[$offset] = $value;
     }

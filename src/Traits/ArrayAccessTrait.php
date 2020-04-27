@@ -2,8 +2,6 @@
 
 namespace NGSOFT\Tools\Traits;
 
-use ArrayIterator;
-
 trait ArrayAccessTrait {
 
     /** @var array */

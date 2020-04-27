@@ -7,17 +7,15 @@ namespace NGSOFT\Tools\Objects;
 use ArrayAccess,
     Countable,
     InvalidArgumentException,
-    IteratorAggregate,
+    Iterator,
     JsonSerializable,
-    OutOfBoundsException,
-    OutOfRangeException,
     Serializable,
     stdClass;
 
 /**
  * A Base Array Like Object
  */
-class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggregate, Serializable, JsonSerializable {
+class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Serializable, JsonSerializable {
 
     /** @var array */
     protected $storage = [];
@@ -32,7 +30,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
 
     /**
      * Instanciate a new instance using the given array
-     * @param iterable $array
+     * @param array $array
      * @return static
      */
     public static function from(array $array) {
@@ -90,19 +88,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
     }
 
     /**
-     * Get the upper Numeric key from the array
-     * @return int -1 if no numeric keys
-     */
-    protected function getLastNumericKey(): int {
-        $lastnum = -1;
-        foreach (array_keys($this->storage) as $key) {
-            if (!is_int($key)) continue;
-            $lastnum = $key > $lastnum ? $key : $lastnum;
-        }
-        return $lastnum;
-    }
-
-    /**
      * Normalize keys removing [_\-\.] from it
      * to access properties with camelCasedNames to replace camel-cased_names
      * @param string $prop
@@ -112,7 +97,11 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
         if (array_key_exists($prop, $this->storage)) return $prop;
         $nprop = strtolower($prop);
         foreach (array_keys($this->storage) as $key) {
+            //for camelCased props
             $norm = strtolower(preg_replace('/[_\-\.]+(.)/', '\\1', $key));
+            if ($norm === $nprop) return $key;
+            //if access prop.key using prop_key
+            $norm = strtolower(preg_replace('/[\-\.]/', '_', $key));
             if ($norm === $nprop) return $key;
         }
         return $prop;
@@ -172,18 +161,17 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
         if (array_key_exists($offset, $this->storage)) {
             if (is_array($this->storage[$offset])) {
                 $array = &$this->storage[$offset];
-                $return = static::create();
+                $return = clone $this;
                 $return->storage = &$array;
             } else $return = $this->storage[$offset];
-        } elseif (!is_numeric($offset)) throw new OutOfBoundsException("Trying to access undefined offset $offset");
-        else throw new OutOfRangeException("Trying to access undefined index $offset");
+        } //else throw new RuntimeException('Undefined index: ' . $offset, E_USER_NOTICE);
         return $return;
     }
 
     /** {@inheritdoc} */
     public function offsetSet($offset, $value) {
         if ($value instanceof self) $value = $value->toArray();
-        if ($offset === null) $this->storage[$offset] = $value;
+        if ($offset === null) $this->storage[] = $value;
         else $this->storage[$offset] = $value;
     }
 
@@ -195,11 +183,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
     /** {@inheritdoc} */
     public function count() {
         return count($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator() {
-        return new stdObjectIterator($this->storage, static::class);
     }
 
     ////////////////////////////   PropertyAccess   ////////////////////////////
@@ -222,6 +205,35 @@ class stdObject extends stdClass implements ArrayAccess, Countable, IteratorAggr
     /** {@inheritdoc} */
     public function __unset($name) {
         $this->offsetUnset($this->getOriginalKey($name));
+    }
+
+    ////////////////////////////   Iterator   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function current() {
+        $key = $this->key();
+        if ($key === null) return false;
+        return $this->offsetGet($key);
+    }
+
+    /** {@inheritdoc} */
+    public function key() {
+        return key($this->storage);
+    }
+
+    /** {@inheritdoc} */
+    public function next() {
+        next($this->storage);
+    }
+
+    /** {@inheritdoc} */
+    public function rewind() {
+        reset($this->storage);
+    }
+
+    /** {@inheritdoc} */
+    public function valid() {
+        return $this->key() !== null;
     }
 
 }
