@@ -8,15 +8,19 @@ use ArrayAccess,
     Countable,
     InvalidArgumentException,
     Iterator,
-    JsonSerializable,
-    NGSOFT\Tools\Exceptions\RuntimeException,
-    Serializable,
+    JsonSerializable;
+use NGSOFT\Tools\{
+    Exceptions\RuntimeException, Traits\ArrayAccessIteratorTrait
+};
+use Serializable,
     stdClass;
 
 /**
  * A Base Array Like Object
  */
 class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Serializable, JsonSerializable {
+
+    use ArrayAccessIteratorTrait;
 
     /** @var array */
     protected $storage = [];
@@ -207,35 +211,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
     /** {@inheritdoc} */
     public function __unset($name) {
         $this->offsetUnset($this->getOriginalKey($name));
-    }
-
-    ////////////////////////////   Iterator   ////////////////////////////
-
-    /** {@inheritdoc} */
-    public function current() {
-        $key = $this->key();
-        if ($key === null) return false;
-        return $this->offsetGet($key);
-    }
-
-    /** {@inheritdoc} */
-    public function key() {
-        return key($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function next() {
-        next($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function rewind() {
-        reset($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function valid() {
-        return $this->key() !== null;
     }
 
 }

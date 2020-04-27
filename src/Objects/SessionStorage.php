@@ -4,12 +4,13 @@ namespace NGSOFT\Tools\Objects;
 
 use Iterator;
 use NGSOFT\Tools\{
-    Exceptions\RuntimeException, Interfaces\Storage, Traits\ArrayAccessTrait
+    Exceptions\RuntimeException, Interfaces\Storage, Traits\ArrayAccessIteratorTrait, Traits\ArrayAccessTrait
 };
 
 class SessionStorage implements Iterator, Storage {
 
-    use ArrayAccessTrait;
+    use ArrayAccessTrait,
+        ArrayAccessIteratorTrait;
 
     public function __construct() {
         if (empty(session_id())) session_start();
@@ -81,37 +82,6 @@ class SessionStorage implements Iterator, Storage {
     /** {@inheritdoc} */
     public function __get($name) {
         return $this->getItem($name);
-    }
-
-    /** {@inheritdoc} */
-    public function current() {
-        $current = current($this->storage);
-        if (is_array($current)) {
-            $key = $this->key();
-            $return = clone $this;
-            $return->storage = &$this->storage[$key];
-            return $return;
-        } else return $current;
-    }
-
-    /** {@inheritdoc} */
-    public function key() {
-        return key($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function next() {
-        next($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function rewind() {
-        reset($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function valid() {
-        return key($this->storage) !== null;
     }
 
 }
