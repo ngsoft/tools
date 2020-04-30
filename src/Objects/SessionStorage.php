@@ -53,7 +53,7 @@ class SessionStorage implements Iterator, Storage {
 
     /** {@inheritdoc} */
     public function getItem(string $key) {
-        return $this->offsetGet($key);
+        return $this->storage[$key] ?? null;
     }
 
     /** {@inheritdoc} */
@@ -83,7 +83,7 @@ class SessionStorage implements Iterator, Storage {
 
     /** {@inheritdoc} */
     public function __get($name) {
-        return $this->getItem($name);
+        return $this->offsetGet($name);
     }
 
 }
