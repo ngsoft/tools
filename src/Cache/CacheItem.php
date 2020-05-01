@@ -37,7 +37,6 @@ final class CacheItem implements CacheItemInterface {
         $this->hit = $hit;
         $this->value = $value;
         $this->ttl = $ttl;
-        $this->expiresAfter($ttl);
     }
 
     /**
@@ -105,6 +104,7 @@ final class CacheItem implements CacheItemInterface {
      * @internal
      */
     public function getExpireAt() {
+        if ($this->expire instanceof DateTime === false) $this->expiresAfter($this->ttl);
         return $this->expire;
     }
 

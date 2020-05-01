@@ -12,8 +12,7 @@ use function NGSOFT\Tools\{
 final class PHPCache extends CachePool {
 
     const FILE_TEMPLATE = '<?php return %s;';
-    const FILE_PATTERN = '/%s.%d.%s';
-    const FILE_EXTENSION = 'cache.php';
+    const FILE_EXTENSION = 'php';
 
     /** @var array<string,array> */
     private $meta = [];
@@ -68,14 +67,8 @@ final class PHPCache extends CachePool {
         $key = $item->getKey();
         $hash = $this->getHash($key);
         $contents = $item->get();
-        $filename = $this->root . sprintf(self::FILE_PATTERN, $hash, $expire, self::FILE_EXTENSION);
-        if ($this->doWrite($filename, $contents)) {
-            $this->meta[$hash] = [
-                'file' => $filename,
-                'expire' => $expire
-            ];
-        }
-        return $this->doContains($key);
+        unset($this->meta[$hash]);
+        return $this->doWrite($hash, $expire, $contents);
     }
 
     /**
@@ -84,7 +77,7 @@ final class PHPCache extends CachePool {
      * @param mixed $data
      * @return bool
      */
-    private function doWrite(string $filename, $data): bool {
+    private function doWrite(string $hash, int $expire, $data): bool {
         if (in_array(gettype($data), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
         if (is_object($data)) {
             if ($data instanceof Serializable) $value = sprintf("unserialize ('%s')", serialize($data));
@@ -98,10 +91,22 @@ final class PHPCache extends CachePool {
         $value = sprintf(self::FILE_TEMPLATE, $value);
         //save file
         set_time_limit(120);
+        $filename = $this->root . DIRECTORY_SEPARATOR . sprintf('%s.%s.%s', $hash, $expire, self::FILE_EXTENSION);
         $handle = fopen($filename, "w");
-        $return = fwrite($handle, $value) !== false;
-        if (fclose($handle)) chmod($filename, 0777);
-        return $return;
+        if (
+                fwrite($handle, $value) !== false &&
+                fclose($handle) &&
+                is_file($filename) &&
+                @filesize($filename) > 0
+        ) {
+            @chmod($filename, 0777);
+            $this->meta[$hash] = [
+                'file' => $filename,
+                'expire' => $expire
+            ];
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -132,6 +137,7 @@ final class PHPCache extends CachePool {
         foreach (listFiles($this->root, self::FILE_EXTENSION) as $file) {
             $base = basename($file);
             $split = explode(".", $base);
+            if (count($split) !== 3) continue;
             list($hash, $expire) = $split;
             if (is_numeric($expire)) {
                 $expire = intval($expire);
@@ -152,7 +158,7 @@ final class PHPCache extends CachePool {
      * @return string
      */
     private function getHash(string $key): string {
-        return crc32($key);
+        return sprintf('%u', crc32($key));
     }
 
     /**
