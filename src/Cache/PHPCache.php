@@ -15,7 +15,7 @@ final class PHPCache extends CachePool {
     const FILE_PATTERN = '/%s.%d.%s';
     const FILE_EXTENSION = 'cache.php';
 
-    /** @var array<string,int> */
+    /** @var array<string,array> */
     private $meta = [];
 
     /** @var string|null */
@@ -23,17 +23,25 @@ final class PHPCache extends CachePool {
 
     /** {@inheritdoc} */
     protected function doContains(string $key): bool {
-        $this->update();
-        return isset($this->meta[$this->getHash($key)]);
+        $hash = $this->getHash($key);
+        if (isset($this->meta[$hash])) {
+            $meta = $this->meta[$hash];
+            if (time() > $meta['expire']) {
+                @unlink($meta['file']);
+                unset($this->meta[$hash]);
+                return false;
+            }
+            return is_file($meta['file']);
+        }
+        return false;
     }
 
     /** {@inheritdoc} */
     protected function doDelete(string $key): bool {
         $hash = $this->getHash($key);
         if (isset($this->meta[$hash])) {
-            $file = $this->meta[$hash];
+            @unlink($this->meta[$hash]['file']);
             unset($this->meta[$hash]);
-            return @unlink($this->meta[$hash]);
         }
         return true;
     }
@@ -42,7 +50,7 @@ final class PHPCache extends CachePool {
     protected function doFetch(string $key): CacheItem {
         if (!$this->doContains($key)) return $this->createEmptyItem($key);
         $hash = $this->getHash($key);
-        $file = $this->meta[$hash];
+        $file = $this->meta[$hash]['file'];
         $contents = safeInclude($file);
         return new CacheItem($key, $this->getTTL(), $contents !== null, $contents);
     }
@@ -50,7 +58,7 @@ final class PHPCache extends CachePool {
     /** {@inheritdoc} */
     protected function doFlush(): bool {
         if ($this->root !== null && rrmdir($this->root)) return @mkdir($this->root, 0777, true);
-        return false;
+        return true;
     }
 
     /** {@inheritdoc} */
@@ -61,20 +69,46 @@ final class PHPCache extends CachePool {
         $hash = $this->getHash($key);
         $contents = $item->get();
         $filename = $this->root . sprintf(self::FILE_PATTERN, $hash, $expire, self::FILE_EXTENSION);
-        $this->write($filename, $contents);
+        if ($this->doWrite($filename, $contents)) {
+            $this->meta[$hash] = [
+                'file' => $filename,
+                'expire' => $expire
+            ];
+        }
         return $this->doContains($key);
     }
 
-    private function write(string $filename, $contents) {
-
+    /**
+     * Compile the cached file
+     * @param string $filename
+     * @param mixed $data
+     * @return bool
+     */
+    private function doWrite(string $filename, $data): bool {
+        if (in_array(gettype($data), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
+        if (is_object($data)) {
+            if ($data instanceof Serializable) $value = sprintf("unserialize ('%s')", serialize($data));
+            elseif (method_exists($data, '__set_state')) {
+                if ($data instanceof JsonSerializable) $array = $data->jsonSerialize();
+                elseif (method_exists($data, 'toArray')) $array = $data->toArray();
+                if (!isset($array)) return false;
+                $value = sprintf('%s::__set_state(%s)', get_class($data), var_export($data, true));
+            } else return false;
+        } else $value = var_export($data, true);
+        $value = sprintf(self::FILE_TEMPLATE, $value);
+        //save file
+        $handle = fopen($filename, "w+");
+        $return = fwrite($handle, $value) !== false;
+        if (fclose($handle)) chmod($filename, 0777);
+        return $return;
     }
 
     /**
      * Initialize rootdir
      * @param string $root
-     * @return void
+     * @return bool
      */
-    private function initialize(string $root): void {
+    private function initialize(string $root): bool {
         $root .= "/phpcache";
         if (($real = realpath($root) ?: null) === null) {
             $path = normalizePath($root);
@@ -82,7 +116,8 @@ final class PHPCache extends CachePool {
             if (!file_exists($path)) @mkdir($path, 0777, true);
             $real = realpath($path) ?: null;
         }
-        if (is_dir($real)) $this->root = $real;
+        if ($real !== null && is_dir($real)) $this->root = $real;
+        return $this->root !== null;
     }
 
     /**
@@ -100,7 +135,12 @@ final class PHPCache extends CachePool {
             if (is_numeric($expire)) {
                 $expire = intval($expire);
                 if (time() > $expire) @unlink($file);
-                else $this->meta[$hash] = $file;
+                else {
+                    $this->meta[$hash] = [
+                        "file" => $file,
+                        "expire" => $expire
+                    ];
+                }
             }
         }
     }
@@ -111,16 +151,16 @@ final class PHPCache extends CachePool {
      * @return string
      */
     private function getHash(string $key): string {
-        return md5($key);
+        return crc32($key);
     }
 
     /**
      * @param string $rootpath Root directory to store the cache
-     * @param int $ttl default TTL to use to store the files
+     * @param int|null $ttl default TTL to use to store the files
      */
     public function __construct(string $rootpath, int $ttl = null) {
         parent::__construct($ttl);
-        $this->initialize($rootpath);
+        if ($this->initialize($rootpath)) $this->update();
     }
 
 }

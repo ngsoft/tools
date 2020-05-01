@@ -8,7 +8,6 @@ use NGSOFT\Tools\Cache\Exceptions\SimpleCache\InvalidArgument;
 use Psr\{
     Cache\CacheItemPoolInterface, Cache\InvalidArgumentException, SimpleCache\CacheInterface
 };
-use Throwable;
 
 /**
  * PSR6 to PSR16 Simple Cache Adapter
@@ -63,9 +62,8 @@ final class SimpleCacheAdapter implements CacheInterface {
     public function delete($key) {
         try {
             return $this->pool->deleteItem($key);
-        } catch (Throwable $ex) {
-            if ($ex instanceof InvalidArgumentException) throw new InvalidArgument($ex->getMessage(), $ex->getCode());
-            else throw $ex;
+        } catch (InvalidArgumentException $ex) {
+            throw new InvalidArgument($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -75,9 +73,8 @@ final class SimpleCacheAdapter implements CacheInterface {
     public function deleteMultiple($keys) {
         try {
             return $this->pool->deleteItems((array) $keys);
-        } catch (Throwable $ex) {
-            if ($ex instanceof InvalidArgumentException) throw new InvalidArgument($ex->getMessage(), $ex->getCode());
-            else throw $ex;
+        } catch (InvalidArgumentException $ex) {
+            throw new InvalidArgument($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -89,9 +86,8 @@ final class SimpleCacheAdapter implements CacheInterface {
             $item = $this->pool->getItem($key);
             if (!$item->isHit()) return $default;
             return $item->get();
-        } catch (Throwable $ex) {
-            if ($ex instanceof InvalidArgumentException) throw new InvalidArgument($ex->getMessage(), $ex->getCode());
-            else throw $ex;
+        } catch (InvalidArgumentException $ex) {
+            throw new InvalidArgument($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -112,9 +108,8 @@ final class SimpleCacheAdapter implements CacheInterface {
     public function has($key) {
         try {
             return $this->pool->hasItem($key);
-        } catch (Throwable $ex) {
-            if ($ex instanceof InvalidArgumentException) throw new InvalidArgument($ex->getMessage(), $ex->getCode());
-            else throw $ex;
+        } catch (InvalidArgumentException $ex) {
+            throw new InvalidArgument($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -128,9 +123,8 @@ final class SimpleCacheAdapter implements CacheInterface {
                     ->set($value)
                     ->expiresAfter($ttl ?? $this->ttl);
             return $this->pool->save($item);
-        } catch (Throwable $ex) {
-            if ($ex instanceof InvalidArgumentException) throw new InvalidArgument($ex->getMessage(), $ex->getCode());
-            else throw $ex;
+        } catch (InvalidArgumentException $ex) {
+            throw new InvalidArgument($ex->getMessage(), $ex->getCode());
         }
     }
 
