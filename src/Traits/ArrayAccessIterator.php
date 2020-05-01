@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Traits;
 
-trait ArrayAccessIteratorTrait {
+trait ArrayAccessIterator {
 
     /** @var array */
     protected $storage = [];

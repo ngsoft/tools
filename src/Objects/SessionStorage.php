@@ -6,13 +6,13 @@ namespace NGSOFT\Tools\Objects;
 
 use Iterator;
 use NGSOFT\Tools\{
-    Exceptions\RuntimeException, Interfaces\Storage, Traits\ArrayAccessIteratorTrait, Traits\ArrayAccessTrait
+    Exceptions\RuntimeException, Interfaces\Storage, Traits\ArrayAccessIterator, Traits\ArrayAccessCountable
 };
 
 class SessionStorage implements Iterator, Storage {
 
-    use ArrayAccessTrait,
-        ArrayAccessIteratorTrait;
+    use ArrayAccessCountable,
+        ArrayAccessIterator;
 
     public function __construct() {
         if (empty(session_id())) session_start();

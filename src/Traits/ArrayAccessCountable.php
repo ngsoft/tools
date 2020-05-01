@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Traits;
 
-trait ArrayAccessTrait {
+trait ArrayAccessCountable {
 
     /** @var array */
     protected $storage = [];

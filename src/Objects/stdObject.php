@@ -10,7 +10,7 @@ use ArrayAccess,
     Iterator,
     JsonSerializable;
 use NGSOFT\Tools\{
-    Exceptions\RuntimeException, Traits\ArrayAccessIteratorTrait
+    Exceptions\RuntimeException, Traits\ArrayAccessCountable, Traits\ArrayAccessIterator
 };
 use Serializable,
     stdClass;
@@ -21,7 +21,8 @@ use Serializable,
  */
 class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Serializable, JsonSerializable {
 
-    use ArrayAccessIteratorTrait;
+    use ArrayAccessIterator,
+        ArrayAccessCountable;
 
     /** @var bool */
     public static $debug = false;
@@ -300,11 +301,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
     ////////////////////////////   ArrayAccess   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function offsetExists($offset) {
-        return isset($this->storage[$offset]);
-    }
-
-    /** {@inheritdoc} */
     public function &offsetGet($offset) {
         $return = null;
         if ($offset === null) {
@@ -327,16 +323,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
         if ($value instanceof self) $value = $value->toArray();
         if ($offset === null) $this->storage[] = $value;
         else $this->storage[$offset] = $value;
-    }
-
-    /** {@inheritdoc} */
-    public function offsetUnset($offset) {
-        unset($this->storage[$offset]);
-    }
-
-    /** {@inheritdoc} */
-    public function count() {
-        return count($this->storage);
     }
 
     ////////////////////////////   PropertyAccess   ////////////////////////////
