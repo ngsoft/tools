@@ -17,6 +17,7 @@ use Serializable,
 
 /**
  * A Base Array Like Object
+ * @property-read int $length Number of Elements
  */
 class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Serializable, JsonSerializable {
 
@@ -203,13 +204,52 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
         $nprop = strtolower($prop);
         foreach (array_keys($this->storage) as $key) {
             //for camelCased props
-            $norm = strtolower(preg_replace('/[_\-\.]+(.)/', '\\1', $key));
+            $norm = strtolower(preg_replace('/[_\-]+(.)/', '\\1', $key));
             if ($norm === $nprop) return $key;
             //if access prop.key using prop_key
-            $norm = strtolower(preg_replace('/[\-\.]/', '_', $key));
+            $norm = strtolower(preg_replace('/[\-]/', '_', $key));
             if ($norm === $nprop) return $key;
         }
         return $prop;
+    }
+
+    /**
+     * Finds path using dot notation
+     * @param int|string $path
+     * @return mixed|null
+     */
+    protected function &findPath($path) {
+        $result = $null = null;
+        if (array_key_exists($path, $this->storage)) $result = &$this->storage[$path];
+        else if (is_string($path)) {
+            $split = explode(".", $path);
+            $result = &$this->storage;
+            foreach ($split as $key) {
+                if (!array_key_exists($key, $store)) return $null;
+                $result = &$result[$key];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Make path using dot notation
+     * @param string|int $path
+     * @param mixed $value
+     */
+    protected function makePath($path, $value) {
+        if (is_int($path)) {
+            $this->storage[$path] = $value;
+        } elseif (is_string($path)) {
+            $split = explode(".", $path);
+            $store = &$this->storage;
+            foreach ($split as $key) {
+                if (!array_key_exists($key, $store) || !is_array($store[$key])) $store[$key] = [];
+                $store = &$store[$key];
+            }
+            $store = $value;
+        }
     }
 
     ////////////////////////////   CacheAble   ////////////////////////////
@@ -263,12 +303,21 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
             $this->storage[] = [];
             $offset = array_key_last($this->storage);
         }
-        if (array_key_exists($offset, $this->storage)) {
-            if (is_array($this->storage[$offset])) {
-                $array = &$this->storage[$offset];
+        if ($offset === "length") $return = $this->count();
+
+        /*         * elseif (array_key_exists($offset, $this->storage)) {
+
+          if (is_array($this->storage[$offset])) {
+          $array = &$this->storage[$offset];
+          $return = clone $this;
+          $return->storage = &$array;
+          } else $return = $this->storage[$offset];
+          } */
+        elseif (($value = $this->findPath($offset)) !== null) {
+            if (is_array($value)) {
                 $return = clone $this;
-                $return->storage = &$array;
-            } else $return = $this->storage[$offset];
+                $return->storage = &$value;
+            } else $return = $value;
         } elseif (static::$debug === true) throw new RuntimeException('Undefined index: ' . $offset, E_USER_NOTICE);
         return $return;
     }
@@ -277,7 +326,8 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
     public function offsetSet($offset, $value) {
         if ($value instanceof self) $value = $value->toArray();
         if ($offset === null) $this->storage[] = $value;
-        else $this->storage[$offset] = $value;
+        else $this->makePath($offset, $value);
+        // else $this->storage[$offset] = $value;
     }
 
     /** {@inheritdoc} */
