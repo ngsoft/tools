@@ -22,10 +22,11 @@ use function mb_internal_encoding,
 define('NGSOFT\\Tools\\VERSION', '1.3');
 
 ////////////////////////////   Error Handler   ////////////////////////////
-
-function noop() {
-
-}
+/**
+ * A function that does noop
+ * @return void
+ */
+function noop() { return; }
 
 /**
  * Execute a callback and hides all errors that can be thrown
@@ -65,7 +66,7 @@ mb_internal_encoding("UTF-8");
 @define('week', day * 7);
 @define('year', 365 * day);
 @define('month', round(year / 12, 0));
-@define('now', time());
+//@define('now', time());
 
 /**
  * @link https://gist.github.com/dperini/729294 (with protocol required)
@@ -114,7 +115,7 @@ function popd(): bool {
  */
 function safeInclude(string $file, array $data = [], bool $once = false) {
     $file = realpath($file);
-    if ($file === false && is_file($file)) {
+    if ($file !== false && is_file($file)) {
         extract($data);
         if ($once === true) return include_once $file;
         return include $file;
@@ -125,7 +126,7 @@ function safeInclude(string $file, array $data = [], bool $once = false) {
 /**
  * List files in a given directory
  * @param string $dir Directory to list
- * @param string[] ...$extensions extensions to list
+ * @param string ...$extensions extensions to list
  * @return array
  */
 function listFiles(string $dir, string ...$extensions): array {
