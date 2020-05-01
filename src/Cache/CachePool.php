@@ -20,7 +20,11 @@ abstract class CachePool implements CacheItemPoolInterface {
     ////////////////////////////   TTL   ////////////////////////////
 
     /** @var int */
-    protected $ttl = 60;
+    private $ttl = 60;
+
+    public function __construct(int $ttl = null) {
+        if ($ttl !== null) $this->ttl = $ttl;
+    }
 
     /**
      * Get Default TTL Value
@@ -108,13 +112,9 @@ abstract class CachePool implements CacheItemPoolInterface {
      *   TRUE if the specified key is legal.
      */
     protected function validateKey($key) {
-        if (!is_string($key) || $key === '') {
-            throw new InvalidArgument('Key should be a non empty string');
-        }
+        if (!is_string($key) || $key === '') throw new InvalidArgument('Key should be a non empty string');
         $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
-        if ($unsupportedMatched > 0) {
-            throw new InvalidArgument('Can\'t validate the specified key');
-        }
+        if ($unsupportedMatched > 0) throw new InvalidArgument('Can\'t validate the specified key');
         return true;
     }
 
