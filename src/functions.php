@@ -78,6 +78,34 @@ mb_internal_encoding("UTF-8");
 ////////////////////////////   File Operations   ////////////////////////////
 
 /**
+ * Change the current active directory
+ * @global array $pushd
+ * @param string $dir
+ * @return boolean
+ */
+function pushd(string $dir): bool {
+    global $pushd;
+    if (is_null($pushd)) $pushd = [];
+    if (is_dir($dir)) {
+        $pushd[] = getcwd();
+        return chdir($dir);
+    }
+    return false;
+}
+
+/**
+ * Restore the last active directory changed by pushd
+ * @global array $pushd
+ * @return boolean
+ */
+function popd(): bool {
+    global $pushd;
+    $last = is_array($pushd) ? array_pop($pushd) : false;
+    if (is_dir($last)) return chdir($last);
+    return false;
+}
+
+/**
  * Wrap include outside of the global scope
  * @param string $file file to include
  * @param array $data data to pass to the file
@@ -95,19 +123,36 @@ function safeInclude(string $file, array $data = [], bool $once = false) {
 }
 
 /**
+ * List files in a given directory
+ * @param string $dir Directory to list
+ * @param string[] ...$extensions extensions to list
+ * @return array
+ */
+function listFiles(string $dir, string ...$extensions): array {
+    $list = [];
+    $dir = realpath($dir);
+    if ($dir !== false && is_dir($dir)) {
+        foreach (scandir($dir) as $file) {
+            if ($file[0] === '.') continue;
+            if (count($extensions) > 0) {
+                foreach ($extensions as $extension) {
+                    $match = ".$extension";
+                    if (substr_compare($file, $match, -strlen($match)) === 0) $list[] = realpath("$dir/$file");
+                }
+            } else $list[] = realpath("$dir/$file");
+        }
+    }
+    return $list;
+}
+
+/**
  * Loads all .php files found recursively
  * @param string $path
  * @param array $data
  * @return void
  */
 function autoload(string $path, array $data = []): void {
-    $path = realpath($path);
-    if ($path !== false && is_dir($path)) {
-        foreach (scandir($path) as $file) {
-            if ($file[0] === ".") continue;
-            autoload($path . DIRECTORY_SEPARATOR . $file);
-        }
-    } else if (is_file($path) and endsWith($path, '.php')) safeInclude($path, $data, true);
+    foreach (listFiles($path, 'php') as $phpfile) safeInclude($phpfile, $data, true);
 }
 
 /**
