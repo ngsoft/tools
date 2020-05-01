@@ -50,7 +50,17 @@ final class PHPCache extends CachePool {
         if (!$this->doContains($key)) return $this->createEmptyItem($key);
         $hash = $this->getHash($key);
         $file = $this->meta[$hash]['file'];
-        $contents = safeInclude($file);
+        $type = $this->meta[$hash]['type'];
+        $contents = null;
+        if ($type === "php") $contents = safeInclude($file);
+        else if (is_file($file)) {
+            $handle = @fopen($file, "r");
+            @flock($handle, LOCK_SH);
+            $contents = @fread($handle, @filesize($file));
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+            if (!is_string($contents)) $contents = null;
+        }
         return new CacheItem($key, $this->getTTL(), $contents !== null, $contents);
     }
 
@@ -78,7 +88,8 @@ final class PHPCache extends CachePool {
      * @return bool
      */
     private function doWrite(string $hash, int $expire, $data): bool {
-        if (in_array(gettype($data), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
+        if (in_array(($type = gettype($data)), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
+        $type = $type === "string" ? "bin" : "php";
         if (is_object($data)) {
             if ($data instanceof Serializable) $value = sprintf("unserialize ('%s')", serialize($data));
             elseif (method_exists($data, '__set_state')) {
@@ -87,22 +98,26 @@ final class PHPCache extends CachePool {
                 if (!isset($array)) return false;
                 $value = sprintf('%s::__set_state(%s)', get_class($data), var_export($data, true));
             } else return false;
-        } else $value = var_export($data, true);
-        $value = sprintf(self::FILE_TEMPLATE, $value);
+            $value = sprintf(self::FILE_TEMPLATE, $value);
+        } elseif ($type === "bin") $value = $data;
+        else $value = sprintf(self::FILE_TEMPLATE, var_export($data, true));
         //save file
         set_time_limit(120);
-        $filename = $this->root . DIRECTORY_SEPARATOR . sprintf('%s.%s.%s', $hash, $expire, self::FILE_EXTENSION);
+        $filename = $this->root . DIRECTORY_SEPARATOR . sprintf('%s.%s.%s', $hash, $expire, $type);
         $handle = fopen($filename, "w");
         if (
-                fwrite($handle, $value) !== false &&
-                fclose($handle) &&
+                @flock($handle, LOCK_EX | LOCK_NB) &&
+                @fwrite($handle, $value) &&
+                @ flock($handle, LOCK_UN) &&
+                @fclose($handle) &&
                 is_file($filename) &&
                 @filesize($filename) > 0
         ) {
             @chmod($filename, 0777);
             $this->meta[$hash] = [
                 'file' => $filename,
-                'expire' => $expire
+                'expire' => $expire,
+                'type' => $type
             ];
             return true;
         }
@@ -134,18 +149,19 @@ final class PHPCache extends CachePool {
         $this->meta = [];
         if ($this->root === null) return;
 
-        foreach (listFiles($this->root, self::FILE_EXTENSION) as $file) {
+        foreach (listFiles($this->root, "php", "bin") as $file) {
             $base = basename($file);
             $split = explode(".", $base);
             if (count($split) !== 3) continue;
-            list($hash, $expire) = $split;
-            if (is_numeric($expire)) {
+            list($hash, $expire, $type) = $split;
+            if (is_numeric($expire) && is_numeric($hash)) {
                 $expire = intval($expire);
                 if (time() > $expire) @unlink($file);
                 else {
                     $this->meta[$hash] = [
                         "file" => $file,
-                        "expire" => $expire
+                        "expire" => $expire,
+                        "type" => $type
                     ];
                 }
             }
