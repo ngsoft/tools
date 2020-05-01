@@ -79,6 +79,15 @@ mb_internal_encoding("UTF-8");
 ////////////////////////////   File Operations   ////////////////////////////
 
 /**
+ * Normalize pathnames
+ * @param string $path
+ * @return string
+ */
+function normalizePath(string $path): string {
+    return preg_replace('/[\\\\\/]+/', '/', $path);
+}
+
+/**
  * Change the current active directory
  * @global array $pushd
  * @param string $dir
@@ -111,7 +120,7 @@ function popd(): bool {
  * @param string $file file to include
  * @param array $data data to pass to the file
  * @param bool $once include_once
- * @return mixed|false
+ * @return mixed|null
  */
 function safeInclude(string $file, array $data = [], bool $once = false) {
     $file = realpath($file);
@@ -120,7 +129,7 @@ function safeInclude(string $file, array $data = [], bool $once = false) {
         if ($once === true) return include_once $file;
         return include $file;
     }
-    return false;
+    return null;
 }
 
 /**
