@@ -22,8 +22,13 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
 
     use ArrayAccessIteratorTrait;
 
+    /** @var bool */
+    public static $debug = false;
+
     /** @var array */
     protected $storage = [];
+
+    ////////////////////////////   Initialization   ////////////////////////////
 
     /**
      * Instanciate a new instance using the given array
@@ -81,6 +86,86 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
         return new static();
     }
 
+    ////////////////////////////   Helpers   ////////////////////////////
+
+    /**
+     * Makes an array_replace_recursive() on the internal storage
+     * @param array|stdObject ...$arrays
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public function concat(...$arrays) {
+        foreach ($arrays as $index => $array) {
+            if ($array instanceof self) $array = $array->toArray();
+            if (assert(is_array($array), sprintf("Expected parameter %d to be an array or instance of %s", $index + 1, self::class))) {
+                $this->storage = array_replace_recursive($this->storage, $array);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     *  Applies the callback to the elements of the storage
+     * @param callable $callback a callback
+     * @return static
+     */
+    public function map(callable $callback) {
+        $result = static::create();
+        foreach ($this as $key => $value) $result[$key] = $callback($value, $key);
+        return $result;
+    }
+
+    /**
+     * Tests if all the elements from the storage pass the test implemented by the callable
+     * @param callable $callback
+     * @return boolean
+     */
+    public function every(callable $callback) {
+        foreach ($this as $key => $value) {
+            if ($callback($value, $key) === false) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Tests if at least one of the elements from the storage pass the test implemented by the callable
+     * @param callable $callback
+     * @return boolean
+     */
+    public function some(callable $callback) {
+        foreach ($this as $key => $value) {
+            if ($callback($value, $key) !== false) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns a new stdObject with all the elements that passes the test
+     * @param callable $callback
+     * @return static
+     */
+    public function filter(callable $callback) {
+        $result = static::create();
+        foreach ($this as $key => $value) {
+            if ($callback($value, $key) === true) $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Runs the given callable for each of the elements
+     * @param callable $callback
+     * @return $this
+     */
+    public function forEach(callable $callback) {
+
+        foreach ($this as $key => $value) {
+            $callback($value, $key);
+        }
+        return $this;
+    }
+
     ////////////////////////////   Utilities   ////////////////////////////
 
     /**
@@ -99,7 +184,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
      * @param string $prop
      * @return string
      */
-    protected function getOriginalKey(string $prop): string {
+    protected function findKey(string $prop): string {
         if (array_key_exists($prop, $this->storage)) return $prop;
         $nprop = strtolower($prop);
         foreach (array_keys($this->storage) as $key) {
@@ -159,6 +244,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
 
     /** {@inheritdoc} */
     public function &offsetGet($offset) {
+        $return = null;
         if ($offset === null) {
             $this->storage[] = [];
             $offset = array_key_last($this->storage);
@@ -169,9 +255,8 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
                 $return = clone $this;
                 $return->storage = &$array;
             } else $return = $this->storage[$offset];
-            return $return;
-        }
-        throw new RuntimeException('Undefined index: ' . $offset, E_USER_NOTICE);
+        } elseif (static::$debug === true) throw new RuntimeException('Undefined index: ' . $offset, E_USER_NOTICE);
+        return $return;
     }
 
     /** {@inheritdoc} */
@@ -195,22 +280,22 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
 
     /** {@inheritdoc} */
     public function __get($name) {
-        return $this->offsetGet($this->getOriginalKey($name));
+        return $this->offsetGet($this->findKey($name));
     }
 
     /** {@inheritdoc} */
     public function __isset($name) {
-        return $this->offsetExists($this->getOriginalKey($name));
+        return $this->offsetExists($this->findKey($name));
     }
 
     /** {@inheritdoc} */
     public function __set($name, $value) {
-        $this->offsetSet($this->getOriginalKey($name), $value);
+        $this->offsetSet($this->findKey($name), $value);
     }
 
     /** {@inheritdoc} */
     public function __unset($name) {
-        $this->offsetUnset($this->getOriginalKey($name));
+        $this->offsetUnset($this->findKey($name));
     }
 
 }
