@@ -233,7 +233,6 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
      */
     public function findPath(string $path) {
         $this->assertPath($path);
-        $result = $null = null;
         if (isset($this[$path])) return $this[$path];
         $split = explode(".", $path);
         $result = $this;
