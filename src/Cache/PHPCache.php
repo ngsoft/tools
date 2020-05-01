@@ -2,12 +2,16 @@
 
 namespace NGSOFT\Tools\Cache;
 
+use JsonSerializable,
+    Psr\Log\LoggerInterface,
+    Serializable;
 use function NGSOFT\Tools\{
     listFiles, normalizePath, rrmdir, safeInclude
 };
 
 /**
  * Caches data using var_export
+ * Improved version of OPCache that uses less file hits and can store binaries (images ...)
  */
 final class PHPCache extends CachePool {
 
@@ -20,8 +24,29 @@ final class PHPCache extends CachePool {
     /** @var string|null */
     private $root;
 
+    /** @var string */
+    private $rootpath;
+
+    /**
+     * @Inject
+     * @var LoggerInterface
+     */
+    private $logger;
+
     /** {@inheritdoc} */
     protected function doContains(string $key): bool {
+        static $logged; //logs only once per page load
+        if ($this->root === null) {
+            //php-di or other container annotation injection
+            if ($logged !== true && $this->logger instanceof LoggerInterface) {
+                $logged = true;
+                $this->logger->debug("Cannot write in cache location.", [
+                    "class" => self::class,
+                    "path" => $this->rootpath
+                ]);
+            }
+            return false; // cache empty
+        }
         $hash = $this->getHash($key);
         if (isset($this->meta[$hash])) {
             $meta = $this->meta[$hash];
@@ -83,7 +108,8 @@ final class PHPCache extends CachePool {
 
     /**
      * Compile the cached file
-     * @param string $filename
+     * @param string $hash
+     * @param int $expire
      * @param mixed $data
      * @return bool
      */
@@ -91,19 +117,20 @@ final class PHPCache extends CachePool {
         if (in_array(($type = gettype($data)), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
         $type = $type === "string" ? "bin" : "php";
         if (is_object($data)) {
+
             if ($data instanceof Serializable) $value = sprintf("unserialize ('%s')", serialize($data));
             elseif (method_exists($data, '__set_state')) {
                 if ($data instanceof JsonSerializable) $array = $data->jsonSerialize();
                 elseif (method_exists($data, 'toArray')) $array = $data->toArray();
-                if (!isset($array)) return false;
-                $value = sprintf('%s::__set_state(%s)', get_class($data), var_export($data, true));
-            } else return false;
+                else return false;
+                $value = sprintf('%s::__set_state(%s)', get_class($data), var_export($array, true));
+            } else return false; // cannot be certain to retrieve the same datas
             $value = sprintf(self::FILE_TEMPLATE, $value);
-        } elseif ($type === "bin") $value = $data;
-        else $value = sprintf(self::FILE_TEMPLATE, var_export($data, true));
-        //save file
-        set_time_limit(120);
-        $filename = $this->root . DIRECTORY_SEPARATOR . sprintf('%s.%s.%s', $hash, $expire, $type);
+        } elseif ($type === "bin") $value = $data; //strings / binary strings
+        else $value = sprintf(self::FILE_TEMPLATE, var_export($data, true)); // booleans, int, float
+
+        set_time_limit(60);
+        $filename = $this->root . DIRECTORY_SEPARATOR . sprintf('%s.%u.%s', $hash, $expire, $type);
         $handle = fopen($filename, "w");
         if (
                 @flock($handle, LOCK_EX | LOCK_NB) &&
@@ -129,8 +156,9 @@ final class PHPCache extends CachePool {
      * @param string $root
      * @return bool
      */
-    private function initialize(string $root): bool {
-        $root .= "/phpcache";
+    private function initialize(string $root, string $namespace): bool {
+        $this->rootpath = $root;
+        if (!empty($namespace)) $root .= DIRECTORY_SEPARATOR . $this->getHash($namespace);
         if (($real = realpath($root) ?: null) === null) {
             $path = normalizePath($root);
             $path = preg_match('/^(?:\w\:)?\//', $path) !== 1 ? getcwd() . DIRECTORY_SEPARATOR . $path : $path;
@@ -181,9 +209,9 @@ final class PHPCache extends CachePool {
      * @param string $rootpath Root directory to store the cache
      * @param int|null $ttl default TTL to use to store the files
      */
-    public function __construct(string $rootpath, int $ttl = null) {
+    public function __construct(string $rootpath, int $ttl = null, string $namespace = "phpcache") {
         parent::__construct($ttl);
-        if ($this->initialize($rootpath)) $this->update();
+        if ($this->initialize($rootpath, $namespace)) $this->update();
     }
 
 }
