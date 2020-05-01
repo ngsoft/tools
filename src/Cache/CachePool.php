@@ -4,28 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
-use NGSOFT\Tools\Cache\Exceptions\{
-    InvalidArgument, PSRCacheException
-};
-use Psr\{
-    Cache\CacheItemInterface, Cache\CacheItemPoolInterface, Container\ContainerInterface, Log\LoggerInterface
+use NGSOFT\Tools\Cache\Exceptions\InvalidArgument;
+use Psr\Cache\{
+    CacheItemInterface, CacheItemPoolInterface
 };
 
 /**
  * PSR6/PSR16 Compatible Cache Pool implementation
  */
-abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInterface {
-
-    /**
-     * @inject
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
+abstract class CachePool implements CacheItemPoolInterface {
 
     /** @var array */
     protected $deferred = [];
@@ -36,51 +23,11 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
     protected $ttl = 60;
 
     /**
-     * Set the default ttl value for the cache
-     * @param int $ttl
-     */
-    public function setTTL(int $ttl) {
-        $this->ttl = $ttl;
-    }
-
-    /**
      * Get Default TTL Value
      * @return int
      */
     public function getTTL(): int {
         return $this->ttl;
-    }
-
-    ////////////////////////////   ContainerAware   ////////////////////////////
-
-    /**
-     * @param int|null $ttl
-     */
-    public function __construct(int $ttl = null) {
-        if (isset($ttl)) $this->ttl = $ttl;
-        //initialize PSR16
-        parent::__construct($this, $ttl);
-    }
-
-    /**
-     * Inject the Container
-     * @param ContainerInterface $container
-     */
-    public function setContainer(ContainerInterface $container) {
-        $this->container = $container;
-        if ($container->has(LoggerInterface::class)) {
-            $this->setLogger($container->get(LoggerInterface::class));
-        }
-    }
-
-    ////////////////////////////   LoggerAware   ////////////////////////////
-
-    /**
-     * Inject The Logger
-     * @param LoggerInterface $logger
-     */
-    public function setLogger(LoggerInterface $logger) {
-        $this->logger = $logger;
     }
 
     ////////////////////////////   Empty Item   ////////////////////////////
@@ -161,20 +108,14 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
      *   TRUE if the specified key is legal.
      */
     protected function validateKey($key) {
-        try {
-            if (!is_string($key) || $key === '') {
-                throw new InvalidArgument('Key should be a non empty string');
-            }
-            $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
-            if ($unsupportedMatched > 0) {
-                throw new InvalidArgument('Can\'t validate the specified key');
-            }
-            return true;
-        } catch (InvalidArgument $exc) {
-            //log the message
-            if ($this->logger) $exc->logMessage($this->logger);
-            throw $exc;
+        if (!is_string($key) || $key === '') {
+            throw new InvalidArgument('Key should be a non empty string');
         }
+        $unsupportedMatched = preg_match('#[' . preg_quote($this->getReservedKeyCharacters()) . ']#', $key);
+        if ($unsupportedMatched > 0) {
+            throw new InvalidArgument('Can\'t validate the specified key');
+        }
+        return true;
     }
 
     /**
@@ -232,12 +173,7 @@ abstract class CachePool extends SimpleCacheAdapter implements CacheItemPoolInte
      * {@inheritdoc}
      */
     public function save(CacheItemInterface $item) {
-        try {
-            if ($item instanceof CacheItem) return $this->doSave($item);
-        } catch (PSRCacheException $exc) {
-            if ($this->logger) $exc->logMessage($this->logger);
-            throw $exc;
-        }
+        if ($item instanceof CacheItem) return $this->doSave($item);
         return false;
     }
 

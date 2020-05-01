@@ -13,7 +13,7 @@ use Throwable;
 /**
  * PSR6 to PSR16 Simple Cache Adapter
  */
-class SimpleCacheAdapter implements CacheInterface {
+final class SimpleCacheAdapter implements CacheInterface {
     ////////////////////////////   Inject PSR6   ////////////////////////////
 
     /** @var CacheItemPoolInterface */
