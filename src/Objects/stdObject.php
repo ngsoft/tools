@@ -86,7 +86,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
         return new static();
     }
 
-    ////////////////////////////   Helpers   ////////////////////////////
+    ////////////////////////////   JS Like Methods   ////////////////////////////
 
     /**
      * Makes an array_replace_recursive() on the internal storage
@@ -159,10 +159,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
      * @return $this
      */
     public function forEach(callable $callback) {
-
-        foreach ($this as $key => $value) {
-            $callback($value, $key);
-        }
+        foreach ($this as $key => $value) $callback($value, $key);
         return $this;
     }
 

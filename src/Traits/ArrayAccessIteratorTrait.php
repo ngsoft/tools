@@ -6,7 +6,13 @@ namespace NGSOFT\Tools\Traits;
 
 trait ArrayAccessIteratorTrait {
 
-    /** {@inheritdoc} */
+    /** @var array */
+    protected $storage = [];
+
+    /**
+     * {@inheritdoc}
+     * @suppress PhanUndeclaredMethod
+     */
     public function current() {
         $key = $this->key();
         if ($key === null) return false;
