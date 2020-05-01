@@ -97,7 +97,8 @@ final class PHPCache extends CachePool {
         } else $value = var_export($data, true);
         $value = sprintf(self::FILE_TEMPLATE, $value);
         //save file
-        $handle = fopen($filename, "w+");
+        set_time_limit(120);
+        $handle = fopen($filename, "w");
         $return = fwrite($handle, $value) !== false;
         if (fclose($handle)) chmod($filename, 0777);
         return $return;

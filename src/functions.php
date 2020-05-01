@@ -66,6 +66,10 @@ mb_internal_encoding("UTF-8");
 @define('week', day * 7);
 @define('year', 365 * day);
 @define('month', round(year / 12, 0));
+@define('kb', 1024);
+@define('mb', kb * 1024);
+@define('gb', mb * 1024);
+@define('tb', gb * 1024);
 //@define('now', time());
 
 /**
