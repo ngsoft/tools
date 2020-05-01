@@ -138,7 +138,7 @@ abstract class CachePool implements CacheItemPoolInterface {
     public function deleteItems(array $keys) {
         array_map([$this, 'validateKey'], $keys);
         $val = array_map([$this, 'deleteItem'], $keys);
-        return !in_array(false, $val);
+        return in_array(false, $val) === false;
     }
 
     /**
@@ -163,9 +163,8 @@ abstract class CachePool implements CacheItemPoolInterface {
      */
     public function getItems(array $keys = []) {
         array_map([$this, 'validateKey'], $keys); $list = [];
-        foreach ($keys as $key) {
-            $list[$key] = $this->getItem($key);
-        }
+        foreach ($keys as $key) $list[$key] = $this->getItem($key);
+
         return $list;
     }
 
@@ -182,7 +181,7 @@ abstract class CachePool implements CacheItemPoolInterface {
      */
     public function commit() {
         $val = array_map([$this, 'save'], $this->deferred);
-        return !in_array(false, $val);
+        return in_array(false, $val) === false;
     }
 
     /**
