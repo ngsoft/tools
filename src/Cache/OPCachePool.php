@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Cache;
 
+use JsonSerializable;
 use NGSOFT\Tools\Cache\{
     CacheItem, CachePool
 };
 use Serializable;
 use function NGSOFT\Tools\{
-    endsWith, includeFile, safe_exec
+    endsWith, safe_exec, safeInclude
 };
 
 /**
@@ -85,7 +86,7 @@ class OPCachePool extends CachePool {
      * @param mixed $data
      * @return bool
      */
-    private function opsaveOld(string $filename, $data): bool {
+    private function opsave(string $filename, $data): bool {
         if (in_array(gettype($data), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
         if (is_dir($filename)) return false;
         $retval = false;
@@ -96,9 +97,9 @@ class OPCachePool extends CachePool {
         if (is_object($data)) {
             if ($data instanceof Serializable) $value = '<?php return unserialize(\'' . serialize($data) . '\');';
             elseif (method_exists($data, '__set_state')) {
-                if ($data instanceof \JsonSerializable) $array = $data->jsonSerialize();
+                if ($data instanceof JsonSerializable) $array = $data->jsonSerialize();
                 elseif (method_exists($data, 'toArray')) $array = $data->toArray();
-                if (!isset($array)) return false;;
+                if (!isset($array)) return false;
                 $value = '<?php return '
                         . get_class($data) . '::__set_state('
                         . var_export($array, true) . ');';
@@ -133,9 +134,9 @@ class OPCachePool extends CachePool {
      * @param string $filename
      * @return mixed|false
      */
-    private function oploadOld(string $filename) {
+    private function opload(string $filename) {
         return safe_exec(function () use($filename) {
-            return includeFile($filename);
+            return safeInclude($filename);
         });
     }
 
