@@ -85,7 +85,7 @@ class OPCachePool extends CachePool {
      * @param mixed $data
      * @return bool
      */
-    private function opsave(string $filename, $data): bool {
+    private function opsaveOld(string $filename, $data): bool {
         if (in_array(gettype($data), ["unknown type", "resource", "resource (closed)", "NULL"])) return false;
         if (is_dir($filename)) return false;
         $retval = false;
@@ -133,7 +133,7 @@ class OPCachePool extends CachePool {
      * @param string $filename
      * @return mixed|false
      */
-    private function opload(string $filename) {
+    private function oploadOld(string $filename) {
         return safe_exec(function () use($filename) {
             return includeFile($filename);
         });

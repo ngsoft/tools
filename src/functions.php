@@ -75,44 +75,39 @@ mb_internal_encoding("UTF-8");
 @define('weburl', '/^(?:(?:(?:https?|ftp):)\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\x{00a1}-\x{ffff}][a-z0-9\x{00a1}-\x{ffff}_-]{0,62})?[a-z0-9\x{00a1}-\x{ffff}]\.)+(?:[a-z\x{00a1}-\x{ffff}]{2,}\.?))(?::\d{2,5})?(?:[\/?#]\S*)?$/iu');
 @define('localurl', '/^(?:(?:(?:https?|ftp):)\/\/)(?:\S+(?::\S*)?@)?(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:\.?[a-z0-9\x{00a1}-\x{ffff}][a-z0-9\x{00a1}-\x{ffff}_-]{0,62})?[a-z0-9\x{00a1}-\x{ffff}])+(?:(?:\.[a-z\x{00a1}-\x{ffff}]{2,})\.?)?)(?::\d{2,5})?(?:[\/?#]\S*)?$/iu');
 
-
 ////////////////////////////   File Operations   ////////////////////////////
 
 /**
- * Wrap include_once outside of the global scope
- * @param string $file File to include
- * @param array<string, mixed> $data Variables to export
- * @return mixed
+ * Wrap include outside of the global scope
+ * @param string $file file to include
+ * @param array $data data to pass to the file
+ * @param bool $once include_once
+ * @return mixed|false
  */
-function includeOnce(string $file, array $data = []) {
-    extract($data);
-    return is_file($file) ? include_once $file : false;
-}
-
-/**
- * Wrap include_once outside of the global scope
- * @param string $path
- * @param array<string,mixed> $data Packed data
- * @return mixed
- */
-function includeFile(string $path, array $data = []) {
-    extract($data);
-    return is_file($path) ? include $path : false;
+function safeInclude(string $file, array $data = [], bool $once = false) {
+    $file = realpath($file);
+    if ($file === false && is_file($file)) {
+        extract($data);
+        if ($once === true) return include_once $file;
+        return include $file;
+    }
+    return false;
 }
 
 /**
  * Loads all .php files found recursively
  * @param string $path
+ * @param array $data
  * @return void
  */
-function autoloadDir(string $path): void {
-
-    if (is_dir($path)) {
+function autoload(string $path, array $data = []): void {
+    $path = realpath($path);
+    if ($path !== false && is_dir($path)) {
         foreach (scandir($path) as $file) {
             if ($file[0] === ".") continue;
-            autoloadDir($path . DIRECTORY_SEPARATOR . $file);
+            autoload($path . DIRECTORY_SEPARATOR . $file);
         }
-    } else if (is_file($path) and endsWith($path, '.php')) includeOnce($path);
+    } else if (is_file($path) and endsWith($path, '.php')) safeInclude($path, $data, true);
 }
 
 /**
@@ -121,7 +116,8 @@ function autoloadDir(string $path): void {
  * @return bool
  */
 function rrmdir(string $src): bool {
-    if (!is_dir($src)) return false;
+    $src = realpath($src);
+    if ($src === false || !is_dir($src)) return false;
     $dir = opendir($src);
     while (false !== ( $file = readdir($dir))) {
         if ($file[0] === ".") continue;
@@ -139,7 +135,7 @@ function rrmdir(string $src): bool {
  * @param string $parentClass An Interface or an extended class
  * @return array<int, string> A list of class extending or implementing given class that are not abstract, traits, or interfaces
  */
-function findClassesImplementing(string $parentClass): array {
+function class_children(string $parentClass): array {
     $result = [];
     if (
             (class_exists($parentClass) or interface_exists($parentClass))
