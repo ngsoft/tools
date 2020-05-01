@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use NGSOFT\Tools\Cache\{
-    CacheItem, CachePool, Exceptions\PSRCacheException
+    CacheItem, CachePool
 };
 use Serializable;
 use function NGSOFT\Tools\{
@@ -83,7 +83,6 @@ class OPCachePool extends CachePool {
      * @suppress PhanRedundantCondition
      * @param string $filename
      * @param mixed $data
-     * @throws PSRCacheException
      * @return bool
      */
     private function opsave(string $filename, $data): bool {
@@ -96,22 +95,20 @@ class OPCachePool extends CachePool {
         // Set File Contents
         if (is_object($data)) {
             if ($data instanceof Serializable) $value = '<?php return unserialize(\'' . serialize($data) . '\');';
-            //Cacheable
-            elseif (
-                    (method_exists($data, 'toArray') and method_exists($data, '__set_state'))
-            ) {
+            elseif (method_exists($data, '__set_state')) {
+                if ($data instanceof \JsonSerializable) $array = $data->jsonSerialize();
+                elseif (method_exists($data, 'toArray')) $array = $data->toArray();
+                if (!isset($array)) return false;;
                 $value = '<?php return '
                         . get_class($data) . '::__set_state('
-                        . var_export($data->toArray(), true) . ');';
+                        . var_export($array, true) . ');';
             } else return false;
         } else $value = '<?php return ' . var_export($data, true) . ';';
 
         // Write
         set_time_limit(60);
         file_exists($dir) || @mkdir($dir, 0777, true);
-        if (!is_dir($dir)) {
-            throw new PSRCacheException(sprintf('Cannot use "%s" as Cache location (not a dir).', $dir));
-        }
+        if (!is_dir($dir)) return false;
         is_file($filename) && @unlink($filename);
         if (@file_put_contents($tmp, $value, LOCK_EX)) {
             do {
@@ -179,11 +176,13 @@ class OPCachePool extends CachePool {
         return true;
     }
 
+    /** {@inheritdoc} */
     protected function doFetch(string $key): CacheItem {
         if (!$this->doContains($key)) return $this->createEmptyItem($key);
         return new CacheItem($key, $this->getTTL(), true, $this->opload($this->getFileName($key)));
     }
 
+    /** {@inheritdoc} */
     protected function doFlush(): bool {
         $path = realpath($this->path);
         if ($path and is_dir($path)) {
@@ -203,6 +202,7 @@ class OPCachePool extends CachePool {
         return true;
     }
 
+    /** {@inheritdoc} */
     protected function doSave(CacheItem $item): bool {
         $expire = $item->getExpireAt()->getTimestamp();
         if (time() > $expire) return false;
