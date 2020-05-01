@@ -89,7 +89,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
     ////////////////////////////   JS Like Methods   ////////////////////////////
 
     /**
-     * Makes an array_replace_recursive() on the internal storage
+     * Makes an array_merge_recursive() on the internal storage
      * @param array|stdObject ...$arrays
      * @return static
      * @throws InvalidArgumentException
@@ -98,7 +98,7 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
         foreach ($arrays as $index => $array) {
             if ($array instanceof self) $array = $array->toArray();
             if (assert(is_array($array), sprintf("Expected parameter %d to be an array or instance of %s", $index + 1, self::class))) {
-                $this->storage = array_replace_recursive($this->storage, $array);
+                $this->storage = $this->merge($this->storage, $array);
             }
         }
         return $this;
@@ -164,6 +164,23 @@ class stdObject extends stdClass implements ArrayAccess, Countable, Iterator, Se
     }
 
     ////////////////////////////   Utilities   ////////////////////////////
+
+    /**
+     * array_replace_recursive that appends numeric keys instead of replacing them
+     * @param array $orig
+     * @param array $array
+     * @return array
+     */
+    protected function merge(array $orig, array $array): array {
+        $result = $orig;
+        foreach ($array as $key => $value) {
+            if (is_array($value) && isset($result[$key]) && is_array($result[$key])) {
+                $result[$key] = $this->merge($result[$key], $value);
+            } elseif (is_int($key)) $result[] = $value;
+            else $result [$key] = $value;
+        }
+        return $result;
+    }
 
     /**
      * Import the given array by reference into the instance
