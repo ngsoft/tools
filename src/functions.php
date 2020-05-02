@@ -314,6 +314,30 @@ function array_flatten(array $array, int $depth = 1) {
     return $result;
 }
 
+/**
+ * array_replace_recursive that appends numeric keys instead of replacing them
+ * @param array $orig
+ * @param array ...$arrays
+ * @return array
+ */
+function array_concat(array $orig, array ...$arrays): array {
+    $result = $orig;
+    foreach ($arrays as $n => $array) {
+        if (assert(is_array($array), sprintf("Expected parameter %d to be an array.", $n + 2))) {
+            foreach ($array as $key => $value) {
+                if (
+                        is_array($value) &&
+                        isset($result[$key]) &&
+                        is_array($result[$key])
+                ) $result[$key] = array_concat($result[$key], $value);
+                elseif (is_int($key)) $result[] = $value;
+                else $result [$key] = $value;
+            }
+        }
+    }
+    return $result;
+}
+
 ////////////////////////////   Strings   ////////////////////////////
 
 /**
