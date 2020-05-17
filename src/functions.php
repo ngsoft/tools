@@ -240,6 +240,28 @@ function array_to_object(array $array) {
 }
 
 /**
+ * Safely loads JSON File
+ * @param string $file File to load
+ * @param bool $assoc use associative array instead of stdClass
+ * @return mixed
+ */
+function loadJSON(string $file, bool $assoc = false) {
+    $json = null;
+    if (is_file($file)) {
+        try {
+            $contents = file_get_contents($file);
+            $json = json_decode($contents, $assoc);
+            if (json_last_error() !== JSON_ERROR_NONE) $json = null;
+        } catch (Exception $exc) {
+            $exc->getCode();
+            $json = null;
+        }
+    }
+
+    return $json;
+}
+
+/**
  * Same as the original except callback accepts more arguments
  * @param callable $callback
  * @param array $array
