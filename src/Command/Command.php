@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Command;
 
-use InvalidArgumentException,
-    NGSOFT\Tools\IO,
-    Throwable;
+use InvalidArgumentException;
+use NGSOFT\Tools\IO;
+use Throwable;
 
 abstract class Command {
 
@@ -85,7 +85,24 @@ abstract class Command {
         try {
             $retval = $this->run($args);
         } catch (Throwable $exc) {
-            $this->io->writeln(sprintf('<rect class="bgred default">%s</rect>', $exc->getMessage()));
+            $t = new IO\Terminal();
+            $w = $t->getWidth();
+            $message = $exc->getMessage();
+            $len = strlen($message) + 24;
+            if ($w > $len) {
+                $spaces = $w - $len;
+                $spaces = floor($spaces / 2);
+                $this->io->writeln([
+                    '',
+                    sprintf('{:space*%u:}<span class="bgred">{:space*%u:}</span>', $spaces, $len),
+                    sprintf('{:space*%u:}<span class="bgred">{:space*12:}%s{:space*12:}</span>', $spaces, $message),
+                    sprintf('{:space*%u:}<span class="bgred">{:space*%u:}</span>', $spaces, $len),
+                    '',
+                ]);
+            } else $this->io->writeerrln("<div class=\"red\">$message</div>");
+
+
+            //$this->io->writeln(sprintf('<rect class="bgred default" width="64">%s</rect>', $exc->getMessage()));
             exit(1);
         }
         return $retval;
@@ -105,14 +122,15 @@ abstract class Command {
                 }, $input);
             } else {
                 if (!empty($opt->getShort())) $regex = sprintf('/(--%s[=\ ]|-%s )(.*)/', $opt->getLong(), $opt->getShort());
-                else $regex .= sprintf('/(--%s=)(.*)/', $opt->getLong());
+                else $regex .= sprintf('/(--%s[=\ ])(.*)/', $opt->getLong());
                 $input = preg_replace_callback($regex, function($matches) use($opt) {
                     $return = "";
                     list(,, $value) = $matches;
-                    $next = stripos($value, ' -');
+                    $next = stripos($value, '-');
                     if ($next !== false) {
                         $return = substr($value, $next);
                         $value = substr($value, 0, $next);
+                        $value = trim($value);
                     }
                     if (is_numeric($value)) $value = intval($value);
                     switch ($value) {
@@ -125,7 +143,8 @@ abstract class Command {
                         default :
                             break;
                     }
-                    $opt->addValue($value);
+                    if (empty($value)) $opt->addValue($opt->getDefault());
+                    else $opt->addValue($value);
                     return $return;
                 }, $input);
                 if (($opt->getFlag() === Option::VALUE_REQUIRED) && is_null($opt->getValue())) {
