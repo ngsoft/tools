@@ -118,7 +118,7 @@ final class PHPCache extends CachePool {
         $type = $type === "string" ? "bin" : "php";
         if (is_object($data)) {
 
-            if ($data instanceof Serializable) $value = sprintf("unserialize ('%s')", serialize($data));
+            if ($data instanceof Serializable) $value = sprintf("unserialize ('%s')", str_replace("'", "\'", serialize($data)));
             elseif (method_exists($data, '__set_state')) {
                 if ($data instanceof JsonSerializable) $array = $data->jsonSerialize();
                 elseif (method_exists($data, 'toArray')) $array = $data->toArray();
