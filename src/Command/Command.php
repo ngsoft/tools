@@ -121,8 +121,8 @@ abstract class Command {
                     return '';
                 }, $input);
             } else {
-                if (!empty($opt->getShort())) $regex = sprintf('/(--%s[=\ ]|-%s )(.*)/', $opt->getLong(), $opt->getShort());
-                else $regex .= sprintf('/(--%s[=\ ])(.*)/', $opt->getLong());
+                if (!empty($opt->getShort())) $regex = sprintf('/(--%s[=\ ]?|-%s )(.*)/', $opt->getLong(), $opt->getShort());
+                else $regex .= sprintf('/(--%s[=\ ]?)(.*)/', $opt->getLong());
                 $input = preg_replace_callback($regex, function($matches) use($opt) {
                     $return = "";
                     list(,, $value) = $matches;
@@ -149,9 +149,10 @@ abstract class Command {
                 }, $input);
                 if (($opt->getFlag() === Option::VALUE_REQUIRED) && is_null($opt->getValue())) {
                     throw new InvalidArgumentException('No value for ' . $opt->getLong());
-                } elseif (($opt->getDefault() !== null) && ($opt->getValue() === null)) {
-                    $opt->addValue($opt->getDefault());
                 }
+                //elseif (($opt->getDefault() !== null) && ($opt->getValue() === null)) {
+                //    $opt->addValue($opt->getDefault());
+                //}
             }
         }
     }
