@@ -19,6 +19,9 @@ abstract class Command {
     /** @var IO */
     protected $io;
 
+    /** @var bool */
+    protected $helper = true;
+
     /**
      * Get command short name
      * script <name>
@@ -63,6 +66,9 @@ abstract class Command {
         $this->io = IO::create();
         $args = implode(' ', $args);
         $this->configure();
+        if ($this->helper === true && !isset($this->options["help"])) {
+            $this->addOption(new Option("help", "h", Option::VALUE_NONE, "This help screen."));
+        }
         try {
             $this->parseOpts($args);
         } catch (\Throwable $exc) {
@@ -76,7 +82,6 @@ abstract class Command {
      */
     public function execute(): bool {
         $retval = false;
-
         $args = [];
         foreach ($this->options as $opt) {
             $args[$opt->getLong()] = $opt->getValue();
@@ -92,7 +97,7 @@ abstract class Command {
             if ($w > $len) {
                 $spaces = $w - $len;
                 $spaces = floor($spaces / 2);
-                $this->io->writeln([
+                $this->io->writeerrln([
                     '',
                     sprintf('{:space*%u:}<span class="bgred">{:space*%u:}</span>', $spaces, $len),
                     sprintf('{:space*%u:}<span class="bgred">{:space*12:}%s{:space*12:}</span>', $spaces, $message),
@@ -100,9 +105,6 @@ abstract class Command {
                     '',
                 ]);
             } else $this->io->writeerrln("<div class=\"red\">$message</div>");
-
-
-            //$this->io->writeln(sprintf('<rect class="bgred default" width="64">%s</rect>', $exc->getMessage()));
             exit(1);
         }
         return $retval;
@@ -148,11 +150,9 @@ abstract class Command {
                     return $return;
                 }, $input);
                 if (($opt->getFlag() === Option::VALUE_REQUIRED) && is_null($opt->getValue())) {
+                    if ($this->helper === true) $this->displayUsage();
                     throw new InvalidArgumentException('No value for ' . $opt->getLong());
                 }
-                //elseif (($opt->getDefault() !== null) && ($opt->getValue() === null)) {
-                //    $opt->addValue($opt->getDefault());
-                //}
             }
         }
     }
@@ -262,6 +262,11 @@ abstract class Command {
             }
         }
         if ($exit === true) exit(1);
+    }
+
+    public function setHelper(bool $help) {
+        $this->help = $help;
+        return $this;
     }
 
 }
