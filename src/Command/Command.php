@@ -128,6 +128,7 @@ abstract class Command {
                 $input = preg_replace_callback($regex, function($matches) use($opt) {
                     $return = "";
                     list(,, $value) = $matches;
+                    $value = trim($value);
                     $next = stripos($value, '-');
                     if ($next !== false) {
                         $return = substr($value, $next);
