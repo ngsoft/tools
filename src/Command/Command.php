@@ -90,8 +90,7 @@ abstract class Command {
         try {
             $retval = $this->run($args);
         } catch (Throwable $exc) {
-            $t = new IO\Terminal();
-            $w = $t->getWidth();
+            $w = getenv('COLUMNS') ?: 80;
             $message = $exc->getMessage();
             $len = strlen($message) + 24;
             if ($w > $len) {
