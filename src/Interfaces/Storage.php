@@ -35,7 +35,7 @@ interface Storage extends \Traversable, \Countable, \ArrayAccess {
     public function removeItem(string $key): void;
 
     /**
-     * When passed a key name, will remove that key from the storage.
+     * Clears the Storage.
      * @return void
      */
     public function clear(): void;
