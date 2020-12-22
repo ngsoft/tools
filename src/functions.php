@@ -9,8 +9,11 @@ use ErrorException,
     ReflectionClass,
     stdClass;
 use const day,
+          GB,
           hour,
+          KB,
           localurl,
+          MB,
           minute,
           weburl,
           year;
@@ -19,7 +22,7 @@ use function mb_internal_encoding,
              mb_strpos;
 
 ////////////////////////////   Version   ////////////////////////////
-define('NGSOFT\\Tools\\VERSION', '1.4.4');
+define('NGSOFT\\Tools\\VERSION', '2.0');
 
 ////////////////////////////   Error Handler   ////////////////////////////
 /**
@@ -252,7 +255,7 @@ function loadJSON(string $file, bool $assoc = false) {
             $contents = file_get_contents($file);
             $json = json_decode($contents, $assoc);
             if (json_last_error() !== JSON_ERROR_NONE) $json = null;
-        } catch (Exception $exc) {
+        } catch (\Exception $exc) {
             $exc->getCode();
             $json = null;
         }
