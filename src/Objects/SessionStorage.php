@@ -6,8 +6,9 @@ namespace NGSOFT\Tools\Objects;
 
 use Iterator;
 use NGSOFT\Tools\{
-    Exceptions\RuntimeException, Interfaces\Storage, Traits\ArrayAccessIterator, Traits\ArrayAccessCountable
+    Interfaces\Storage, Traits\ArrayAccessCountable, Traits\ArrayAccessIterator
 };
+use RuntimeException;
 
 class SessionStorage implements Iterator, Storage {
 

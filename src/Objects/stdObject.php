@@ -9,10 +9,11 @@ use ArrayAccess,
     InvalidArgumentException,
     Iterator,
     JsonSerializable;
-use NGSOFT\Tools\{
-    Exceptions\RuntimeException, Traits\ArrayAccessCountable, Traits\ArrayAccessIterator
+use NGSOFT\Tools\Traits\{
+    ArrayAccessCountable, ArrayAccessIterator
 };
-use Serializable,
+use RuntimeException,
+    Serializable,
     stdClass;
 
 /**

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Tools\Cache;
 
 use JsonSerializable,
-    Psr\Log\LoggerInterface,
     Serializable;
 use function NGSOFT\Tools\{
     listFiles, normalizePath, rrmdir, safeInclude
@@ -29,26 +28,11 @@ final class PHPCache extends CachePool {
     /** @var string */
     private $rootpath;
 
-    /**
-     * @Inject
-     * @var LoggerInterface
-     */
-    private $logger;
-
     /** {@inheritdoc} */
     protected function doContains(string $key): bool {
-        static $logged; //logs only once per page load
-        if ($this->root === null) {
-            //php-di or other container annotation injection
-            if ($logged !== true && $this->logger instanceof LoggerInterface) {
-                $logged = true;
-                $this->logger->debug("Cannot write in cache location.", [
-                    "class" => self::class,
-                    "path" => $this->rootpath
-                ]);
-            }
-            return false; // cache empty
-        }
+
+        if ($this->root === null) return false;
+
         $hash = $this->getHash($key);
         if (isset($this->meta[$hash])) {
             $meta = $this->meta[$hash];
