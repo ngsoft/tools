@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !composer.json
+!.phan
 *.lock
 *.bak
 /tests/
