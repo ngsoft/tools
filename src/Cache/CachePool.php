@@ -10,7 +10,7 @@ use Psr\Cache\{
 };
 
 /**
- * PSR6/PSR16 Compatible Cache Pool implementation
+ * PSR6 Compatible Cache Pool implementation
  */
 abstract class CachePool implements CacheItemPoolInterface {
 
