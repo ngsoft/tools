@@ -34,9 +34,9 @@ class ArrayObject implements ArrayAccess, Countable, Iterator, JsonSerializable,
      * @param array $array
      * @return static
      */
-    public static function from(array &$array) {
+    public static function from(array $array) {
         $obj = static::create();
-        $obj->storage = &$array;
+        $obj->storage = $array;
         return $obj;
     }
 
