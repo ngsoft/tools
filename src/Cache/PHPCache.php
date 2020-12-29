@@ -16,6 +16,7 @@ use function NGSOFT\Tools\{
  */
 final class PHPCache extends CachePool {
 
+    const VERSION = \NGSOFT\Tools\VERSION;
     const FILE_TEMPLATE = '<?php return %s;';
     const FILE_EXTENSION = 'php';
 
