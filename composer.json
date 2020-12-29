@@ -1,16 +1,19 @@
 {
     "name": "ngsoft/tools",
     "description": "A set of reusable tools used on my projects.",
-    "keywords": ["phpcache", "argv", "arrayaccess", "session"],
+    "keywords": ["phpcache", "arrayaccess", "session", "psr-6", "cache"],
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
             "role": "Developer",
             "homepage": "https://github.com/ngsoft"
         }],
+    "provide": {
+        "psr/cache-implementation": "^1.0"
+    },
     "require-dev": {},
     "require": {
-        "php": ">=7.1",
+        "php": "^7.4",
         "symfony/polyfill-mbstring": "^1.20",
         "psr/cache": "^1"
     },
