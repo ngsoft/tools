@@ -21,6 +21,8 @@ class ArrayObject implements ArrayAccess, Countable, Iterator, JsonSerializable,
     /** @var array */
     protected $storage = [];
 
+    ////////////////////////////   Initialization   ////////////////////////////
+
     /**
      * Creates a new Object
      * @return static
@@ -41,20 +43,20 @@ class ArrayObject implements ArrayAccess, Countable, Iterator, JsonSerializable,
     }
 
     /**
+     * Creates an Object
+     * @param array $array
+     */
+    public function __construct(array $array = []) {
+        $this->storage = $array;
+    }
+
+    /**
      * Exports Object to array
      * @return array
      */
     public function &toArray(): array {
         $value = &$this->storage;
         return $value;
-    }
-
-    /**
-     * Creates an Object
-     * @param array $array
-     */
-    public function __construct(array $array = []) {
-        $this->storage = $array;
     }
 
     /** {@inheritdoc} */
@@ -100,10 +102,12 @@ class ArrayObject implements ArrayAccess, Countable, Iterator, JsonSerializable,
         return $this->storage;
     }
 
+    /** {@inheritdoc} */
     public function serialize() {
         return serialize($this->storage);
     }
 
+    /** {@inheritdoc} */
     public function unserialize($serialized) {
         $array = unserialize($serialized);
         if (is_array($array)) $this->storage = &$array;

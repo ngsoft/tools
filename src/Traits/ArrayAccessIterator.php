@@ -14,9 +14,11 @@ trait ArrayAccessIterator {
      * @suppress PhanUndeclaredMethod
      */
     public function current() {
+        if (!$this->valid()) return null;
         $key = $this->key();
-        if ($key === null) return false;
-        return $this->offsetGet($key);
+        if ($this instanceof \ArrayAccess) {
+            return $this->offsetGet($key);
+        } else return $this->storage[$key];
     }
 
     /** {@inheritdoc} */
