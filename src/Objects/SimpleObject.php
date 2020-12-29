@@ -4,28 +4,30 @@ namespace NGSOFT\Tools\Objects;
 
 use ArrayAccess,
     Countable,
+    InvalidArgumentException,
     Iterator,
     JsonSerializable;
 use NGSOFT\Tools\Traits\{
-    ArrayAccessCountable, ArrayAccessIterator
+    ArrayAccessCountable, ArrayAccessIterator, ArrayAccessSpecials
 };
 use Serializable;
 
 class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable, Serializable {
 
     use ArrayAccessIterator,
-        ArrayAccessCountable;
+        ArrayAccessCountable,
+        ArrayAccessSpecials;
 
     /** @var array */
     protected $storage = [];
 
-    ////////////////////////////   Initialization   ////////////////////////////
+    ////////////////////////////   Static Methods   ////////////////////////////
 
     /**
      * Creates a new Object
      * @return static
      */
-    public static function create() {
+    public static function create(): self {
         return new static();
     }
 
@@ -34,11 +36,42 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * @param array $array
      * @return static
      */
-    public static function from(array $array) {
+    public static function from(array $array): self {
         $obj = static::create();
         $obj->storage = $array;
         return $obj;
     }
+
+    /**
+     * Instanciate a new instance using the given json
+     * @param string $json
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public static function fromJson(string $json): self {
+        $array = json_decode($json, true);
+        if (
+                (json_last_error() === JSON_ERROR_NONE)
+                and is_array($array)
+        ) return static::from($array);
+        throw new InvalidArgumentException("Cannot import: Invalid JSON");
+    }
+
+    /**
+     * Instanciate a new instance using the given json file
+     * @param string $filename
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public static function fromJsonFile(string $filename): self {
+        if (is_file($filename)) {
+            $string = file_get_contents($filename);
+            if (false !== $string) return static::fromJson($string);
+        }
+        throw new InvalidArgumentException("Cannot import: Invalid JSON File");
+    }
+
+    ////////////////////////////   Initialization   ////////////////////////////
 
     /**
      * Creates an Object
@@ -49,9 +82,14 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
     }
 
     /** {@inheritdoc} */
-    public function unserialize(string $serialized) {
+    public function unserialize($serialized) {
         $array = \unserialize($serialized);
         if (is_array($array)) $this->storage = &$array;
+    }
+
+    /** {@inheritdoc} */
+    public static function __set_state(array $array) {
+        return static::from($array);
     }
 
     ////////////////////////////   Export   ////////////////////////////
@@ -66,13 +104,13 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
-        return $this->storage;
+    public function serialize() {
+        return \serialize($this->storage);
     }
 
     /** {@inheritdoc} */
-    public function serialize() {
-        return \serialize($this->storage);
+    public function __toString() {
+        return var_export($this->jsonSerialize(), true);
     }
 
     ////////////////////////////   Getters/Setters   ////////////////////////////
