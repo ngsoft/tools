@@ -15,11 +15,6 @@ trait ArrayAccessSpecials {
     /** @var array */
     protected $storage = [];
 
-    /** {@inheritdoc} */
-    public function jsonSerialize() {
-        return $this->storage;
-    }
-
     ////////////////////////////   Utils   ////////////////////////////
 
     /**

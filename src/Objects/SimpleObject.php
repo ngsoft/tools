@@ -12,6 +12,9 @@ use NGSOFT\Tools\Traits\{
 };
 use Serializable;
 
+/**
+ * Basic Array Like Object
+ */
 class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable, Serializable {
 
     use ArrayAccessIterator,
@@ -78,7 +81,7 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * @param array $array
      */
     public function __construct(array $array = []) {
-        $this->storage = $array;
+        $this->storage = $this->iterableToArray($array);
     }
 
     /** {@inheritdoc} */
@@ -111,6 +114,11 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
     /** {@inheritdoc} */
     public function __toString() {
         return var_export($this->jsonSerialize(), true);
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize() {
+        return $this->storage;
     }
 
     ////////////////////////////   Getters/Setters   ////////////////////////////
