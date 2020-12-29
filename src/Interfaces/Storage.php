@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Interfaces;
 
-interface Storage extends \Traversable, \Countable, \ArrayAccess {
-
-    /**
-     * Returns an integer representing the number of data items stored
-     * @return int
-     */
-    public function length(): int;
+interface Storage {
 
     /**
      * When passed a key name, will return that key's value.

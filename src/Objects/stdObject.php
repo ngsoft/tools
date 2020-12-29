@@ -14,6 +14,22 @@ class stdObject extends SimpleObject {
 
     const VERSION = \NGSOFT\Tools\VERSION;
 
+    /** @var bool */
+    protected $dotArrayConvertion = true;
+
+    ////////////////////////////   Configure   ////////////////////////////
+
+    /**
+     * Disable dot properties convertions to stdObject
+     * @return static
+     */
+    public function disableDotArrayConvertion(): self {
+        $this->dotArrayConvertion = false;
+        return $this;
+    }
+
+    ////////////////////////////   Overrides   ////////////////////////////
+
     /** {@inheritdoc} */
     public function offsetExists($offset) {
         if (
@@ -53,7 +69,10 @@ class stdObject extends SimpleObject {
         foreach ($params as $param) {
             $result = &$result[$param];
         }
-        if (is_array($result)) {
+        if (
+                is_array($result)
+                and $this->dotArrayConvertion === true
+        ) {
             $instance = clone $this;
             $instance->storage = &$result;
             return $instance;

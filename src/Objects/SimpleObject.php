@@ -32,7 +32,7 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * Creates a new Object
      * @return static
      */
-    public static function create(): self {
+    public static function create() {
         return new static();
     }
 
@@ -41,7 +41,7 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * @param array $array
      * @return static
      */
-    public static function from(array $array): self {
+    public static function from(array $array) {
         $obj = static::create();
         $obj->storage = $array;
         return $obj;
@@ -53,7 +53,7 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * @return static
      * @throws InvalidArgumentException
      */
-    public static function fromJson(string $json): self {
+    public static function fromJson(string $json) {
         $array = json_decode($json, true);
         if (
                 (json_last_error() === JSON_ERROR_NONE)
@@ -68,7 +68,7 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * @return static
      * @throws InvalidArgumentException
      */
-    public static function fromJsonFile(string $filename): self {
+    public static function fromJsonFile(string $filename) {
         if (is_file($filename)) {
             $string = file_get_contents($filename);
             if (false !== $string) return static::fromJson($string);

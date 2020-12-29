@@ -4,49 +4,74 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Objects;
 
-use Iterator;
+use ArrayAccess,
+    Countable,
+    Iterator;
 use NGSOFT\Tools\{
     Interfaces\Storage, Traits\ArrayAccessCountable, Traits\ArrayAccessIterator
 };
 use RuntimeException;
 
-class SessionStorage implements Iterator, Storage {
+class SessionStorage implements ArrayAccess, Countable, Iterator, Storage {
 
     use ArrayAccessCountable,
         ArrayAccessIterator;
+
+    /** @var array */
+    protected $storage = [];
 
     public function __construct() {
         if (empty(session_id())) session_start();
         $this->storage = &$_SESSION;
     }
 
+    ////////////////////////////   Overrides   ////////////////////////////
+
     /** {@inheritdoc} */
     public function &offsetGet($offset) {
-        $return = null;
+        if (
+                $this->storage === $_SESSION
+                and (is_int($offset) or is_null($offset))
+        ) {
+            throw new RuntimeException("Trying to get a numeric key on session");
+        }
+
+        $value = null;
         if ($offset === null) {
-            $this->offsetSet(null, []);
+            $this->storage[] = [];
             $offset = array_key_last($this->storage);
         }
-        if (array_key_exists($offset, $this->storage)) {
-            if (is_array($this->storage[$offset])) {
-                $array = &$this->storage[$offset];
-                $return = clone $this;
-                $return->storage = &$array;
-            } else $return = $this->storage[$offset];
-        }
-        return $return;
+        if (!$this->offsetExists($offset)) return $value;
+        if (is_array($this->storage[$offset])) {
+            //link sub arrays
+            $value = &$this->storage[$offset];
+            $instance = clone $this;
+            $instance->storage = &$value;
+            return $instance;
+        } else $value = $this->storage[$offset];
+        return $value;
     }
 
     /** {@inheritdoc} */
     public function offsetSet($offset, $value) {
-        if ($offset === null) {
-            if ($this->storage === $_SESSION) throw new RuntimeException("Trying to set a numeric key on session");
-            $this->storage[] = $value;
-        } else $this->storage[$offset] = $value;
+        if (
+                $this->storage === $_SESSION
+                and (is_int($offset) or is_null($offset))
+        ) {
+            throw new RuntimeException("Trying to set a numeric key on session");
+        }
+        if ($value instanceof self) {
+            $value = $value->storage;
+        }
+        if ($offset === null) $this->storage[] = $value;
+        else $this->storage[$offset] = $value;
     }
+
+    ////////////////////////////   Storage   ////////////////////////////
 
     /** {@inheritdoc} */
     public function clear(): void {
+
         foreach (array_keys($this->storage) as $key) {
             unset($this->storage[$key]);
         }
@@ -54,12 +79,7 @@ class SessionStorage implements Iterator, Storage {
 
     /** {@inheritdoc} */
     public function getItem(string $key) {
-        return $this->storage[$key] ?? null;
-    }
-
-    /** {@inheritdoc} */
-    public function length(): int {
-        return $this->count();
+        return $this->offsetGet($key);
     }
 
     /** {@inheritdoc} */
@@ -72,19 +92,27 @@ class SessionStorage implements Iterator, Storage {
         $this->offsetSet($key, $value);
     }
 
+    ////////////////////////////   Getters/Setters   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function __isset($name) {
+        return $this->offsetExists($name);
+    }
+
     /** {@inheritdoc} */
     public function __set($name, $value) {
-        $this->setItem($name, $value);
+        $this->offsetSet($name, $value);
     }
 
     /** {@inheritdoc} */
     public function __unset($name) {
-        $this->removeItem($name);
+        $this->offsetUnset($name);
     }
 
     /** {@inheritdoc} */
-    public function __get($name) {
-        return $this->offsetGet($name);
+    public function &__get($name) {
+        $value = $this->offsetGet($name);
+        return $value;
     }
 
 }
