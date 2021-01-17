@@ -22,7 +22,7 @@ use function mb_internal_encoding,
              mb_strpos;
 
 ////////////////////////////   Version   ////////////////////////////
-define('NGSOFT\\Tools\\VERSION', '2.0');
+define('NGSOFT\\Tools\\VERSION', '1.5');
 
 ////////////////////////////   Error Handler   ////////////////////////////
 /**
@@ -415,17 +415,6 @@ function toCamelCase(string $snake_case): string {
     return preg_replace_callback('/(^|_|\.|\-)+(.)/', function ($match) {
         return strtoupper($match[2]);
     }, $snake_case);
-}
-
-/**
- * Perform a regular expression match
- * @param string $pattern The pattern to search for, as a string.
- * @param string $subject The input string
- * @param bool $global Perform a global regular expression match instead
- * @return array
- */
-function match(string $pattern, string $subject, bool $global = false): array {
-    return $global ? (preg_match_all($pattern, $subject, $matches) > 0 ? $matches : []) : (preg_match($pattern, $subject, $matches) > 0 ? $matches : []);
 }
 
 /**
