@@ -22,7 +22,7 @@ use function mb_internal_encoding,
              mb_strpos;
 
 ////////////////////////////   Version   ////////////////////////////
-define('NGSOFT\\Tools\\VERSION', '1.5');
+define('NGSOFT\\Tools\\VERSION', '1.6');
 
 ////////////////////////////   Error Handler   ////////////////////////////
 /**
