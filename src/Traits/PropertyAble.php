@@ -196,4 +196,8 @@ trait PropertyAble {
         }
     }
 
+    public function __debugInfo() {
+        return $this->properties;
+    }
+
 }

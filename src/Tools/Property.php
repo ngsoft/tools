@@ -149,4 +149,14 @@ final class Property {
         return $this;
     }
 
+    public function __debugInfo() {
+        return [
+            "name" => $this->getName(),
+            "enumerable" => var_export($this->isEnumerable(), true),
+            "configurable" => var_export($this->isConfigurable(), true),
+            "writable" => var_export($this->isWritable(), true),
+            "value" => var_export($this->getValue(), true)
+        ];
+    }
+
 }
