@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Tools\Objects;
+namespace NGSOFT\Tools;
 
+use NGSOFT\Tools;
 use function mb_strpos;
 
 /**
@@ -12,7 +13,7 @@ use function mb_strpos;
  */
 class stdObject extends SimpleObject {
 
-    const VERSION = \NGSOFT\Tools\VERSION;
+    const VERSION = Tools::VERSION;
 
     /** @var bool */
     protected $dotArrayConvertion = true;
@@ -39,6 +40,7 @@ class stdObject extends SimpleObject {
         ) return parent::offsetExists($offset);
 
         $array = $this->storage;
+        $offset = trim($offset, '.');
         $params = explode('.', $offset);
         foreach ($params as $prop) {
             if (is_array($array)) {
@@ -63,7 +65,7 @@ class stdObject extends SimpleObject {
             $value = null;
             return $value;
         }
-
+        $offset = trim($offset, '.');
         $result = &$this->storage;
         $params = explode('.', $offset);
         foreach ($params as $param) {
@@ -74,6 +76,7 @@ class stdObject extends SimpleObject {
                 and $this->dotArrayConvertion === true
         ) {
             $instance = clone $this;
+            $instance->clear();
             $instance->storage = &$result;
             return $instance;
         }
@@ -91,22 +94,15 @@ class stdObject extends SimpleObject {
             if ($value instanceof self) {
                 $value = $value->storage;
             }
-            $array = [];
-            $result = &$array;
+            $offset = trim($offset, '.');
+            $result = &$this->storage;
             $params = explode('.', $offset);
-            $last = array_key_last($params);
-            foreach ($params as $index => $param) {
-                $result[$param] = [];
+            foreach ($params as $param) {
+                if (!array_key_exists($param, $result)) $result[$param] = [];
                 $result = &$result[$param];
-                if ($index === $last) $result[$param] = $value;
             }
             $result = $value;
-
-            $this->concat($array);
         }
-
-
-        // parent::offsetSet($offset, $value);
     }
 
     /** {@inheritdoc} */
@@ -118,6 +114,7 @@ class stdObject extends SimpleObject {
         ) parent::offsetUnset($offset);
         elseif ($this->offsetExists($offset)) {
             $array = &$this->storage;
+            $offset = trim($offset, '.');
             $params = explode('.', $offset);
             $last = array_key_last($params);
             foreach ($params as $index => $param) {

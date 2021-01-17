@@ -2,26 +2,31 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Tools\Objects;
+namespace NGSOFT\Tools;
 
 use ArrayAccess,
     Countable,
-    Iterator;
-use NGSOFT\Tools\{
-    Interfaces\Storage, Traits\ArrayAccessCountable, Traits\ArrayAccessIterator
+    IteratorAggregate;
+use NGSOFT\{
+    Interfaces\Storage, Traits\ArrayAccessCountable
 };
 use RuntimeException;
 
-class SessionStorage implements ArrayAccess, Countable, Iterator, Storage {
+class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Storage {
 
-    use ArrayAccessCountable,
-        ArrayAccessIterator;
+    use ArrayAccessCountable;
 
     /** @var array */
     protected $storage = [];
 
     public function __construct() {
-        if (empty(session_id())) session_start();
+        if (empty(session_id())) {
+            // firefox > 84 will refuse session cookies if SameSite=None; for non ssl server
+            session_set_cookie_params(["SameSite" => "Strict"]); //none, lax, strict
+            session_set_cookie_params(["Secure" => "true"]); //false, true
+            session_set_cookie_params(["HttpOnly" => "true"]); //false, true JS don't need that cookie
+            session_start();
+        }
         $this->storage = &$_SESSION;
     }
 
@@ -90,6 +95,11 @@ class SessionStorage implements ArrayAccess, Countable, Iterator, Storage {
     /** {@inheritdoc} */
     public function setItem(string $key, $value): void {
         $this->offsetSet($key, $value);
+    }
+
+    /** {@inheritdoc} */
+    public function hasItem(string $key): bool {
+        return $this->offsetExists($key);
     }
 
     ////////////////////////////   Getters/Setters   ////////////////////////////

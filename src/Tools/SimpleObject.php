@@ -2,26 +2,25 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Tools\Objects;
+namespace NGSOFT\Tools;
 
 use ArrayAccess,
     Countable,
     InvalidArgumentException,
-    Iterator,
+    IteratorAggregate,
     JsonSerializable;
-use NGSOFT\Tools\Traits\{
-    ArrayAccessCountable, ArrayAccessIterator, ArrayAccessSpecials
+use NGSOFT\Traits\{
+    ArrayAccessEssentials, Exportable
 };
-use Serializable;
+use Stringable;
 
 /**
  * Basic Array Like Object
  */
-class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable, Serializable {
+class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable {
 
-    use ArrayAccessIterator,
-        ArrayAccessCountable,
-        ArrayAccessSpecials;
+    use ArrayAccessEssentials;
+    use Exportable;
 
     /** @var array */
     protected $storage = [];
@@ -87,14 +86,13 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
     }
 
     /** {@inheritdoc} */
-    public function unserialize($serialized) {
-        $array = \unserialize($serialized);
-        if (is_array($array)) $this->storage = &$array;
+    public static function __set_state(array $array) {
+        return static::from($array);
     }
 
     /** {@inheritdoc} */
-    public static function __set_state(array $array) {
-        return static::from($array);
+    protected function import(array $array): void {
+        $this->storage = $array;
     }
 
     ////////////////////////////   Export   ////////////////////////////
@@ -104,22 +102,12 @@ class SimpleObject implements ArrayAccess, Countable, Iterator, JsonSerializable
      * @return array
      */
     public function &toArray(): array {
-        $value = &$this->storage;
-        return $value;
+        return $this->storage;
     }
 
     /** {@inheritdoc} */
-    public function serialize() {
-        return \serialize($this->storage);
-    }
+    protected function export(): array {
 
-    /** {@inheritdoc} */
-    public function __toString() {
-        return var_export($this->jsonSerialize(), true);
-    }
-
-    /** {@inheritdoc} */
-    public function jsonSerialize() {
         return $this->storage;
     }
 

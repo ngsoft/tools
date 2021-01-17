@@ -2,9 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Tools\Interfaces;
+namespace NGSOFT\Interfaces;
 
 interface Storage {
+
+    /**
+     * When passed a key name, checks if it exists in the storage.
+     * @param string $key
+     * @return bool
+     */
+    public function hasItem(string $key): bool;
 
     /**
      * When passed a key name, will return that key's value.

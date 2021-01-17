@@ -21,7 +21,6 @@ return [
     'directory_list' => [
         'src',
         'vendor',
-    //'vendor/illuminate',
     ],
     // A directory list that defines files that will be excluded
     // from static analysis, but whose class and method
@@ -35,7 +34,7 @@ return [
     //       should be added to the `directory_list` as
     //       to `exclude_analysis_directory_list`.
     "exclude_analysis_directory_list" => [
-        'vendor/'
+        'vendor/',
     ],
     // A list of plugin files to execute.
     // See https://github.com/phan/phan/tree/master/.phan/plugins for even more.
@@ -63,6 +62,10 @@ return [
         // TODO: Fix edge cases in --automatic-fix for PhanPluginRedundantClosureComment
         'PhanPluginRedundantClosureComment',
         'PhanTypeInstantiateTraitStaticOrSelf',
-        'PhanCompatibleObjectTypePHP71'
+        'PhanCompatibleObjectTypePHP71',
+        'PhanUnusedVariableCaughtException',
+        'PhanAccessReadOnlyMagicProperty',
+        'PhanAccessMethodInternal',
+        'PhanAccessMethodProtected',
     ]
 ];

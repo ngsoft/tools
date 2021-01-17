@@ -1,27 +1,27 @@
 {
     "name": "ngsoft/tools",
     "description": "A set of reusable tools used on my projects.",
-    "keywords": ["phpcache", "arrayaccess", "session", "psr-6", "cache"],
+    "keywords": ["arrayaccess", "session", "export", "dot", "data", "collection", "list", "sequence", "map", "set"],
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
             "role": "Developer",
             "homepage": "https://github.com/ngsoft"
         }],
-    "provide": {
-        "psr/cache-implementation": "^1.0"
-    },
+    "suggest": {},
+    "provide": {},
     "require-dev": {},
     "require": {
-        "php": "^7.4",
+        "php": ">=7.4",
+        "symfony/polyfill-php80": "^1.20",
         "symfony/polyfill-mbstring": "^1.20",
-        "psr/cache": "^1"
+        "psr/log": "^1"
     },
     "autoload": {
         "psr-4": {
-            "NGSOFT\\Tools\\": "src/"
+            "NGSOFT\\": "src/"
         },
-        "files": ["src/functions.php"]
+        "files": ["src/bootstrap.php"]
     },
     "minimum-stability": "dev",
     "prefer-stable": true
