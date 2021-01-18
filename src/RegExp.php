@@ -501,4 +501,10 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
         }
     }
 
+    public function __debugInfo() {
+        return [
+            'pattern' => $this->__toString()
+        ];
+    }
+
 }
