@@ -17,6 +17,7 @@ trait ParameterDeriverTrait {
     /**
      * Derives the class type of the first argument of a callable.
      *
+     * @suppress PhanUndeclaredMethod, PhanTypeMismatchArgumentInternal, PhanTypeArraySuspicious, PhanPluginDuplicateSwitchCase
      * @param callable $callable
      *   The callable for which we want the parameter type.
      * @return string
