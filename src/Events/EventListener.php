@@ -10,8 +10,7 @@ use NGSOFT\Traits\ContainerAware,
 
 class EventListener implements ListenerProviderInterface {
 
-    use ParameterDeriverTrait,
-        ContainerAware;
+    use ContainerAware;
 
     /** @var array */
     private $listeners = [];
@@ -19,8 +18,13 @@ class EventListener implements ListenerProviderInterface {
     /** @var callable[] */
     private $sorted = [];
 
+    /** {@inheritdoc} */
     public function getListenersForEvent(object $event): iterable {
-
+        foreach ($this->sorted as $eventName => $listener) {
+            if ($event instanceof $eventName) {
+                yield $eventName;
+            }
+        }
     }
 
     /**
@@ -35,7 +39,7 @@ class EventListener implements ListenerProviderInterface {
         $this->listeners[$eventName] = $this->listeners[$eventName] ?? [];
         $this->listeners[$eventName][$priority] = $this->listeners[$eventName][$priority] ?? [];
         $this->listeners[$eventName][$priority][] = $listener;
-        unset($this->sorted[$eventName]);
+        $this->sortListeners($eventName);
     }
 
     /**
@@ -57,11 +61,24 @@ class EventListener implements ListenerProviderInterface {
     /**
      * Auto register a listener type hinting its first parameter
      *
-     * @param callable $listener
-     * @param int $priority
+     * @param callable $listener The listener
+     * @param int $priority The higher this value, the earlier an event listener will be triggered in the chain (defaults to 0)
      */
     public function register(callable $listener, int $priority = 0) {
+        if ($eventName = $this->autoDetectEventName($listener)) {
+            $this->addListener($eventName, $listener, $priority);
+        }
+    }
 
+    /**
+     * Auto unregister a listener type hinting its first parameter
+     *
+     * @param callable $listener The listener
+     */
+    public function unregister(callable $listener) {
+        if ($eventName = $this->autoDetectEventName($listener)) {
+            $this->removeListener($eventName, $listener);
+        }
     }
 
     /**
@@ -93,17 +110,44 @@ class EventListener implements ListenerProviderInterface {
                 (is_object($serviceInstance) and method_exists($serviceInstance, '__invoke'))
         ) {
             $this->listeners[$eventName][$priority][] = $serviceInstance;
-            unset($this->sorted[$eventName]);
+            $this->sortListeners($eventName);
             return true;
         }
         return false;
     }
 
     /**
+     * Auto detect event name using listenet first parameter
+     * @param callable $listener
+     * @return string
+     */
+    private function autoDetectEventName(callable $listener): string {
+        try {
+            $closure = $listener instanceof \Closure ? $listener : \Closure::fromCallable($listener);
+            $params = (new \ReflectionFunction($closure))->getParameters();
+            if (count($params) == 0) {
+                throw new \InvalidArgumentException('Listeners must declare at least one parameter.');
+            }
+            if ($types = $params[0]->getType()) {
+                /** @var \ReflectionNamedType|\ReflectionUnionType $types */
+                if (method_exists($types, 'getTypes')) $types = $types->getTypes(); // Union PHP 8 support
+                else $types = [$types]; //polyfill
+                $rType = count($types) > 0 ? $types[0] : null;
+            } else $rType = null;
+
+            if ($rType === null) {
+                throw new \InvalidArgumentException('Listeners must declare an object type they can accept.');
+            }
+            return $rType->getName();
+        } catch (ReflectionException $error) {
+            throw new \RuntimeException('Type error registering listener.', 0, $e);
+        }
+    }
+
+    /**
      * Sort listeners by priority
      */
     private function sortListeners(string $eventName) {
-        if (isset($this->sorted[$eventName])) return;
         krsort($this->listeners[$eventName]);
         $this->sorted[$eventName] = [];
 
