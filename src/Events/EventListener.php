@@ -66,9 +66,10 @@ class EventListener implements ListenerProviderInterface {
         if (!isset($this->listeners[$eventName])) return;
         foreach ($this->listeners[$eventName] as $priority => &$listeners) {
             $id = array_search($listener, $listeners, true);
-            if (false !== $id) unset($listeners[$id], $this->sorted[$eventName]);
+            if (false !== $id) unset($listeners[$id]);
             if (count($listeners) == 0) unset($this->listeners[$eventName][$priority]);
         }
+        $this->sortListeners($eventName);
     }
 
     /**
@@ -131,7 +132,7 @@ class EventListener implements ListenerProviderInterface {
 
     /**
      * Auto detect event name using listenet first parameter
-     * 
+     *
      * @suppress PhanUndeclaredMethod
      * @param callable $listener
      * @return string
@@ -163,6 +164,10 @@ class EventListener implements ListenerProviderInterface {
      * Sort listeners by priority
      */
     private function sortListeners(string $eventName) {
+        if (!isset($this->listeners[$eventName])) {
+            unset($this->sorted[$eventName]);
+            return;
+        }
         krsort($this->listeners[$eventName]);
         $this->sorted[$eventName] = [];
 

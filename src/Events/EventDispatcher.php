@@ -22,6 +22,16 @@ final class EventDispatcher implements SymfonyEventDispatcherInterface {
     private $eventListener;
 
     /**
+     * Support for autowiring
+     * @param ListenerProviderInterface $eventListener Event Listener to listen to
+     */
+    public function __construct(
+            ListenerProviderInterface $eventListener = null
+    ) {
+        if ($eventListener) $this->setEventListener($eventListener);
+    }
+
+    /**
      * Returns the set EventListener
      *
      * @return ListenerProviderInterface|null
