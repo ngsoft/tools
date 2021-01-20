@@ -8,7 +8,11 @@ use Psr\Container\ContainerInterface;
 
 trait ContainerAware {
 
-    /** @var ?ContainerInterface */
+    /**
+     * PHP-DI compatibility
+     * @Inject
+     * @var ContainerInterface
+     */
     private $container;
 
     /**
@@ -23,10 +27,10 @@ trait ContainerAware {
     /**
      * Register a Container
      *
-     * @param ContainerInterface|null $container
+     * @param ContainerInterface $container
      * @return void
      */
-    public function setContainer(?ContainerInterface $container): void {
+    public function setContainer(ContainerInterface $container): void {
         $this->container = $container;
     }
 

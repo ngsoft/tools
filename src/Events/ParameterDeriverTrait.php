@@ -6,6 +6,7 @@ namespace NGSOFT\Events;
 
 /**
  * Utility trait to derive the type of event an event listener is for.
+ * A little modding on my part for php 8 support using UnionType trait as reference
  *
  * Imported from fig to not have too much composer require
  * @license https://github.com/php-fig/event-dispatcher-util/blob/master/LICENSE Copyright (c) 2018 PHP-FIG
@@ -47,7 +48,16 @@ trait ParameterDeriverTrait {
                     throw new \InvalidArgumentException('Not a recognized type of callable');
             }
 
-            $rType = $params[0]->getType();
+            if (count($params) == 0) {
+                throw new \InvalidArgumentException('Listeners must declare at least one parameter.');
+            }
+            if ($types = $params[0]->getType()) {
+                /** @var \ReflectionNamedType|\ReflectionUnionType $types */
+                if (method_exists($types, 'getTypes')) $types = $types->getTypes(); // Union PHP 8 support
+                else $types = [$types]; //polyfill
+                $rType = count($types) > 0 ? $types[0] : null;
+            } else $rType = null;
+
             if ($rType === null) {
                 throw new \InvalidArgumentException('Listeners must declare an object type they can accept.');
             }
