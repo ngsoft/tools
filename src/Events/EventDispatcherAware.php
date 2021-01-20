@@ -11,12 +11,16 @@ use Psr\EventDispatcher\{
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as SymfonyEventDispatcherInterface;
 
 /**
- * A Trait that acts as a NullDispatcher or forwards calls to an EventDispatcherInterface
+ * A Trait that acts as a NullDispatcher or forwards calls to an EventDispatcher
+ * Add support to PSR-14 to any class
  */
 trait EventDispatcherAware {
 
-    /** @var PSREventDispatcherInterface|SymfonyEventDispatcherInterface|null */
-    protected $eventDispatcher;
+    /**
+     * Configured Event Dispatcher to forward calls to
+     * @var PSREventDispatcherInterface|SymfonyEventDispatcherInterface|null
+     */
+    private $eventDispatcher;
 
     /**
      * Set an event dispatcher to forwards calls to
@@ -30,6 +34,10 @@ trait EventDispatcherAware {
         $this->eventDispatcher = $eventDispatcher;
     }
 
+    protected function getEventDispatcher(): ?PSREventDispatcherInterface {
+        return $this->eventDispatcher;
+    }
+
     /**
      * Dispatches an event to all registered listeners.
      * Convenient method to forward event to registered dispatcher
@@ -41,15 +49,16 @@ trait EventDispatcherAware {
      * @return object The passed $event MUST be returned
      */
     public function dispatch(object $event, string $eventName = null): object {
+        $real = $this->getEventDispatcher();
         if (
                 $event instanceof StoppableEventInterface and
                 $event->isPropagationStopped()
         ) {
             return $event;
-        } elseif ($this->eventDispatcher instanceof SymfonyEventDispatcherInterface) {
-            return $this->eventDispatcher->dispatch($event, $eventName);
-        } elseif ($this->eventDispatcher instanceof PSREventDispatcherInterface) {
-            return $this->eventDispatcher->dispatch($event);
+        } elseif ($real instanceof SymfonyEventDispatcherInterface) {
+            return $real->dispatch($event, $eventName);
+        } elseif ($real instanceof PSREventDispatcherInterface) {
+            return $real->dispatch($event);
         }
         return $event;
     }

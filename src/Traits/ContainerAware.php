@@ -9,7 +9,7 @@ use Psr\Container\ContainerInterface;
 trait ContainerAware {
 
     /**
-     * PHP-DI compatibility
+     * PHP-DI autowiring support
      * @Inject
      * @var ContainerInterface
      */

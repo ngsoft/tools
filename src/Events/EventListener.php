@@ -14,6 +14,9 @@ use ReflectionException,
     ReflectionFunction,
     RuntimeException;
 
+/**
+ * A Basic Event Listener to use if none available
+ */
 class EventListener implements ListenerProviderInterface {
 
     use ContainerAware;
@@ -23,13 +26,6 @@ class EventListener implements ListenerProviderInterface {
 
     /** @var callable[] */
     private $sorted = [];
-
-    public function __construct(
-            ContainerInterface $container = null
-    ) {
-
-        if ($container) $this->setContainer($container);
-    }
 
     /** {@inheritdoc} */
     public function getListenersForEvent(object $event): iterable {
