@@ -6,18 +6,16 @@ namespace NGSOFT\Events;
 
 use Closure,
     InvalidArgumentException,
-    NGSOFT\Traits\ContainerAware;
-use Psr\{
-    Container\ContainerInterface, EventDispatcher\ListenerProviderInterface
-};
-use ReflectionException,
+    NGSOFT\Traits\ContainerAware,
+    Psr\EventDispatcher\ListenerProviderInterface,
+    ReflectionException,
     ReflectionFunction,
     RuntimeException;
 
 /**
  * A Basic Event Listener to use if none available
  */
-class EventListener implements ListenerProviderInterface {
+final class EventListener implements ListenerProviderInterface {
 
     use ContainerAware;
 
@@ -29,9 +27,11 @@ class EventListener implements ListenerProviderInterface {
 
     /** {@inheritdoc} */
     public function getListenersForEvent(object $event): iterable {
-        foreach ($this->sorted as $eventName => $listener) {
-            if ($event instanceof $eventName) {
-                yield $listener;
+        foreach ($this->sorted as $type => $listeners) {
+            if ($event instanceof $type) {
+                foreach ($listeners as $listener) {
+                    yield $listener;
+                }
             }
         }
     }
@@ -39,33 +39,34 @@ class EventListener implements ListenerProviderInterface {
     /**
      * Add an Event Listener
      *
-     * @param string $eventName The Event Class to listen to
+     * @param string $eventType The Event Class to listen to
      * @param callable $listener The listener
      * @param int $priority The higher this value, the earlier an event listener will be triggered in the chain (defaults to 0)
      * @return void
      */
-    public function addListener(string $eventName, callable $listener, int $priority = 0): void {
-        $this->listeners[$eventName] = $this->listeners[$eventName] ?? [];
-        $this->listeners[$eventName][$priority] = $this->listeners[$eventName][$priority] ?? [];
-        $this->listeners[$eventName][$priority][] = $listener;
-        $this->sortListeners($eventName);
+    public function addListener(string $eventType, callable $listener, int $priority = 0): void {
+        $priority = max(0, $priority);
+        $this->listeners[$eventType] = $this->listeners[$eventType] ?? [];
+        $this->listeners[$eventType][$priority] = $this->listeners[$eventType][$priority] ?? [];
+        $this->listeners[$eventType][$priority][] = $listener;
+        $this->sortListeners($eventType);
     }
 
     /**
      * Remove a registered listener
      *
-     * @param string $eventName The Event Class to listen to
+     * @param string $eventType The Event Class to listen to
      * @param callable $listener The listener
      * @return void
      */
-    public function removeListener(string $eventName, callable $listener): void {
-        if (!isset($this->listeners[$eventName])) return;
-        foreach ($this->listeners[$eventName] as $priority => &$listeners) {
+    public function removeListener(string $eventType, callable $listener): void {
+        if (!isset($this->listeners[$eventType])) return;
+        foreach ($this->listeners[$eventType] as $priority => &$listeners) {
             $id = array_search($listener, $listeners, true);
             if (false !== $id) unset($listeners[$id]);
-            if (count($listeners) == 0) unset($this->listeners[$eventName][$priority]);
+            if (count($listeners) == 0) unset($this->listeners[$eventType][$priority]);
         }
-        $this->sortListeners($eventName);
+        $this->sortListeners($eventType);
     }
 
     /**
@@ -75,8 +76,8 @@ class EventListener implements ListenerProviderInterface {
      * @param int $priority The higher this value, the earlier an event listener will be triggered in the chain (defaults to 0)
      */
     public function register(callable $listener, int $priority = 0) {
-        if ($eventName = $this->autoDetectEventName($listener)) {
-            $this->addListener($eventName, $listener, $priority);
+        if ($eventType = $this->autoDetectEventName($listener)) {
+            $this->addListener($eventType, $listener, $priority);
         }
     }
 
@@ -86,21 +87,21 @@ class EventListener implements ListenerProviderInterface {
      * @param callable $listener The listener
      */
     public function unregister(callable $listener) {
-        if ($eventName = $this->autoDetectEventName($listener)) {
-            $this->removeListener($eventName, $listener);
+        if ($eventType = $this->autoDetectEventName($listener)) {
+            $this->removeListener($eventType, $listener);
         }
     }
 
     /**
      * Suscribe to an event using the container
      *
-     * @param string $eventName Event to suscribe for
+     * @param string $eventType Event to suscribe for
      * @param string $service Container Key to register
      * @param int $priority The higher this value, the earlier an event listener will be triggered in the chain (defaults to 0)
      * @return bool true on success, false otherwise
      * @throws RuntimeException if no container registered
      */
-    public function addService(string $eventName, string $service, int $priority): bool {
+    public function addService(string $eventType, string $service, int $priority): bool {
         if (!$this->getContainer()) {
             throw new RuntimeException('You must add a Container before registering a service.');
         }
@@ -109,25 +110,18 @@ class EventListener implements ListenerProviderInterface {
             return false;
         }
 
-        $priority = max(0, $priority);
-
-        $this->listeners[$eventName] = $this->listeners[$eventName] ?? [];
-        $this->listeners[$eventName][$priority] = $this->listeners[$eventName][$priority] ?? [];
-
         $serviceInstance = $this->getContainer()->get($service);
         if (
-                is_callable($serviceInstance) or
-                (is_object($serviceInstance) and method_exists($serviceInstance, '__invoke'))
+                is_callable($serviceInstance)
         ) {
-            $this->listeners[$eventName][$priority][] = $serviceInstance;
-            $this->sortListeners($eventName);
+            $this->addListener($eventType, $serviceInstance, $priority);
             return true;
         }
         return false;
     }
 
     /**
-     * Auto detect event name using listenet first parameter
+     * Auto detect event name using listener first parameter
      *
      * @suppress PhanUndeclaredMethod
      * @param callable $listener
@@ -159,17 +153,17 @@ class EventListener implements ListenerProviderInterface {
     /**
      * Sort listeners by priority
      */
-    private function sortListeners(string $eventName) {
-        if (!isset($this->listeners[$eventName])) {
-            unset($this->sorted[$eventName]);
+    private function sortListeners(string $eventType) {
+        if (!isset($this->listeners[$eventType])) {
+            unset($this->sorted[$eventType]);
             return;
         }
-        krsort($this->listeners[$eventName]);
-        $this->sorted[$eventName] = [];
+        krsort($this->listeners[$eventType]);
+        $this->sorted[$eventType] = [];
 
-        foreach ($this->listeners[$eventName] as $listeners) {
+        foreach ($this->listeners[$eventType] as $listeners) {
             foreach ($listeners as $listener) {
-                $this->sorted[$eventName][] = $listener;
+                $this->sorted[$eventType][] = $listener;
             }
         }
     }

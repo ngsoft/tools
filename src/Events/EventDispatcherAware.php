@@ -34,6 +34,11 @@ trait EventDispatcherAware {
         $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * Get the proxied EventDispatcher
+     *
+     * @return PSREventDispatcherInterface|null
+     */
     protected function getEventDispatcher(): ?PSREventDispatcherInterface {
         return $this->eventDispatcher;
     }
