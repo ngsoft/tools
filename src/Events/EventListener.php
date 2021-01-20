@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Events;
 
-use NGSOFT\Traits\ContainerAware,
-    Psr\EventDispatcher\ListenerProviderInterface,
+use Closure,
+    InvalidArgumentException,
+    NGSOFT\Traits\ContainerAware;
+use Psr\{
+    Container\ContainerInterface, EventDispatcher\ListenerProviderInterface
+};
+use ReflectionException,
+    ReflectionFunction,
     RuntimeException;
 
 class EventListener implements ListenerProviderInterface {
@@ -18,11 +24,18 @@ class EventListener implements ListenerProviderInterface {
     /** @var callable[] */
     private $sorted = [];
 
+    public function __construct(
+            ContainerInterface $container = null
+    ) {
+
+        if ($container) $this->setContainer($container);
+    }
+
     /** {@inheritdoc} */
     public function getListenersForEvent(object $event): iterable {
         foreach ($this->sorted as $eventName => $listener) {
             if ($event instanceof $eventName) {
-                yield $eventName;
+                yield $listener;
             }
         }
     }
@@ -30,7 +43,7 @@ class EventListener implements ListenerProviderInterface {
     /**
      * Add an Event Listener
      *
-     * @param string $eventName The Event to listen to
+     * @param string $eventName The Event Class to listen to
      * @param callable $listener The listener
      * @param int $priority The higher this value, the earlier an event listener will be triggered in the chain (defaults to 0)
      * @return void
@@ -45,7 +58,7 @@ class EventListener implements ListenerProviderInterface {
     /**
      * Remove a registered listener
      *
-     * @param string $eventName The Event to listen to
+     * @param string $eventName The Event Class to listen to
      * @param callable $listener The listener
      * @return void
      */
@@ -118,15 +131,17 @@ class EventListener implements ListenerProviderInterface {
 
     /**
      * Auto detect event name using listenet first parameter
+     * 
+     * @suppress PhanUndeclaredMethod
      * @param callable $listener
      * @return string
      */
     private function autoDetectEventName(callable $listener): string {
         try {
-            $closure = $listener instanceof \Closure ? $listener : \Closure::fromCallable($listener);
-            $params = (new \ReflectionFunction($closure))->getParameters();
+            $closure = $listener instanceof Closure ? $listener : Closure::fromCallable($listener);
+            $params = (new ReflectionFunction($closure))->getParameters();
             if (count($params) == 0) {
-                throw new \InvalidArgumentException('Listeners must declare at least one parameter.');
+                throw new InvalidArgumentException('Listeners must declare at least one parameter.');
             }
             if ($types = $params[0]->getType()) {
                 /** @var \ReflectionNamedType|\ReflectionUnionType $types */
@@ -135,12 +150,12 @@ class EventListener implements ListenerProviderInterface {
                 $rType = count($types) > 0 ? $types[0] : null;
             } else $rType = null;
 
-            if ($rType === null) {
-                throw new \InvalidArgumentException('Listeners must declare an object type they can accept.');
+            if (!($rType instanceof \ReflectionNamedType)) {
+                throw new InvalidArgumentException('Listeners must declare an object type they can accept.');
             }
             return $rType->getName();
         } catch (ReflectionException $error) {
-            throw new \RuntimeException('Type error registering listener.', 0, $e);
+            throw new \RuntimeException('Type error registering listener.', 0, $error);
         }
     }
 
