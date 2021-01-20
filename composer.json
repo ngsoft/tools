@@ -10,7 +10,9 @@
         }],
     "suggest": {},
     "provide": {},
-    "require-dev": {},
+    "require-dev": {
+        "psr/container": "^1"
+    },
     "require": {
         "php": ">=7.4",
         "symfony/polyfill-php80": "^1.20",

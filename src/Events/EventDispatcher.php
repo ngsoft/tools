@@ -7,14 +7,14 @@ namespace NGSOFT\Events;
 use Psr\EventDispatcher\{
     EventDispatcherInterface as PSREventDispatcherInterface, ListenerProviderInterface, StoppableEventInterface
 };
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as SymfonyEventDispatcherInterface;
 
 /**
  * Event Dispatcher that forwards call to another dispatcher,
  * or dispatches event to a set listener
  * or just returns the event (Null Dispatcher)
  */
-final class EventDispatcher implements EventDispatcherInterface {
+final class EventDispatcher implements SymfonyEventDispatcherInterface {
 
     use EventDispatcherAware;
 

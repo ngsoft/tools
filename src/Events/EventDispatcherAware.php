@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Events;
 
-use InvalidArgumentException,
-    Psr\EventDispatcher\EventDispatcherInterface as PSREventDispatcherInterface,
-    Symfony\Contracts\EventDispatcher\EventDispatcherInterface as SymfonyEventDispatcherInterface;
+use InvalidArgumentException;
+use Psr\EventDispatcher\{
+    EventDispatcherInterface as PSREventDispatcherInterface, StoppableEventInterface
+};
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as SymfonyEventDispatcherInterface;
 
 /**
  * A Trait that acts as a NullDispatcher or forwards calls to an EventDispatcherInterface
