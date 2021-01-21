@@ -9,7 +9,7 @@ use Psr\EventDispatcher\StoppableEventInterface;
 /**
  * A Base Event to extends
  */
-abstract class Event implements StoppableEventInterface {
+abstract class StoppableEvent implements StoppableEventInterface {
 
     private $propagationStopped = false;
 
