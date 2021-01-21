@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Events;
 
 use Psr\EventDispatcher\{
-    EventDispatcherInterface as PSREventDispatcherInterface, ListenerProviderInterface, StoppableEventInterface
+    EventDispatcherInterface, ListenerProviderInterface, StoppableEventInterface
 };
 
 /**
@@ -13,7 +13,7 @@ use Psr\EventDispatcher\{
  * or dispatches event to a set listener
  * or just returns the event (Null Dispatcher)
  */
-final class EventDispatcher implements PSREventDispatcherInterface {
+final class EventDispatcher implements EventDispatcherInterface {
 
     use EventDispatcherAware;
 
@@ -64,7 +64,7 @@ final class EventDispatcher implements PSREventDispatcherInterface {
         }
 
 
-        if ($this->getEventDispatcher() instanceof PSREventDispatcherInterface) {
+        if ($this->getEventDispatcher() instanceof EventDispatcherInterface) {
             return $this->getEventDispatcher()->dispatch($event);
         }
 
