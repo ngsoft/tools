@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use Psr\EventDispatcher\{
     EventDispatcherInterface as PSREventDispatcherInterface, StoppableEventInterface
 };
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as SymfonyEventDispatcherInterface;
 
 /**
  * A Trait that acts as a NullDispatcher or forwards calls to an EventDispatcher
@@ -18,17 +17,17 @@ trait EventDispatcherAware {
 
     /**
      * Configured Event Dispatcher to forward calls to
-     * @var PSREventDispatcherInterface|SymfonyEventDispatcherInterface|null
+     * @var ?PSREventDispatcherInterface
      */
     private $eventDispatcher;
 
     /**
      * Set an event dispatcher to forwards calls to
      *
-     * @param PSREventDispatcherInterface|null $eventDispatcher
+     * @param PSREventDispatcherInterface $eventDispatcher
      * @return void
      */
-    public function setEventDispatcher(?PSREventDispatcherInterface $eventDispatcher): void {
+    public function setEventDispatcher(PSREventDispatcherInterface $eventDispatcher): void {
         // prevent infinite loop
         if ($eventDispatcher instanceof self) throw new InvalidArgumentException(sprintf('Cannot forward events to %s.', static::class));
         $this->eventDispatcher = $eventDispatcher;
@@ -44,8 +43,7 @@ trait EventDispatcherAware {
     }
 
     /**
-     * Dispatches an event to all registered listeners.
-     * Convenient method to forward event to registered dispatcher
+     * Convenience method to forward event to registered dispatcher
      *
      * @param object      $event     The event to pass to the event handlers/listeners
      *
