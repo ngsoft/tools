@@ -36,6 +36,33 @@ final class EventListener implements ListenerProviderInterface {
         }
     }
 
+    ////////////////////////////   Aliases (JS Like)   ////////////////////////////
+
+    /**
+     * Add an Event Listener
+     *
+     * @param string $eventType The Event Class to listen to
+     * @param callable $listener The listener
+     * @param int $priority The higher this value, the earlier an event listener will be triggered in the chain (defaults to 0)
+     * @return void
+     */
+    public function on(string $eventType, callable $listener, int $priority = 0): void {
+        $this->addListener($eventType, $listener, $priority);
+    }
+
+    /**
+     * Remove a registered listener
+     *
+     * @param string $eventType The Event Class to listen to
+     * @param callable $listener The listener
+     * @return void
+     */
+    public function off(string $eventType, callable $listener): void {
+        $this->removeListener($eventType, $listener);
+    }
+
+    ////////////////////////////   API   ////////////////////////////
+
     /**
      * Add an Event Listener
      *
@@ -119,6 +146,8 @@ final class EventListener implements ListenerProviderInterface {
         }
         return false;
     }
+
+    ////////////////////////////   Utils   ////////////////////////////
 
     /**
      * Auto detect event name using listener first parameter
