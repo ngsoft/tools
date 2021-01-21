@@ -6,7 +6,7 @@ namespace NGSOFT\Events;
 
 use InvalidArgumentException;
 use Psr\EventDispatcher\{
-    EventDispatcherInterface as PSREventDispatcherInterface, StoppableEventInterface
+    EventDispatcherInterface, StoppableEventInterface
 };
 
 /**
@@ -17,17 +17,17 @@ trait EventDispatcherAware {
 
     /**
      * Configured Event Dispatcher to forward calls to
-     * @var ?PSREventDispatcherInterface
+     * @var ?EventDispatcherInterface
      */
     private $eventDispatcher;
 
     /**
      * Set an event dispatcher to forwards calls to
      *
-     * @param PSREventDispatcherInterface $eventDispatcher
+     * @param EventDispatcherInterface $eventDispatcher
      * @return void
      */
-    public function setEventDispatcher(PSREventDispatcherInterface $eventDispatcher): void {
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void {
         // prevent infinite loop
         if ($eventDispatcher instanceof self) throw new InvalidArgumentException(sprintf('Cannot forward events to %s.', static::class));
         $this->eventDispatcher = $eventDispatcher;
@@ -36,9 +36,9 @@ trait EventDispatcherAware {
     /**
      * Get the proxied EventDispatcher
      *
-     * @return PSREventDispatcherInterface|null
+     * @return EventDispatcherInterface|null
      */
-    protected function getEventDispatcher(): ?PSREventDispatcherInterface {
+    protected function getEventDispatcher(): ?EventDispatcherInterface {
         return $this->eventDispatcher;
     }
 
@@ -55,7 +55,7 @@ trait EventDispatcherAware {
                 $event->isPropagationStopped()
         ) {
             return $event;
-        } elseif ($this->getEventDispatcher() instanceof PSREventDispatcherInterface) {
+        } elseif ($this->getEventDispatcher() instanceof EventDispatcherInterface) {
             return $this->getEventDispatcher()->dispatch($event);
         }
         return $event;
