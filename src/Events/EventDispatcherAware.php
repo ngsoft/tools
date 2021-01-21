@@ -48,22 +48,17 @@ trait EventDispatcherAware {
      * Convenient method to forward event to registered dispatcher
      *
      * @param object      $event     The event to pass to the event handlers/listeners
-     * @param string|null $eventName The name of the event to dispatch. If not supplied,
-     *                               the class of $event should be used instead.
      *
      * @return object The passed $event MUST be returned
      */
-    public function dispatch(object $event, string $eventName = null): object {
-        $real = $this->getEventDispatcher();
+    public function dispatch(object $event) {
         if (
                 $event instanceof StoppableEventInterface and
                 $event->isPropagationStopped()
         ) {
             return $event;
-        } elseif ($real instanceof SymfonyEventDispatcherInterface) {
-            return $real->dispatch($event, $eventName);
-        } elseif ($real instanceof PSREventDispatcherInterface) {
-            return $real->dispatch($event);
+        } elseif ($this->getEventDispatcher() instanceof PSREventDispatcherInterface) {
+            return $this->getEventDispatcher()->dispatch($event);
         }
         return $event;
     }

@@ -55,7 +55,7 @@ final class EventDispatcher implements PSREventDispatcherInterface {
      *
      * @return object The passed $event MUST be returned
      */
-    public function dispatch(object $event): object {
+    public function dispatch(object $event) {
         if (
                 ($stoppable = $event instanceof StoppableEventInterface) and
                 $event->isPropagationStopped()
@@ -64,8 +64,8 @@ final class EventDispatcher implements PSREventDispatcherInterface {
         }
 
 
-        if ($this->eventDispatcher instanceof PSREventDispatcherInterface) {
-            return $this->eventDispatcher->dispatch($event);
+        if ($this->getEventDispatcher() instanceof PSREventDispatcherInterface) {
+            return $this->getEventDispatcher()->dispatch($event);
         }
 
 
