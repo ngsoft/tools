@@ -9,8 +9,12 @@
             "role": "Developer",
             "homepage": "https://github.com/ngsoft"
         }],
-    "suggest": {},
-    "provide": {},
+    "suggest": {
+        "symfony/event-dispatcher": "Provides tools that allow your application components to communicate with each other by dispatching events and listening to them."
+    },
+    "provide": {
+        "psr/event-dispatcher-implementation": "^1.0"
+    },
     "require-dev": {
         "psr/container": "^1"
     },
