@@ -4,13 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use NGSOFT\{
-    Events\EventDispatcher, Events\EventListener, Exceptions\NotFoundException
-};
-use Psr\{
-    Container\ContainerInterface, EventDispatcher\EventDispatcherInterface, EventDispatcher\ListenerProviderInterface
-};
-use Symfony\Component\EventDispatcher\EventDispatcher as SEventDispatcher;
+use NGSOFT\Exceptions\NotFoundException,
+    Psr\Container\ContainerInterface;
 
 /**
  * Basic Container with autowiring
@@ -52,28 +47,26 @@ final class Container implements ContainerInterface {
         if (!$this->has($id)) {
             throw new NotFoundException($id, $this);
         }
-        if (
-                !isset($this->storage[$id])
-        ) {
+        if (!isset($this->storage[$id])) {
 
             if (
                     class_exists($id) and
                     $resolved = $this->resolver->resolveClassName($id)
-            ) {
-                return $this->storage[$id] = $resolved;
-            }
-            throw new NotFoundException($id, $this);
+            ) $this->storage[$id] = $resolved;
+            else throw new NotFoundException($id, $this);
+            if (method_exists($resolved, 'setContainer')) $resolved->setContainer($this);
         } elseif (
                 !is_object($this->storage[$id]) and
                 is_callable($this->storage[$id])
         ) {
             $callable = $this->storage[$id];
 
-            if ($resolved = $this->resolver->resolveCallable($callable)) {
-                return $this->storage[$id] = $resolved;
-            }
-            throw new NotFoundException($id, $this);
+            if ($resolved = $this->resolver->resolveCallable($callable)) $this->storage[$id] = $resolved;
+            else throw new NotFoundException($id, $this);
+            if (is_object($resolved) and method_exists($resolved, 'setContainer')) $resolved->setContainer($this);
         }
+
+
         return $this->storage[$id];
     }
 

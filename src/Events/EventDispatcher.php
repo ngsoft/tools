@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Events;
 
+use NGSOFT\Traits\ContainerAware;
 use Psr\EventDispatcher\{
     EventDispatcherInterface, ListenerProviderInterface, StoppableEventInterface
 };
@@ -15,7 +16,8 @@ use Psr\EventDispatcher\{
  */
 final class EventDispatcher implements EventDispatcherInterface {
 
-    use EventDispatcherAware;
+    use EventDispatcherAware,
+        ContainerAware;
 
     /** @var ?ListenerProviderInterface */
     private $eventListener;
@@ -27,7 +29,7 @@ final class EventDispatcher implements EventDispatcherInterface {
     public function __construct(
             ListenerProviderInterface $eventListener = null
     ) {
-        if ($eventListener) $this->setEventListener($eventListener);
+        $this->eventListener = $eventListener;
     }
 
     /**
@@ -42,9 +44,9 @@ final class EventDispatcher implements EventDispatcherInterface {
     /**
      * Set an Event Listener to dispatch events to
      *
-     * @param ListenerProviderInterface|null $eventListener
+     * @param ListenerProviderInterface $eventListener
      */
-    public function setEventListener(?ListenerProviderInterface $eventListener) {
+    public function setEventListener(ListenerProviderInterface $eventListener) {
         $this->eventListener = $eventListener;
     }
 

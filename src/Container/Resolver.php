@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Container;
 
 use Closure,
-    Invoker\ParameterResolver\Container\TypeHintContainerResolver,
     NGSOFT\Exceptions\NotFoundException,
     Psr\Container\ContainerInterface,
     ReflectionFunction,
@@ -19,12 +18,8 @@ class Resolver {
     /** @var ContainerInterface */
     private $container;
 
-    /** @var TypeHintContainerResolver */
-    private $typeHintResolver;
-
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
-        $this->typeHintResolver = new TypeHintContainerResolver($container);
     }
 
     /**
