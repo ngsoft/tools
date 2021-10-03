@@ -25,7 +25,7 @@ final class Container implements ContainerInterface {
         $this->storage = $definitions;
         //define container
         $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
-        $this->resolver = new ClassnameResolver($this);
+        $this->resolver = new Resolver($this);
     }
 
     /**
@@ -51,6 +51,11 @@ final class Container implements ContainerInterface {
 
         if (!isset($this->storage[$id])) {
             $resolved = '';
+        } elseif (
+                !is_object($this->storage[$id]) and
+                is_callable($this->storage[$id])
+        ) {
+            $callable = $this->storage[$id];
         }
 
 
