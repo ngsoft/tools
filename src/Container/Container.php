@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\ORM;
+namespace NGSOFT\Container;
 
-use NGSOFT\ORM\Exceptions\NotFoundException,
+use NGSOFT\Exceptions\NotFoundException,
     Psr\Container\ContainerInterface;
 
 /**
@@ -15,11 +15,17 @@ final class Container implements ContainerInterface {
     /** @var array<string,mixed> */
     private $storage = [];
 
+    /** @var Resolver */
+    private $resolver;
+
     /**
      * @param array<string,mixed> $definitions
      */
     public function __construct(array $definitions = []) {
         $this->storage = $definitions;
+        //define container
+        $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
+        $this->resolver = new ClassnameResolver($this);
     }
 
     /**
@@ -41,6 +47,13 @@ final class Container implements ContainerInterface {
         if (!$this->has($id)) {
             throw new NotFoundException($id, $this);
         }
+
+
+        if (!isset($this->storage[$id])) {
+            $resolved = '';
+        }
+
+
 
         return $this->storage[$id];
     }
