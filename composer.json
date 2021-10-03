@@ -13,17 +13,19 @@
         "symfony/event-dispatcher": "Provides tools that allow your application components to communicate with each other by dispatching events and listening to them."
     },
     "provide": {
-        "psr/event-dispatcher-implementation": "^1.0"
+        "psr/event-dispatcher-implementation": "^1.0",
+        "psr/container-implementation": "^1.0"
     },
     "require-dev": {
-       "psr/container": "^1"
+
     },
     "require": {
         "php": ">=7.4",
         "symfony/polyfill-php80": "^1.20",
         "symfony/polyfill-mbstring": "^1.20",
         "psr/event-dispatcher": "^1",
-        "psr/log": "^1"
+        "psr/log": "^1",
+        "psr/container": "^1"
     },
     "autoload": {
         "psr-4": {
