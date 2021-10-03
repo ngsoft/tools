@@ -26,7 +26,8 @@ final class Container implements ContainerInterface {
         $this->storage = $definitions;
         //define container
         $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
-        $this->resolver = $this->storage[Resolver::class] = new Resolver($this);
+        $this->storage[Resolver::class] = new Resolver($this);
+        $this->resolver = &$this->storage[Resolver::class];
     }
 
     /**
