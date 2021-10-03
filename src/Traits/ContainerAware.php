@@ -28,10 +28,11 @@ trait ContainerAware {
      * Register a Container
      *
      * @param ContainerInterface $container
-     * @return void
+     * @return static
      */
-    public function setContainer(ContainerInterface $container): void {
+    public function setContainer(ContainerInterface $container) {
         $this->container = $container;
+        return $this;
     }
 
 }
