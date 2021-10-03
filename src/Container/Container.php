@@ -54,7 +54,6 @@ final class Container implements ContainerInterface {
                     $resolved = $this->resolver->resolveClassName($id)
             ) $this->storage[$id] = $resolved;
             else throw new NotFoundException($id, $this);
-            if (method_exists($resolved, 'setContainer')) $resolved->setContainer($this);
         } elseif (
                 !is_object($this->storage[$id]) and
                 is_callable($this->storage[$id])
@@ -63,10 +62,7 @@ final class Container implements ContainerInterface {
 
             if ($resolved = $this->resolver->resolveCallable($callable)) $this->storage[$id] = $resolved;
             else throw new NotFoundException($id, $this);
-            if (is_object($resolved) and method_exists($resolved, 'setContainer')) $resolved->setContainer($this);
         }
-
-
         return $this->storage[$id];
     }
 

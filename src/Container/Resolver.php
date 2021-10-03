@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure,
-    NGSOFT\Exceptions\NotFoundException,
-    Psr\Container\ContainerInterface,
+use Closure;
+use NGSOFT\{
+    Exceptions\NotFoundException, Traits\ContainerAware
+};
+use Psr\Container\ContainerInterface,
     ReflectionFunction,
     ReflectionFunctionAbstract,
     ReflectionMethod,
@@ -15,8 +17,7 @@ use Closure,
 
 class Resolver {
 
-    /** @var ContainerInterface */
-    private $container;
+    use ContainerAware;
 
     public function __construct(ContainerInterface $container) {
         $this->container = $container;
@@ -29,19 +30,20 @@ class Resolver {
      * @return ?object
      */
     public function resolveClassName(string $className): ?object {
-
+        $result = null;
         if (class_exists($className)) {
             if (!method_exists($className, '__construct')) return new $className();
             $reflection = new ReflectionMethod($className, '__construct');
             try {
                 $args = $this->resolveParameters($reflection);
-                return new $className(...$args);
+                $result = new $className(...$args);
+                // ContainerAware
+                if (method_exists($result, 'setContainer')) $result->setContainer($this->container);
             } catch (RuntimeException $error) {
                 if ($error instanceof NotFoundException) throw $error;
             }
         }
-
-        return null;
+        return $result;
     }
 
     /**
@@ -51,16 +53,18 @@ class Resolver {
      * @throws RuntimeException
      */
     public function resolveCallable(callable $callable) {
+        $result = null;
         $closure = $callable instanceof Closure ? $callable : Closure::fromCallable($callable);
         $reflection = new ReflectionFunction($closure);
 
         try {
             $args = $this->resolveParameters($reflection);
-            return call_user_func_array($callable, $args);
+            $result = call_user_func_array($callable, $args);
+            if (is_object($result) and method_exists($result, 'setContainer')) $result->setContainer($this->container);
         } catch (RuntimeException $error) {
             if ($error instanceof NotFoundException) throw $error;
         }
-        return null;
+        return $result;
     }
 
     /**
