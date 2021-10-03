@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use NGSOFT\Exceptions\NotFoundException,
-    Psr\Container\ContainerInterface;
+use NGSOFT\{
+    Events\EventDispatcher, Events\EventListener, Exceptions\NotFoundException
+};
+use Psr\{
+    Container\ContainerInterface, EventDispatcher\EventDispatcherInterface, EventDispatcher\ListenerProviderInterface
+};
+use Symfony\Component\EventDispatcher\EventDispatcher as SEventDispatcher;
 
 /**
  * Basic Container with autowiring
@@ -47,25 +52,36 @@ final class Container implements ContainerInterface {
         if (!$this->has($id)) {
             throw new NotFoundException($id, $this);
         }
+        if (
+                !isset($this->storage[$id])
+        ) {
 
-
-        if (!isset($this->storage[$id])) {
-            $resolved = '';
+            if (
+                    class_exists($id) and
+                    $resolved = $this->resolver->resolveClassName($id)
+            ) {
+                return $this->storage[$id] = $resolved;
+            }
+            throw new NotFoundException($id, $this);
         } elseif (
                 !is_object($this->storage[$id]) and
                 is_callable($this->storage[$id])
         ) {
             $callable = $this->storage[$id];
+
+            if ($resolved = $this->resolver->resolveCallable($callable)) {
+                return $this->storage[$id] = $resolved;
+            }
+            throw new NotFoundException($id, $this);
         }
-
-
-
         return $this->storage[$id];
     }
 
     /** {@inheritdoc} */
     public function has(string $id) {
-        return isset($this->storage[$id]) or class_exists($id);
+        return
+                isset($this->storage[$id]) or
+                class_exists($id);
     }
 
     /** {@inheritdoc} */

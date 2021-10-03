@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Invoker\ParameterResolver\Container\TypeHintContainerResolver,
+use Closure,
+    Invoker\ParameterResolver\Container\TypeHintContainerResolver,
     NGSOFT\Exceptions\NotFoundException,
     Psr\Container\ContainerInterface,
+    ReflectionFunction,
+    ReflectionFunctionAbstract,
     ReflectionMethod,
     ReflectionNamedType,
     RuntimeException;
@@ -30,7 +33,7 @@ class Resolver {
      * @param string $className
      * @return ?object
      */
-    public function resolve(string $className): ?object {
+    public function resolveClassName(string $className): ?object {
 
         if (class_exists($className)) {
             if (!method_exists($className, '__construct')) return new $className();
@@ -40,7 +43,6 @@ class Resolver {
                 return new $className(...$args);
             } catch (RuntimeException $error) {
                 if ($error instanceof NotFoundException) throw $error;
-                return null;
             }
         }
 
@@ -48,39 +50,57 @@ class Resolver {
     }
 
     /**
+     * Resolves a callable
+     * @param callable $callable
+     * @return mixed
+     * @throws RuntimeException
+     */
+    public function resolveCallable(callable $callable) {
+        $closure = $callable instanceof Closure ? $callable : Closure::fromCallable($callable);
+        $reflection = new ReflectionFunction($closure);
+
+        try {
+            $args = $this->resolveParameters($reflection);
+            return call_user_func_array($callable, $args);
+        } catch (RuntimeException $error) {
+            if ($error instanceof NotFoundException) throw $error;
+        }
+        return null;
+    }
+
+    /**
      * Resolves Method Type Hints
      *
-     * @param \ReflectionMethod $reflection
+     * @param ReflectionFunctionAbstract $reflection
      * @return array
      * @throws RuntimeException
      */
-    public function resolveClassParameters(\ReflectionMethod $reflection): array {
+    public function resolveParameters(ReflectionFunctionAbstract $reflection): array {
         $result = [];
         $params = $reflection->getParameters();
         if (count($params) == 0) return $result;
 
-
-
-        foreach ($params as $param) {
+        foreach ($params as $index => $param) {
             $type = $param->getType();
             if (
                     !$type or
                     $type->isBuiltin() or
                     $type instanceof ReflectionNamedType === false
             ) {
-                throw new RuntimeException(sprintf('Cannot resolve classname: %s', $reflection->getDeclaringClass()->getName()));
+                throw new RuntimeException(sprintf('Cannot resolve %u parametter', $index));
             }
 
+            /** @var ReflectionNamedType $type */
             $nullable = $type->allowsNull();
 
             $className = $type->getName();
             if ($className === 'self') {
-                $className = $parameter->getDeclaringClass()->getName();
+                $className = $param->getDeclaringClass()->getName();
             }
 
-            if ($this->container->has($parameterClass)) {
+            if ($this->container->has($className)) {
                 try {
-                    $resolved = $this->container->get($parameterClass);
+                    $resolved = $this->container->get($className);
                     $result[] = $resolved;
                 } catch (NotFoundException $error) {
                     if (!$nullable) throw $error;
