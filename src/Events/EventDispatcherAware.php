@@ -25,12 +25,13 @@ trait EventDispatcherAware {
      * Set an event dispatcher to forwards calls to
      *
      * @param EventDispatcherInterface $eventDispatcher
-     * @return void
+     * @return static
      */
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void {
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher) {
         // prevent infinite loop
         if ($eventDispatcher instanceof self) throw new InvalidArgumentException(sprintf('Cannot forward events to %s.', static::class));
         $this->eventDispatcher = $eventDispatcher;
+        return $this;
     }
 
     /**

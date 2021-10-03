@@ -45,9 +45,11 @@ final class EventDispatcher implements EventDispatcherInterface {
      * Set an Event Listener to dispatch events to
      *
      * @param ListenerProviderInterface $eventListener
+     * @return static
      */
     public function setEventListener(ListenerProviderInterface $eventListener) {
         $this->eventListener = $eventListener;
+        return $this;
     }
 
     /**
