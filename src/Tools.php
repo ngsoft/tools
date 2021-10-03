@@ -27,7 +27,7 @@ final class Tools {
     /**
      * Package Version Information
      */
-    public const VERSION = '2.0';
+    public const VERSION = '2.1';
 
     /**
      * URL Parser Regex
@@ -246,7 +246,7 @@ final class Tools {
         static $callback;
         if (!$callback) {
 
-            $callback = static function(array $data) {
+            $callback = static function (array $data) {
                 extract($data);
                 return func_get_arg(2) ?
                 include_once func_get_arg(1) :
