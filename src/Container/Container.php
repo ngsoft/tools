@@ -55,7 +55,7 @@ final class Container implements ContainerInterface {
                     $resolved = $this->resolver->resolveClassName($id)
             ) $this->storage[$id] = $resolved;
             else throw new NotFoundException($id, $this);
-        } elseif (
+        } elseif (// first call to $id that is a definition
                 is_callable($this->storage[$id]) and
                 // can disrupt container as a class with __invoke method that is not a Closure is callable
                 !(is_object($this->storage[$id]) && !($this->storage[$id] instanceof Closure))
@@ -80,7 +80,7 @@ final class Container implements ContainerInterface {
 
     /** {@inheritdoc} */
     public function __debugInfo() {
-        // do not bloat var_dumps
+        // do not bloat var_dumps as infinite recursions can occur
         return [];
     }
 
