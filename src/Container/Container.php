@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use NGSOFT\Exceptions\NotFoundException,
+use Closure,
+    NGSOFT\Exceptions\NotFoundException,
     Psr\Container\ContainerInterface;
 
 /**
@@ -57,7 +58,7 @@ final class Container implements ContainerInterface {
         } elseif (
                 is_callable($this->storage[$id]) and
                 // can disrupt container as a class with __invoke method that is not a Closure is callable
-                !(is_object($this->storage[$id]) && !($this->storage[$id] instanceof \Closure))
+                !(is_object($this->storage[$id]) && !($this->storage[$id] instanceof Closure))
         ) {
             if ($resolved = $this->resolver->resolveCallable($this->storage[$id])) $this->storage[$id] = $resolved;
             else throw new NotFoundException($id, $this);
@@ -75,13 +76,6 @@ final class Container implements ContainerInterface {
     /** @return Resolver */
     public function getResolver(): Resolver {
         return $this->resolver;
-    }
-
-    /**
-     * Does Nothing
-     */
-    private function pass() {
-
     }
 
     /** {@inheritdoc} */
