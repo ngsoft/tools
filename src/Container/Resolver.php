@@ -9,10 +9,12 @@ use NGSOFT\{
     Exceptions\NotFoundException, Traits\ContainerAware
 };
 use Psr\Container\ContainerInterface,
+    ReflectionException,
     ReflectionFunction,
     ReflectionFunctionAbstract,
     ReflectionMethod,
     ReflectionNamedType,
+    ReflectionType,
     RuntimeException;
 
 class Resolver {
@@ -76,9 +78,11 @@ class Resolver {
      */
     public function resolveParameters(ReflectionFunctionAbstract $reflection): array {
         $result = [];
-        $params = $reflection->getParameters();
-        if (count($params) == 0) return $result;
+        if ($reflection->getNumberOfParameters() == 0) return $result;
 
+
+        $params = $reflection->getParameters();
+        /** @var \ReflectionParameter $param */
         foreach ($params as $index => $param) {
             $type = $param->getType();
             if (
@@ -86,12 +90,28 @@ class Resolver {
                     $type->isBuiltin() or
                     $type instanceof ReflectionNamedType === false
             ) {
-                throw new RuntimeException(sprintf('Cannot resolve %u parametter', $index));
+                try {
+                    if ($param->isDefaultValueAvailable()) {
+                        // ReflectionException can be thrown here
+                        $resolved = $param->getDefaultValue();
+                        $result[] = $resolved;
+                        continue;
+                    } elseif (
+                            $type instanceof ReflectionType
+                            and $type->allowsNull()
+                    ) {
+                        $result[] = null;
+                        continue;
+                    }
+                } catch (ReflectionException $error) {
+
+                }
+
+
+                throw new RuntimeException(sprintf('Cannot resolve %u parameter', $index));
             }
 
             /** @var ReflectionNamedType $type */
-            $nullable = $type->allowsNull();
-
             $className = $type->getName();
             if ($className === 'self') {
                 $className = $param->getDeclaringClass()->getName();
@@ -102,7 +122,7 @@ class Resolver {
                     $resolved = $this->container->get($className);
                     $result[] = $resolved;
                 } catch (NotFoundException $error) {
-                    if (!$nullable) throw $error;
+                    if (!$type->allowsNull()) throw $error;
                     $result[] = null;
                 }
             }

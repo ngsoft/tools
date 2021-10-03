@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\Events;
 
 use NGSOFT\Traits\ContainerAware;
-use Psr\EventDispatcher\{
-    EventDispatcherInterface, ListenerProviderInterface, StoppableEventInterface
+use Psr\{
+    Container\ContainerInterface, EventDispatcher\EventDispatcherInterface, EventDispatcher\ListenerProviderInterface, EventDispatcher\StoppableEventInterface
 };
+use Symfony\Component\EventDispatcher\EventDispatcher as SEventDispatcher;
 
 /**
  * Event Dispatcher that forwards call to another dispatcher,
@@ -50,6 +51,14 @@ final class EventDispatcher implements EventDispatcherInterface {
         $this->eventListener = $eventListener;
     }
 
+    /** {@inheritdoc} */
+    public function setContainer(ContainerInterface $container): void {
+        $this->container = $container;
+        if ($container->has(SEventDispatcher::class)) {
+            $this->setEventDispatcher($container->get(SEventDispatcher::class));
+        }
+    }
+
     /**
      * Dispatches an event to all registered listeners.
      *
@@ -65,12 +74,9 @@ final class EventDispatcher implements EventDispatcherInterface {
             return $event;
         }
 
-
         if ($this->getEventDispatcher() instanceof EventDispatcherInterface) {
             return $this->getEventDispatcher()->dispatch($event);
         }
-
-
         if ($this->eventListener instanceof ListenerProviderInterface) {
 
             foreach ($this->eventListener->getListenersForEvent($event) as $call) {
