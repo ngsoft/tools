@@ -16,7 +16,9 @@
         "psr/event-dispatcher-implementation": "^1.0",
         "psr/container-implementation": "^1.0"
     },
-    "require-dev": {},
+    "require-dev": {
+        "symfony/event-dispatcher": "^5.3"
+    },
     "require": {
         "php": ">=7.4",
         "symfony/polyfill-php80": "^1.20",

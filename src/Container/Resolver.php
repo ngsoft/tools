@@ -17,6 +17,9 @@ use Psr\Container\ContainerInterface,
     ReflectionType,
     RuntimeException;
 
+/**
+ * A Simple Resolver that autowire classes and functions
+ */
 class Resolver {
 
     use ContainerAware;
@@ -26,7 +29,7 @@ class Resolver {
     }
 
     /**
-     * Resolves a className using invoker
+     * Resolves a className
      *
      * @param string $className
      * @return ?object
@@ -70,7 +73,7 @@ class Resolver {
     }
 
     /**
-     * Resolves Method Type Hints
+     * Resolves Method Type Hints using Container
      *
      * @param ReflectionFunctionAbstract $reflection
      * @return array
@@ -106,8 +109,6 @@ class Resolver {
                 } catch (ReflectionException $error) {
 
                 }
-
-
                 throw new RuntimeException(sprintf('Cannot resolve %u parameter', $index));
             }
 

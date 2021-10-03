@@ -51,7 +51,9 @@ final class EventDispatcher implements EventDispatcherInterface {
         $this->eventListener = $eventListener;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     */
     public function setContainer(ContainerInterface $container): void {
         $this->container = $container;
         if ($container->has(SEventDispatcher::class)) {
