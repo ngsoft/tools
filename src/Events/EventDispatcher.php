@@ -12,7 +12,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher as SEventDispatcher;
 
 /**
  * Event Dispatcher that forwards call to another dispatcher,
- * or dispatches event to a set listener
+ * and dispatches event to a set listener
  * or just returns the event (Null Dispatcher)
  */
 final class EventDispatcher implements EventDispatcherInterface {
@@ -69,25 +69,36 @@ final class EventDispatcher implements EventDispatcherInterface {
      * @return object The passed $event MUST be returned
      */
     public function dispatch(object $event) {
+
         if (
-                ($stoppable = $event instanceof StoppableEventInterface) and
-                $event->isPropagationStopped()
+                $this->getEventListener() instanceof ListenerProviderInterface and
+                !$this->isStopped($event)
         ) {
-            return $event;
-        }
 
-        if ($this->getEventDispatcher() instanceof EventDispatcherInterface) {
-            return $this->getEventDispatcher()->dispatch($event);
-        }
-        if ($this->eventListener instanceof ListenerProviderInterface) {
-
-            foreach ($this->eventListener->getListenersForEvent($event) as $call) {
-                if ($stoppable and $event->isPropagationStopped()) break;
+            foreach ($this->getEventListener()->getListenersForEvent($event) as $call) {
+                if ($this->isStopped($event)) break;
                 $call($event);
             }
         }
 
+        if (
+                $this->getEventDispatcher() instanceof EventDispatcherInterface and
+                !$this->isStopped($event)
+        ) {
+            $event = $this->getEventDispatcher()->dispatch($event);
+        }
+
         return $event;
+    }
+
+    /**
+     * @param object $event
+     * @return bool
+     */
+    private function isStopped(object $event): bool {
+        return
+                $event instanceof StoppableEventInterface and
+                $event->isPropagationStopped();
     }
 
 }
