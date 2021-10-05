@@ -26,9 +26,12 @@ abstract class StoppableEvent implements StoppableEventInterface {
      * If multiple event listeners are connected to the same event, no
      * further event listener will be triggered once any trigger calls
      * stopPropagation().
+     * 
+     * @return static
      */
-    public function stopPropagation(): void {
+    public function stopPropagation() {
         $this->propagationStopped = true;
+        return $this;
     }
 
 }
