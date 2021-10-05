@@ -11,7 +11,7 @@ trait ContainerAware {
     /**
      * PHP-DI autowiring support
      * @Inject
-     * @var ContainerInterface
+     * @var ?ContainerInterface
      */
     private $container;
 
