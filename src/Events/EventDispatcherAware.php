@@ -39,7 +39,7 @@ trait EventDispatcherAware {
      *
      * @return EventDispatcherInterface|null
      */
-    protected function getEventDispatcher(): ?EventDispatcherInterface {
+    public function getEventDispatcher(): ?EventDispatcherInterface {
         return $this->eventDispatcher;
     }
 
