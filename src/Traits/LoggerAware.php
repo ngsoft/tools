@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Traits;
 
 use Psr\Log\{
-    LoggerAwareInterface, LoggerAwareTrait, LogLevel, NullLogger
+    LoggerAwareInterface, LoggerAwareTrait, LoggerInterface, LogLevel, NullLogger
 };
 
 interface_exists(LoggerAwareInterface::class);
