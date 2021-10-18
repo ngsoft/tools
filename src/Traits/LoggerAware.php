@@ -17,14 +17,30 @@ trait LoggerAware {
     use LoggerAwareTrait;
 
     /**
+     * The logger instance.
+     *
+     * @var LoggerInterface|null
+     */
+    protected $logger;
+
+    /**
      * Logs with an arbitrary level.
      * @param mixed $level
      * @param string $message
      * @param array $context
      */
     protected function log($level, string $message, array $context = []) {
+
+        $this->getLogger()->log($level, $message, $context);
+    }
+
+    /**
+     * Get Logger instance
+     * @return LoggerInterface
+     */
+    public function getLogger(): LoggerInterface {
         if (!$this->logger) $this->setLogger(new NullLogger());
-        $this->logger->log($level, $message, $context);
+        return $this->logger;
     }
 
 }
