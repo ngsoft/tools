@@ -6,7 +6,9 @@ namespace NGSOFT\Container;
 
 use Closure,
     NGSOFT\Exceptions\NotFoundException,
-    Psr\Container\ContainerInterface;
+    Psr\Container\ContainerInterface,
+    ReflectionClass,
+    ReflectionException;
 
 /**
  * Basic Container with autowiring
@@ -71,12 +73,31 @@ final class Container implements ContainerInterface {
     public function has(string $id) {
         return
                 isset($this->storage[$id]) or
-                class_exists($id); // interfaces MUST be defined
+                $this->isValidClass($id);
     }
 
     /** @return Resolver */
     public function getResolver(): Resolver {
         return $this->resolver;
+    }
+
+    /**
+     * Checks if class is valid
+     * @param string $className
+     * @return bool
+     */
+    private function isValidClass(string $className): bool {
+
+        if (class_exists($className)) {
+            try {
+                $reflector = new ReflectionClass($className);
+                return !$reflector->isAbstract();
+            } catch (ReflectionException $error) {
+
+            }
+        }
+
+        return false;
     }
 
     /** {@inheritdoc} */
