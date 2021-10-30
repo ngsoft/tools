@@ -91,7 +91,7 @@ final class Container implements ContainerInterface {
         if (class_exists($className)) {
             try {
                 $reflector = new ReflectionClass($className);
-                return !$reflector->isAbstract();
+                return $reflector->isInstantiable();
             } catch (ReflectionException $error) {
 
             }
