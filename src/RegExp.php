@@ -282,7 +282,7 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
         if ($this->execute('preg_match_all', $arguments, false) > 0) {
 
             for ($i = 0; $i < count($matches); $i++) yield $i => $matches[$i];
-        } else return new EmptyIterator();
+        }
     }
 
     /**
@@ -310,7 +310,7 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
         return null;
     }
 
-///////////////////////////////// Initialisation  /////////////////////////////////
+    ///////////////////////////////// Initialisation  /////////////////////////////////
 
     /**
      * Initialize RegExp
@@ -441,10 +441,10 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
      * @return string
      */
     private function getUsableRegex(): string {
-        return sprintf('/%s/%s', $this->pattern, implode('', $this->modifiers));
+        return sprintf('#%s#%s', $this->pattern, implode('', $this->modifiers));
     }
 
-///////////////////////////////// Getters/Setters  /////////////////////////////////
+    ///////////////////////////////// Getters/Setters  /////////////////////////////////
 
     /**
      * Get the last index
@@ -464,7 +464,7 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
         return $this;
     }
 
-///////////////////////////////// Import/Export  /////////////////////////////////
+    ///////////////////////////////// Import/Export  /////////////////////////////////
 
     /** {@inheritdoc} */
     public function __clone() {
