@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-use EmptyIterator,
-    ErrorException,
+use ErrorException,
     InvalidArgumentException,
     JsonSerializable;
 use NGSOFT\{
