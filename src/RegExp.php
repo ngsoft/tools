@@ -206,7 +206,7 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
     public function replace(string $str, $replacement): string {
         $this->assertValidRegex();
         if (
-                !is_callable($replacement) or
+                !is_callable($replacement) and
                 !is_string($replacement)
         ) {
             throw new TypeError(sprintf('Argument 2 passed to replace() must be of the type callable|string, %s given.', get_debug_type($replacement)));
@@ -425,7 +425,7 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
      */
     private function assertValidRegex() {
         if ($this->regexTested) return;
-        Tools::safe_exec(function() {
+        Tools::safe_exec(function () {
             $regex = $this->getUsableRegex();
             $method = $this->isGlobal ? 'preg_match_all' : 'preg_match';
 
