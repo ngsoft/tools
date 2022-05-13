@@ -107,7 +107,7 @@ class Resolver {
                         $result[] = null;
                         continue;
                     }
-                } catch (ReflectionException $error) {
+                } catch (ReflectionException) {
 
                 }
                 throw new RuntimeException(sprintf('Cannot resolve %u parameter', $index));
