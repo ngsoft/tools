@@ -88,10 +88,11 @@ class Resolver {
         /** @var \ReflectionParameter $param */
         foreach ($params as $index => $param) {
             $type = $param->getType();
+
             if (
                     !$type or
-                    $type->isBuiltin() or
-                    $type instanceof ReflectionNamedType === false
+                    $type instanceof ReflectionNamedType === false or
+                    $type->isBuiltin()
             ) {
                 try {
                     if ($param->isDefaultValueAvailable()) {

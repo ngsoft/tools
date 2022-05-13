@@ -51,9 +51,10 @@ trait PropertyAccess {
                     $valueType = is_object($value) ? get_class($value) : get_debug_type($value);
                     foreach ($acceptedTypes as $type) {
 
+
                         if (
                                 $type == $valueType or
-                                ((class_exists($type) or interface_exists($type)) and $valueType instanceof $type)
+                                ((class_exists($type) or interface_exists($type)) and is_a($valueType, $type))
                         ) {
                             call_user_func_array([$this, $setter], [$value]);
                             return;

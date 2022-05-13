@@ -28,7 +28,8 @@ final class EventListener implements ListenerProviderInterface {
     /** {@inheritdoc} */
     public function getListenersForEvent(object $event): iterable {
         foreach ($this->sorted as $type => $listeners) {
-            if ($event instanceof $type) {
+
+            if (is_a($event, $type)) {
                 foreach ($listeners as $listener) {
                     yield $listener;
                 }

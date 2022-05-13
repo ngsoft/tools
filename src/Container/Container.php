@@ -70,7 +70,7 @@ final class Container implements ContainerInterface {
     }
 
     /** {@inheritdoc} */
-    public function has(string $id) {
+    public function has(string $id): bool {
         return
                 isset($this->storage[$id]) or
                 $this->isValidClass($id);
