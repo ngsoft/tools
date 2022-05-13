@@ -150,7 +150,7 @@ class Set implements Countable, IteratorAggregate, JsonSerializable, ArrayAccess
     ////////////////////////////   Interfaces   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function count() {
+    public function count(): int {
         return count($this->storage);
     }
 
@@ -173,31 +173,31 @@ class Set implements Countable, IteratorAggregate, JsonSerializable, ArrayAccess
     /**
      * @return \Generator<int,string>
      */
-    public function getIterator() {
+    public function getIterator(): \Traversable {
         yield from $this->entries();
     }
 
     /** {@inheritdoc} */
-    public function offsetExists($offset) {
+    public function offsetExists(mixed $offset): bool {
         return
                 is_int($offset) and
                 isset($this->storage[$offset]);
     }
 
     /** {@inheritdoc} */
-    public function offsetGet($offset) {
+    public function offsetGet(mixed $offset): mixed {
         return $this->storage[$offset] ?? null;
     }
 
     /** {@inheritdoc} */
-    public function offsetSet($offset, $value) {
+    public function offsetSet(mixed $offset, mixed $value): void {
         if (is_string($offset) or is_int($offset)) throw new LogicException(sprintf('Invalid offset %s, data can be added, not replaced', (string) $offset));
         elseif (!is_string($value)) throw new InvalidArgumentException(sprintf('Invalid value type: string requested, %s given.', get_debug_type($value)));
         elseif (is_null($offset)) $this->add($value);
     }
 
     /** {@inheritdoc} */
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset): void {
         unset($this->storage[$offset]);
     }
 

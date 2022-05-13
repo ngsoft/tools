@@ -24,7 +24,7 @@ trait Unserializable {
     }
 
     /** {@inheritdoc} */
-    final public function __unserialize() {
+    final public function __unserialize(array $data) {
         throw new BadMethodCallException('Cannot unserialize ' . static::class);
     }
 

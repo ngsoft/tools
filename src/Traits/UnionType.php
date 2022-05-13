@@ -14,7 +14,8 @@ use function get_debug_type;
 /**
  * Union Type Check support for PHP 7.4
  */
-trait UnionType {
+trait UnionType
+{
 
     /**
      * Check value type against the accepted type(s)
@@ -25,8 +26,9 @@ trait UnionType {
      * @throws InvalidArgumentException
      * @throws TypeError
      */
-    protected function checkType($value, string ... $types): void {
-        static::hintType($value, ... $types);
+    protected function checkType($value, string ...$types): void
+    {
+        static::hintType($value, ...$types);
     }
 
     /**
@@ -40,7 +42,8 @@ trait UnionType {
      * @throws InvalidArgumentException
      * @throws TypeError
      */
-    protected static function hintType($value, string ...$types): void {
+    protected static function hintType($value, string ...$types): void
+    {
         // check against old names and not implemented in get_debug_type
         static $checks, $replace;
         $checks = $checks ?? [
@@ -58,7 +61,7 @@ trait UnionType {
 
         if (count($types) == 0) throw new InvalidArgumentException('Invalid Argument count, at least one type is requested.');
         //replace long names (why use them?)
-        $types = array_map(fn($t) => $replace[$t] ?? $t, $types);
+        $types = array_map(fn ($t) => $replace[$t] ?? $t, $types);
 
         // support for multiple types at once, not using is_scalar check to get builtin type exception
         if (in_array('scalar', $types)) {
@@ -87,7 +90,8 @@ trait UnionType {
      * @param string $method
      * @return array
      */
-    protected function parseTypes(string $method): array {
+    protected function parseTypes(string $method): array
+    {
         // small cache (prevents using Reflection each time a property is set or unset)
         // $parsed[$className][$method]
         static $parsed;
@@ -119,11 +123,10 @@ trait UnionType {
                 }
             }
             return $cached[$method];
-        } catch (ReflectionException $error) {
-            $error->getCode();
+        } catch (ReflectionException) {
+
             // we cache an empty result to prevent another error
             return $cached[$method] = [];
         }
     }
-
 }

@@ -10,8 +10,7 @@ use ErrorException,
 use NGSOFT\{
     Exceptions\RegExpException, Traits\PropertyAble
 };
-use Serializable,
-    Stringable,
+use Stringable,
     Traversable,
     TypeError;
 use function get_debug_type,
@@ -38,7 +37,7 @@ use function get_debug_type,
  *
  * @property int $lastIndex The lastIndex is a read/write integer property of regular expression instances that specifies the index at which to start the next match(only works with g flag).
  */
-final class RegExp implements Stringable, JsonSerializable, Serializable {
+final class RegExp implements Stringable, JsonSerializable {
 
     use PropertyAble {
         __clone as __traitClone;
@@ -138,10 +137,10 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
      * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/compile
      *
      * @param string $pattern full pattern or pattern without delimitters and modifiers
-     * @param string $flags modifiers
+     * @param string|string[] $flags modifiers
      * @return static Other instance of RegExp
      */
-    public function compile(string $pattern, string $flags = ''): self {
+    public function compile(string $pattern, string|array $flags = ''): self {
         return new static($pattern, $flags);
     }
 
@@ -285,11 +284,11 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
     }
 
     /**
-     * The match() method retrieves the result of matching a string against a regular expression.
+     * The matchOne() method retrieves the result of matching a string against a regular expression.
      * @param string $str
      * @return array|null
      */
-    public function match(string $str): ?array {
+    public function matchOne(string $str): ?array {
         $this->assertValidRegex();
         if (
                 !$this->isGlobal
@@ -325,11 +324,11 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
      * Initialize RegExp
      * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp Same as that except pattern is a string
      * @param string $pattern full pattern or pattern without delimitters and modifiers
-     * @param string $flags modifiers
+     * @param string|string[] $flags modifiers
      */
     public function __construct(
             string $pattern,
-            string $flags = ''
+            string|array $flags = ''
     ) {
         $this->silentProperties = false;
         $this->lazyProperties = false;
@@ -339,14 +338,17 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
     /**
      * Handles __construct and unserialize
      * @param string $pattern
-     * @param string $flags
+     * @param string|string[] $flags
      * @throws InvalidArgumentException
      */
     private function initialize(
             string $pattern,
-            string $flags
+            string|array $flags
     ) {
-        $flags = !empty($flags) ? mb_str_split($flags) : [];
+
+        if (is_string($flags)) $flags = mb_str_split($flags);
+
+
         foreach (str_split(self::PCRE_DELIMITERS) as $delimiter) {
             if (str_starts_with($pattern, $delimiter)) {
 
@@ -379,9 +381,12 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
         //add properties
         $this
                 ->setProperty('source', $this->pattern, false, false)
-                ->setProperty('flags',
+                ->setProperty(
+                        'flags',
                         implode('', $this->modifiers) . ($this->isGlobal ? self::PCRE_GLOBAL : ''),
-                        false, false)
+                        false,
+                        false
+                )
                 ->setProperty('dotAll', in_array(self::PCRE_DOTALL, $this->modifiers), false, false)
                 ->setProperty('global', in_array(self::PCRE_GLOBAL, $this->modifiers), false, false)
                 ->setProperty('ignoreCase', in_array(self::PCRE_CASELESS, $this->modifiers), false, false)
@@ -483,21 +488,24 @@ final class RegExp implements Stringable, JsonSerializable, Serializable {
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return $this->__toString();
     }
 
     /** {@inheritdoc} */
-    public function serialize() {
-        return serialize((string) $this);
+    public function __serialize() {
+
+        return [
+            'pattern' => $this->pattern,
+            'flags' => $this->modifiers,
+        ];
     }
 
     /** {@inheritdoc} */
-    public function unserialize($serialized) {
-        $pattern = unserialize($serialized);
-        if (is_string($pattern)) {
-            $this->initialize($pattern, '');
-        }
+    public function __unserialize(array $data) {
+        $pattern = $data['pattern'];
+        $flags = $data['flags'];
+        $this->__construct($pattern, $flags);
     }
 
     /** {@inheritdoc} */

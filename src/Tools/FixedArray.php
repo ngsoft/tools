@@ -213,7 +213,7 @@ final class FixedArray implements ArrayAccess, Countable, IteratorAggregate, Str
     ////////////////////////////   Interfaces   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function &offsetGet($offset) {
+    public function &offsetGet(mixed $offset): mixed {
         $null = null;
         if ($offset === $null) $offset = $this->append($offset, []);
         if (!$this->offsetExists($offset)) return $null;

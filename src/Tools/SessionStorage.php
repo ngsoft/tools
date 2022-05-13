@@ -33,7 +33,7 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     ////////////////////////////   Overrides   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function &offsetGet($offset) {
+    public function &offsetGet(mixed $offset): mixed {
         if (
                 $this->storage === $_SESSION
                 and (is_int($offset) or is_null($offset))
@@ -58,7 +58,7 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     }
 
     /** {@inheritdoc} */
-    public function offsetSet($offset, $value) {
+    public function offsetSet(mixed $offset, mixed $value): void {
         if (
                 $this->storage === $_SESSION
                 and (is_int($offset) or is_null($offset))

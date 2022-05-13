@@ -356,13 +356,13 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     ////////////////////////////   Interfaces   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function offsetExists($offset) {
+    public function offsetExists(mixed $offset): bool {
         if (!is_string($offset)) throw new OutOfBoundsException();
         return $this->keys->has($offset);
     }
 
     /** {@inheritdoc} */
-    public function offsetGet($offset) {
+    public function offsetGet(mixed $offset): mixed {
         if (!is_string($offset)) throw new OutOfBoundsException();
         if ($this->offsetExists($offset)) return $this->get($offset);
         return null;
@@ -372,23 +372,23 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
      * {@inheritdoc}
      * @suppress PhanUnusedPublicFinalMethodParameter
      */
-    public function offsetSet($offset, $value) {
+    public function offsetSet(mixed $offset, mixed $value): void {
         throw new OverflowException();
     }
 
     /** {@inheritdoc} */
-    public function offsetUnset($offset) {
+    public function offsetUnset(mixed $offset): void {
         if (!is_string($offset)) throw new OutOfBoundsException();
         $this->delete($offset);
     }
 
     /** {@inheritdoc} */
-    public function count() {
+    public function count(): int {
         return count($this->pairs);
     }
 
     /** {@inheritdoc} */
-    public function getIterator() {
+    public function getIterator(): \Traversable {
         yield from $this->entries();
     }
 

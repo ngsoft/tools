@@ -55,14 +55,14 @@ trait ArrayAccessCountable {
     ////////////////////////////   ArrayAccess   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function offsetExists($offset) {
+    public function offsetExists(mixed $offset): bool {
         return
                 array_key_exists($offset, $this->storage) and
                 null !== $this->storage[$offset];
     }
 
     /** {@inheritdoc} */
-    public function &offsetGet($offset) {
+    public function &offsetGet(mixed $offset): mixed {
         $null = null;
         if ($offset === $null) $offset = $this->append($offset, []);
         if (!$this->offsetExists($offset)) return $null;
@@ -76,7 +76,7 @@ trait ArrayAccessCountable {
     }
 
     /** {@inheritdoc} */
-    public function offsetSet($offset, $value) {
+    public function offsetSet(mixed $offset, mixed $value): void {
         if ($value instanceof self) {
             $value = $value->storage;
         }
@@ -84,14 +84,14 @@ trait ArrayAccessCountable {
     }
 
     /** {@inheritdoc} */
-    public function offsetUnset($offset) {
+    public function offsetUnset(mixed $offset): void {
         unset($this->storage[$offset]);
     }
 
     ////////////////////////////   Countable   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function count() {
+    public function count(): int {
         return count($this->storage);
     }
 
@@ -100,7 +100,7 @@ trait ArrayAccessCountable {
     /**
      * @return Generator
      */
-    public function getIterator() {
+    public function getIterator(): \Traversable {
         foreach (array_keys($this->storage) as $id) {
             yield $id => $this->offsetGet($id);
         }
