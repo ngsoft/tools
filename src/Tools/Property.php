@@ -34,7 +34,7 @@ class Property {
             string $name,
             mixed $value = null,
             private bool $configurable = true,
-            private bool $enumerable = false,
+            private bool $enumerable = true,
             private bool $writable = true,
     ) {
         if (!preg_match(self::VALID_PROPERTY_NAME, $name)) throw new InvalidArgumentException(sprintf('Invalid properrty name "%s"', $name));
