@@ -23,7 +23,7 @@ use function get_debug_type,
  * Javascript Like Implementation for PHP
  * Sticky is too buggy (not implemented)
  *
- * @phan-file-suppress PhanTypeInvalidDimOffset, PhanAccessOverridesFinalMethodInTrait, PhanParamSuspiciousOrder
+ * 
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
  * @link https://www.php.net/manual/en/book.pcre.php

@@ -69,6 +69,7 @@ return [
         'PhanAccessMethodProtected',
         'PhanRedefinedInheritedInterface',
         'PhanUnusedPublicFinalMethodParameter',
+        'PhanAccessOverridesFinalMethodInTrait',
     ],
     // If enabled, check all methods that override a
     // parent method to make sure its signature is
