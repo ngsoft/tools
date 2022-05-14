@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT;
 
 use ErrorException,
-    InvalidArgumentException;
+    InvalidArgumentException,
+    JsonSerializable;
 use NGSOFT\{
     Attributes\HasProperties, Exceptions\RegExpException, Tools\PropertyAble
 };
@@ -22,7 +23,7 @@ use function get_debug_type,
  * @property int $lastIndex
  */
 #[HasProperties(lazy: false)]
-class RegExp extends PropertyAble implements Stringable {
+class RegExp extends PropertyAble implements Stringable, JsonSerializable {
 
     /**
      * Most used php delimiters
@@ -456,6 +457,12 @@ class RegExp extends PropertyAble implements Stringable {
 
     ////////////////////////////   Interfaces   ////////////////////////////
 
+    /** {@inheritdoc} */
+    public function jsonSerialize(): mixed {
+        return $this->__toString();
+    }
+
+    /** {@inheritdoc} */
     public function __toString(): string {
         $regex = $this->getUsableRegex();
         if ($this->isGlobal) $regex .= self::PCRE_GLOBAL;
