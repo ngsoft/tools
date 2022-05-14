@@ -437,6 +437,23 @@ class RegExp extends PropertyAble implements Stringable {
         return null;
     }
 
+    ////////////////////////////   Magic Methods   ////////////////////////////
+
+    /** {@inheritdoc} */
+    public function __unserialize(array $data) {
+
+        $this->__construct($data['source'], $data['flags']);
+    }
+
+    /** {@inheritdoc} */
+    public function __serialize() {
+
+        return [
+            'source' => $this->source,
+            'flags' => $this->flags,
+        ];
+    }
+
     ////////////////////////////   Interfaces   ////////////////////////////
 
     public function __toString(): string {
