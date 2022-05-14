@@ -100,6 +100,10 @@ class Property {
         ) {
             throw new RuntimeException(sprintf('Property %s is not writable.', $this->getName()));
         }
+
+        if ($this->type === self::PROPERTY_TYPE_READONLY) {
+            throw new RuntimeException(sprintf('Property "%s" is read only.', $this->getName()));
+        }
         call_user_func($this->setter, $value);
     }
 
@@ -109,6 +113,15 @@ class Property {
             $this->getter = Closure::bind($this->getter, $this, static::class);
             $this->setter = Closure::bind($this->setter, $this, static::class);
         }
+    }
+
+    public function __debugInfo() {
+        return [
+            'configurable' => $this->getConfigurable(),
+            'writable' => $this->getWritable(),
+            'enumerable' => $this->getEnumerable(),
+            'value' => $this->getValue()
+        ];
     }
 
 }
