@@ -11,7 +11,6 @@
         }],
     "suggest": {},
     "provide": {
-        "psr/event-dispatcher-implementation": "^1.0",
         "psr/container-implementation": "^2.0"
     },
     "require-dev": {},
