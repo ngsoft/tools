@@ -20,12 +20,17 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     /** @var Property[] */
     protected $properties = [];
 
+    /**
+     * @phan-suppress PhanPossiblyInfiniteLoop
+     * @param object $instance
+     * @return \Traversable
+     */
     private static function getClassParents(object $instance): \Traversable {
         $reflector = new ReflectionClass($instance);
         try {
             do {
                 yield $reflector;
-            } while ($reflector = $reflector->getParentClass());
+            } while (($reflector = $reflector->getParentClass()) !== false);
         } catch (ReflectionException) {
 
         }
@@ -146,7 +151,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     public function getIterator(): Traversable {
         /** @var Property $prop */
         foreach ($this->properties as $prop) {
-            if ($prop->isEnumerable()) yield $prop->getName() => $prop->getValue();
+            if ($prop->getEnumerable()) yield $prop->getName() => $prop->getValue();
         }
     }
 
