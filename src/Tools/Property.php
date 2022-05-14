@@ -61,6 +61,16 @@ class Property {
         $this->setter = $setter;
     }
 
+    public function bindTo(object $bindTo): void {
+        foreach (['getter', 'setter'] as $prop) {
+            $this->{$prop} = \Closure::bind($this->{$prop}, $bindTo, get_class($bindTo));
+        }
+    }
+
+    public function getType(): int {
+        return $this->type;
+    }
+
     public function getName(): string {
         return $this->name;
     }
@@ -91,6 +101,14 @@ class Property {
             throw new RuntimeException(sprintf('Property %s is not writable.', $this->getName()));
         }
         call_user_func($this->setter, $value);
+    }
+
+    public function __clone() {
+
+        if ($this->type == self::PROPERTY_TYPE_NONE) {
+            $this->getter = Closure::bind($this->getter, $this, static::class);
+            $this->setter = Closure::bind($this->setter, $this, static::class);
+        }
     }
 
 }

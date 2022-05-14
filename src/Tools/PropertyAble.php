@@ -16,9 +16,9 @@ use ArrayAccess,
 class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
 
     /** @var Property[] */
-    private $properties = [];
+    protected $properties = [];
 
-    private function getAttributes() {
+    private function getMetadatas() {
 
         $reflClass = new ReflectionClass($this);
         $attrs = $reflClass->getAttributes(HasProperties::class);
@@ -136,7 +136,13 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     public function __clone() {
         $properties = array_keys($this->properties);
         foreach ($properties as $name) {
-            $this->properties[$name] = clone $this->properties[$name];
+            $clone = clone $this->properties[$name];
+
+            if ($clone->getType() === Property::PROPERTY_TYPE_BOTH) {
+                $clone->bindTo($this);
+            }
+
+            $this->properties[$name] = $clone;
         }
     }
 
