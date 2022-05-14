@@ -22,9 +22,11 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     public function __construct() {
         if (empty(session_id())) {
             // firefox > 84 will refuse session cookies if SameSite=None; for non ssl server
-            session_set_cookie_params(["SameSite" => "Strict"]); //none, lax, strict
-            session_set_cookie_params(["Secure" => "true"]); //false, true
-            session_set_cookie_params(["HttpOnly" => "true"]); //false, true JS don't need that cookie
+            var_dump(session_set_cookie_params([
+                "samesite" => "Strict", //none, lax, strict
+                "secure" => true, //false, true
+                "httponly" => true, //false, true JS don't need that cookie
+            ]));
             session_start();
         }
         $this->storage = &$_SESSION;
