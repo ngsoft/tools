@@ -25,61 +25,63 @@ use function get_debug_type,
 #[HasProperties(lazy: false)]
 class RegExp extends PropertyAble implements Stringable, JsonSerializable {
 
+    public const VERSION = Tools::VERSION;
+
     /**
      * Most used php delimiters
      */
-    const PCRE_DELIMITERS = '%#/';
+    public const PCRE_DELIMITERS = '%#/';
 
     /**
      * Case-insensitive search.
      */
-    const PCRE_CASELESS = 'i';
+    public const PCRE_CASELESS = 'i';
 
     /**
      * Multi-line search.
      */
-    const PCRE_MULTILINE = 'm';
+    public const PCRE_MULTILINE = 'm';
 
     /**
      * Allows . to match newline characters.
      */
-    const PCRE_DOTALL = 's';
+    public const PCRE_DOTALL = 's';
 
     /**
      * If this modifier is set, whitespace data characters in the pattern are totally ignored except when escaped or inside a character class,
      * and characters between an unescaped # outside a character class and the next newline character, inclusive, are also ignored.
      */
-    const PCRE_EXTENDED = 'x';
+    public const PCRE_EXTENDED = 'x';
 
     /**
      * If this modifier is set, the pattern is forced to be "anchored", that is,
      * it is constrained to match only at the start of the string which is being searched (the "subject string").
      */
-    const PCRE_ANCHORED = 'A';
+    public const PCRE_ANCHORED = 'A';
 
     /**
      * If this modifier is set, a dollar metacharacter in the pattern matches only at the end of the subject string.
      * Without this modifier, a dollar also matches immediately before the final character if it is a newline (but not before any other newlines).
      * This modifier is ignored if m modifier is set.
      */
-    const PCRE_DOLLAR_ENDONLY = 'D';
+    public const PCRE_DOLLAR_ENDONLY = 'D';
 
     /**
      * This modifier inverts the "greediness" of the quantifiers so that they are not greedy by default,
      * but become greedy if followed by ?.
      */
-    const PCRE_UNGREEDY = 'u';
+    public const PCRE_UNGREEDY = 'u';
 
     /**
      * Global search.
      */
-    const PCRE_GLOBAL = 'g';
+    public const PCRE_GLOBAL = 'g';
 
     /**
      * Accepted Flags
      * @var string[]
      */
-    const ACCEPTED_FLAGS = [
+    private const ACCEPTED_FLAGS = [
         self::PCRE_CASELESS,
         self::PCRE_MULTILINE,
         self::PCRE_DOTALL,

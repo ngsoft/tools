@@ -94,7 +94,7 @@ trait Exportable {
     }
 
     /** {@inheritdoc} */
-    public function __toString() {
+    public function __toString(): string {
         return sprintf('object(%s)', static::class);
     }
 
@@ -104,12 +104,12 @@ trait Exportable {
     }
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data) {
+    public function __unserialize(array $data): void {
         $this->import($data);
     }
 
     /** {@inheritdoc} */
-    public function __serialize() {
+    public function __serialize(): array {
         return $this->export();
     }
 
