@@ -9,7 +9,9 @@ use ArrayAccess,
     IteratorAggregate,
     NGSOFT\Attributes\HasProperties,
     ReflectionClass,
+    ReflectionException,
     RuntimeException,
+    Throwable,
     Traversable;
 
 #[HasProperties]
@@ -18,15 +20,34 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     /** @var Property[] */
     protected $properties = [];
 
-    private function getMetadatas() {
+    private static function getClassParents(object $instance): \Traversable {
+        $reflector = new ReflectionClass($instance);
+        try {
+            do {
+                yield $reflector;
+            } while ($reflector = $reflector->getParentClass());
+        } catch (ReflectionException) {
 
-        $reflClass = new ReflectionClass($this);
-        $attrs = $reflClass->getAttributes(HasProperties::class);
+        }
     }
 
-    private function createError(string $message, ...$replacements): \RuntimeException {
-        $msg = sprintf($message, $replacements);
-        return new \RuntimeException($msg);
+    public static function getMetadatas(object $instance): HasProperties {
+        static $metadata = [];
+        $className = $instance::class;
+        if (!isset($metadata[$className])) {
+            $meta = new HasProperties();
+            /** @var ReflectionClass $reflClass */
+            foreach (self::getClassParents($instance) as $reflClass) {
+                $attrs = $reflClass->getAttributes(HasProperties::class);
+                if (empty($attrs)) continue;
+                foreach ($attrs as $attr) {
+                    $meta = $attr->newInstance();
+                    break 2;
+                }
+            }
+            $metadata[$className] = $meta;
+        }
+        return $metadata[$className];
     }
 
     protected function defineProperty(
@@ -38,24 +59,36 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     ): static {
         /** @var Property $current */
         if ($current = $this->properties[$name] ?? null) {
-            if (!$current->getConfigurable()) {
-                throw new RuntimeException(sprintf('Cannot define property "%s": not configurable.', $name));
-            }
+            if (!$current->getConfigurable()) throw new RuntimeException(sprintf('Cannot define property "%s": not configurable.', $name));
         }
 
-        $this->properties[$name] = new Property($name, $value, configurable: $configurable, enumerable: $enumerable, writable: $writable);
+        $meta = static::getMetadatas($this);
+
+        try {
+            $this->properties[$name] = new Property($name, $value, configurable: $configurable, enumerable: $enumerable, writable: $writable);
+        } catch (Throwable $error) {
+            if (!$meta->silent) throw $error;
+        }
+
         return $this;
     }
 
     protected function removeProperty(string $name): static {
-        /** @var Property $current */
-        if ($current = $this->properties[$name]) {
-            if (!$current->getConfigurable()) {
-                throw new RuntimeException(sprintf('Cannot remove property "%s": not configurable.', $name));
-            }
+        try {
+            /** @var Property $current */
+            if ($current = $this->properties[$name]) {
+                if (!$current->getConfigurable()) {
 
-            unset($this->properties[$name]);
+                    throw new RuntimeException(sprintf('Cannot remove property "%s": not configurable.', $name));
+                }
+
+                unset($this->properties[$name]);
+            }
+        } catch (Throwable $error) {
+            if (!static::getMetadatas($this)->silent) throw $error;
         }
+
+
         return $this;
     }
 
@@ -69,10 +102,17 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     }
 
     private function setPropertyValue(string $name, mixed $value): void {
-        if ($current = $this->properties[$name] ?? null) {
-            $current->setValue($value);
-            return;
-        } else $this->defineProperty($name, $value, enumerable: true);
+
+        try {
+            if ($current = $this->properties[$name] ?? null) {
+                $current->setValue($value);
+                return;
+            }
+            if (!static::getMetadatas($this)->lazy) throw new RuntimeException(sprintf('Cannot create property "%s"', $name));
+            $this->defineProperty($name, $value, enumerable: true);
+        } catch (Throwable $error) {
+            if (!static::getMetadatas($this)->silent) throw $error;
+        }
     }
 
     /** {@inheritdoc} */

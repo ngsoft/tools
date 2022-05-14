@@ -37,7 +37,7 @@ class Property {
             private bool $enumerable = true,
             private bool $writable = true,
     ) {
-        if (!preg_match(self::VALID_PROPERTY_NAME, $name)) throw new InvalidArgumentException(sprintf('Invalid properrty name "%s"', $name));
+        if (!preg_match(self::VALID_PROPERTY_NAME, $name)) throw new InvalidArgumentException(sprintf('Invalid property name "%s"', $name));
         $this->name = $name;
         $type = 0;
         $getter = $setter = null;
