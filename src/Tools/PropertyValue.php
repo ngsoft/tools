@@ -26,8 +26,7 @@ class PropertyValue {
     private $setter;
 
     public function __construct(
-            mixed $value,
-            object $bindTo
+            mixed $value
     ) {
 
         $valueType = self::VALUE_DIRECT;
@@ -36,14 +35,12 @@ class PropertyValue {
             if (is_callable($getter = $value['get'] ?? null)) {
                 $valueType += self::VALUE_GETTER;
                 $getter = Closure::fromCallable($getter);
-                // $getter = Closure::bind($getter, $bindTo, get_class($bindTo));
                 $this->getter = $getter;
             }
             if (is_callable($setter = $value['set'] ?? null)) {
                 $valueType += self::VALUE_SETTER;
                 $setter = Closure::fromCallable($setter);
                 $this->setter = $setter;
-                //$setter = Closure::bind($setter, $bindTo, get_class($bindTo));
             }
         }
 
@@ -68,7 +65,6 @@ class PropertyValue {
     public function setValue(mixed $value): void {
 
         if (in_array($this->valueType, [self::VALUE_SETTER, self::VALUE_BOTH])) {
-
             call_user_func($this->setter, $value);
         } elseif ($this->valueType === self::VALUE_DIRECT) $this->value = $value;
     }
