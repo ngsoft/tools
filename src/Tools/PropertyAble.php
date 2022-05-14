@@ -4,19 +4,27 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-#[\NGSOFT\Attributes\HasProperties]
-class PropertyAble implements \ArrayAccess, \Countable, \IteratorAggregate {
+use ArrayAccess,
+    Countable,
+    IteratorAggregate,
+    NGSOFT\Attributes\HasProperties,
+    ReflectionClass,
+    RuntimeException,
+    Traversable;
+
+#[HasProperties]
+class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
 
     /** @var Property[] */
     private $properties = [];
 
     private function getAttributes() {
 
-        $reflClass = new \ReflectionClass($this);
-        $attrs = $reflClass->getAttributes(\NGSOFT\Attributes\HasProperties::class);
+        $reflClass = new ReflectionClass($this);
+        $attrs = $reflClass->getAttributes(HasProperties::class);
     }
 
-    private function iterateEnumerableProperties(): \Traversable {
+    private function iterateEnumerableProperties(): Traversable {
         foreach ($this->properties as $prop) {
             if ($prop->getEnumerable()) yield $prop->getName() => $prop;
         }
@@ -53,8 +61,12 @@ class PropertyAble implements \ArrayAccess, \Countable, \IteratorAggregate {
     }
 
     private function getPropertyValue(string $name): mixed {
+        $value = null;
+        if ($current = $this->properties[$name] ?? null) {
+            $value = $current->getValue();
+        }
 
-        return $this->properties[$name]?->getValue() ?? null;
+        return $value;
     }
 
     private function setPropertyValue(string $name, mixed $value): void {
@@ -91,31 +103,37 @@ class PropertyAble implements \ArrayAccess, \Countable, \IteratorAggregate {
         return count($this->properties);
     }
 
-    public function getIterator(): \Traversable {
+    /** {@inheritdoc} */
+    public function getIterator(): Traversable {
         /** @var Property $prop */
         foreach ($this->iterateEnumerableProperties() as $prop) {
             yield $prop->getName() => $prop->getValue();
         }
     }
 
+    /** {@inheritdoc} */
     public function __isset($name) {
 
         return $this->offsetExists($name);
     }
 
+    /** {@inheritdoc} */
     public function __get($name) {
 
         return $this->offsetGet($name);
     }
 
+    /** {@inheritdoc} */
     public function __set($name, $value) {
         $this->offsetSet($name, $value);
     }
 
+    /** {@inheritdoc} */
     public function __unset($name) {
         $this->offsetUnset($name);
     }
 
+    /** {@inheritdoc} */
     public function __clone() {
         $properties = array_keys($this->properties);
         foreach ($properties as $name) {
