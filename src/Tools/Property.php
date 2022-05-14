@@ -8,7 +8,7 @@ use Closure,
     InvalidArgumentException,
     RuntimeException;
 
-class Property {
+final class Property {
 
     private const VALID_PROPERTY_NAME = '/^[a-z_][\w\-]+/i';
     public const PROPERTY_TYPE_NONE = 0;
