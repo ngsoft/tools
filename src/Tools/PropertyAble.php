@@ -24,12 +24,6 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
         $attrs = $reflClass->getAttributes(HasProperties::class);
     }
 
-    private function iterateEnumerableProperties(): Traversable {
-        foreach ($this->properties as $prop) {
-            if ($prop->getEnumerable()) yield $prop->getName() => $prop;
-        }
-    }
-
     protected function defineProperty(
             string $name,
             mixed $value,
@@ -106,8 +100,8 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     /** {@inheritdoc} */
     public function getIterator(): Traversable {
         /** @var Property $prop */
-        foreach ($this->iterateEnumerableProperties() as $prop) {
-            yield $prop->getName() => $prop->getValue();
+        foreach ($this->properties as $prop) {
+            if ($prop->isEnumerable()) yield $prop->getName() => $prop->getValue();
         }
     }
 
