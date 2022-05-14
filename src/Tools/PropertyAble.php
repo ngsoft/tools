@@ -24,6 +24,11 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
         $attrs = $reflClass->getAttributes(HasProperties::class);
     }
 
+    private function createError(string $message, ...$replacements): \RuntimeException {
+        $msg = sprintf($message, $replacements);
+        return new \RuntimeException($msg);
+    }
+
     protected function defineProperty(
             string $name,
             mixed $value,
