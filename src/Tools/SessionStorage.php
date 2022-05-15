@@ -85,7 +85,7 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     }
 
     /** {@inheritdoc} */
-    public function getItem(string $key) {
+    public function getItem(string $key): mixed {
         return $this->offsetGet($key);
     }
 

@@ -18,7 +18,7 @@ interface Storage {
      * @param string $key
      * @return mixed
      */
-    public function getItem(string $key);
+    public function getItem(string $key): mixed;
 
     /**
      * When passed a key name and value, will add that key to the storage, or update that key's
