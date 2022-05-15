@@ -17,7 +17,7 @@
     "require": {
         "php": ">=8.1",
         "symfony/polyfill-mbstring": "^1.20",
-        "psr/log": "^1",
+        "psr/log": "^1|^2|^3",
         "psr/container": "^2"
     },
     "autoload": {

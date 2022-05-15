@@ -27,7 +27,7 @@ final class Tools {
     /**
      * Package Version Information
      */
-    public const VERSION = '3.0';
+    public const VERSION = '3.0.1';
 
     /**
      * URL Parser Regex
