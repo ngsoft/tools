@@ -17,13 +17,6 @@ trait LoggerAware {
     use LoggerAwareTrait;
 
     /**
-     * The logger instance.
-     *
-     * @var LoggerInterface|null
-     */
-    protected $logger;
-
-    /**
      * Logs with an arbitrary level.
      * @param mixed $level
      * @param string $message
