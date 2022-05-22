@@ -17,6 +17,7 @@ final class Container implements ContainerInterface {
 
     /** @var array<string,mixed> */
     private $storage = [];
+    private array $definitions = [];
 
     /** @var Resolver */
     private $resolver;
