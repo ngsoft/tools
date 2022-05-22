@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\Enums;
 
-use LogicException,
+use InvalidArgumentException,
+    JsonSerializable,
+    LogicException,
     NGSOFT\RegExp,
     ReflectionClass,
     ReflectionClassConstant,
+    Stringable,
     TypeError,
     ValueError;
 
-class Enum {
+/**
+ * Basic Enum Support
+ */
+abstract class Enum implements Stringable, JsonSerializable {
 
     protected const ERROR_ENUM_DUPLICATE_VALUE = 'Duplicate value in enum %s for cases %s and %s';
     protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int|float';
@@ -57,6 +63,7 @@ class Enum {
      * Generates a list of cases on an enum
      * This method will return a packed array of all cases in an enumeration, in lexical order.
      *
+     * @phan-suppress PhanParamTooManyInternal, PhanTypeInstantiateAbstractStatic
      * @return array An array of all defined cases of this enumeration, in lexical order.
      * @throws TypeError
      * @throws LogicException
@@ -79,9 +86,12 @@ class Enum {
 
             /** @var ReflectionClass $reflector */
             $reflector = new ReflectionClass($className);
+            if ($reflector->isAbstract()) throw new LogicException(sprintf('Cannot initialize abstract Enum %s', $className));
+
 
             do {
                 if ($reflector->getName() === self::class) break;
+
 
                 $reflClassName = $reflector->getName();
 
@@ -89,17 +99,22 @@ class Enum {
                 foreach ($reflector->getReflectionConstants(ReflectionClassConstant::IS_PUBLIC) as $classConstant) {
                     $name = $classConstant->getName();
                     $value = $classConstant->getValue();
+
                     if (isset($defined[$name])) continue;
                     if (!$isValidName->test($name)) continue;
+
                     if (!is_string($value) && !is_int($value) && !is_float($value)) {
                         throw new TypeError(sprintf(self::ERROR_ENUM_TYPE, $reflClassName, $name, get_debug_type($value)));
                     }
+
                     if (false !== ($key = array_search($value, $values, true))) {
                         throw new LogicException(sprintf(self::ERROR_ENUM_DUPLICATE_VALUE, $className, $key, $name));
                     }
 
                     $inst[$index] = new static($name, $value);
                     $ids[$name] = $index;
+                    $defined[$name] = $name;
+                    $values[$name] = $value;
                     $index++;
                 }
             } while (($reflector = $reflector->getParentClass()) instanceof ReflectionClass);
@@ -138,12 +153,37 @@ class Enum {
         return null;
     }
 
+    /** {@inheritdoc} */
+    public static function __callStatic(string $name, array $arguments): mixed {
+        if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
+        return static::get($name);
+    }
+
+    /** {@inheritdoc} */
     public function __serialize(): array {
         return [$this->name, $this->value];
     }
 
+    /** {@inheritdoc} */
     public function __unserialize(array $data) {
         list($this->name, $this->value) = $data;
+    }
+
+    /** {@inheritdoc} */
+    public function __toString(): string {
+        return (string) $this->value;
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize(): mixed {
+        return $this->value;
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo(): array {
+        return [
+            sprintf('enum(%s::%s)', static::class, $this->name)
+        ];
     }
 
 }
