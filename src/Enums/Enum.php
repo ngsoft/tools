@@ -156,7 +156,11 @@ abstract class Enum implements Stringable, JsonSerializable {
     /** {@inheritdoc} */
     public static function __callStatic(string $name, array $arguments): mixed {
         if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
-        return static::get($name);
+        try {
+            return static::get($name);
+        } catch (\Throwable) {
+            throw new BadMethodCallException(sprintf('Invalid method %s::%s()', static::class, $name));
+        }
     }
 
     /** {@inheritdoc} */
