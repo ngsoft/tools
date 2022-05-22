@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Enums;
 
-use InvalidArgumentException,
+use BadMethodCallException,
+    InvalidArgumentException,
     JsonSerializable,
     LogicException,
     NGSOFT\RegExp,
     ReflectionClass,
     ReflectionClassConstant,
     Stringable,
+    Throwable,
     TypeError,
     ValueError;
 
@@ -158,7 +160,7 @@ abstract class Enum implements Stringable, JsonSerializable {
         if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
         try {
             return static::get($name);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             throw new BadMethodCallException(sprintf('Invalid method %s::%s()', static::class, $name));
         }
     }
