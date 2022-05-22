@@ -6,9 +6,6 @@ namespace NGSOFT\Enums;
 
 use InvalidArgumentException;
 
-/**
- *
- */
 class EnumUtils {
 
     protected static function assertValidClassname(string $className) {
@@ -20,7 +17,7 @@ class EnumUtils {
     /**
      * Generates Doc Comment for magic static methods
      *
-     * 
+     *
      * @param string $className
      * @return string
      */
@@ -75,7 +72,6 @@ class EnumUtils {
             $docs = implode("\n", $result);
 
             $fName = $reflector->getFileName();
-            $classLn = -1;
 
             if ($classContents = file_get_contents($fName)) {
 
@@ -89,6 +85,7 @@ class EnumUtils {
                         if (is_array($token)) {
                             list($tokenIndex, $chars, $lineNumber) = $token;
                             $tokenName = token_name($tokenIndex);
+                            // Enum class always extends NGSOFT\Enums\Enum
                             if ($tokenName !== 'T_EXTENDS') continue;
                             // line number begins to 1 and array to 0
                             $checkLines[] = $lineNumber - 1;
@@ -98,6 +95,7 @@ class EnumUtils {
                         $lines = explode("\n", $classContents);
                         foreach ($checkLines as $lineNumber) {
                             $lineContents = $lines[$lineNumber];
+                            // RelClassName extends Enum
                             if (str_contains($lineContents, $relClassName) && str_contains($lineContents, 'Enum')) {
                                 $newContents = str_replace($lineContents, "$docs\n$lineContents", $classContents);
                             }
