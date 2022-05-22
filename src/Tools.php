@@ -285,10 +285,11 @@ final class Tools {
      * @staticvar int $classcount get the last classcount for cache use
      * @staticvar array $cache keep the last results and returns them if $classcount has not changed
      * @param string $parentClass
+     * @param bool $onlyInstanciable
      * @return array
      * @throws InvalidArgumentException
      */
-    public static function getClassesImplementing(string $parentClass): array {
+    public static function getClassesImplementing(string $parentClass, bool $onlyInstanciable = true): array {
 
         static $classcount, $cache;
         $classcount = $classcount ?? 0;
@@ -312,22 +313,29 @@ final class Tools {
                 $classcount = count($classlist);
             }
 
-            if (isset($cache[$parentClass])) return $cache[$parentClass];
+            $key = $onlyInstanciable ? 'instanciable' : 'all';
 
-            $cache[$parentClass] = [];
+            if (isset($cache[$parentClass])) return $cache[$parentClass][$key];
+
+
+            $cache[$parentClass] = [
+                'instanciable' => [], 'all' => []
+            ];
 
             foreach ($classlist as $className) {
                 if ($className == $parentClass) continue;
 
                 if (
-                        in_array($parentClass, $method($className)) and
-                        (new ReflectionClass($className))->isInstantiable()
+                        in_array($parentClass, $method($className))
                 ) {
-                    $cache[$parentClass][] = $className;
+                    $cache[$parentClass]['all'][] = $className;
+                    if ((new ReflectionClass($className))->isInstantiable()) {
+                        $cache[$parentClass]['instanciable'][] = $className;
+                    }
                 }
             }
 
-            return $cache[$parentClass];
+            return $cache[$parentClass][$key];
         }
         //will probably never happen
         return [];
