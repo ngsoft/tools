@@ -16,33 +16,33 @@ use Closure,
 final class Container implements ContainerInterface {
 
     /** @var array<string,mixed> */
-    private $storage = [];
+    private array $storage = [];
     private array $definitions = [];
 
     /** @var Resolver */
-    private $resolver;
+    private Resolver $resolver;
 
     /**
      * @param array<string,mixed> $definitions
      */
     public function __construct(array $definitions = []) {
-        $this->storage = $definitions;
-        //define container
+        $this->resolver = new Resolver($this);
         $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
-        $this->storage[Resolver::class] = new Resolver($this);
-        $this->resolver = &$this->storage[Resolver::class];
+        $this->definitions = $definitions;
     }
 
     /**
-     * Add an Entry
+     * Add an Entry/Definition to the container
      * @param string $id
      * @param mixed $value
      * @return static
      */
-    public function set(string $id, $value): self {
+    public function set(string $id, mixed $value): self {
         // cannot overwrite data
         if (!isset($this->storage[$id])) {
-            $this->storage[$id] = $value;
+            if ($this->isCallable($value)) {
+                $this->definitions[$id] = $value;
+            } else $this->storage[$id] = $value;
         }
         return $this;
     }
@@ -53,18 +53,16 @@ final class Container implements ContainerInterface {
             throw new NotFoundException($id, $this);
         }
         if (!isset($this->storage[$id])) {
-
-            if (
-                    class_exists($id) and
+            if (isset($this->definitions[$id])) {
+                if ($this->isCallable($this->definitions[$id])) {
+                    if ($resolved = $this->resolver->resolveCallable($this->definitions[$id])) $this->storage[$id] = $resolved;
+                    else throw new NotFoundException($id, $this);
+                } elseif (is_scalar($this->definitions[$id] || is_object($this->definitions[$id]))) $this->storage[$id] = $this->definitions[$id];
+                else throw new NotFoundException($id, $this);
+            } elseif (
+                    class_exists($id) &&
                     $resolved = $this->resolver->resolveClassName($id)
             ) $this->storage[$id] = $resolved;
-            else throw new NotFoundException($id, $this);
-        } elseif (// first call to $id that is a definition
-                is_callable($this->storage[$id]) and
-                // can disrupt container as a class with __invoke method that is not a Closure is callable
-                !(is_object($this->storage[$id]) && !($this->storage[$id] instanceof Closure))
-        ) {
-            if ($resolved = $this->resolver->resolveCallable($this->storage[$id])) $this->storage[$id] = $resolved;
             else throw new NotFoundException($id, $this);
         }
         return $this->storage[$id];
@@ -73,7 +71,8 @@ final class Container implements ContainerInterface {
     /** {@inheritdoc} */
     public function has(string $id): bool {
         return
-                isset($this->storage[$id]) or
+                isset($this->storage[$id]) ||
+                isset($this->definitions[$id]) ||
                 $this->isValidClass($id);
     }
 
@@ -93,12 +92,18 @@ final class Container implements ContainerInterface {
             try {
                 $reflector = new ReflectionClass($className);
                 return $reflector->isInstantiable();
-            } catch (ReflectionException $error) {
+            } catch (ReflectionException) {
 
             }
         }
 
         return false;
+    }
+
+    private function isCallable(mixed $input): bool {
+        return
+                is_callable($input) &&
+                !(is_object($input) && !($input instanceof Closure));
     }
 
     /** {@inheritdoc} */
