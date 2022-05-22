@@ -16,6 +16,7 @@
     "require-dev": {},
     "require": {
         "php": ">=8.1",
+        "ext-tokenizer": "*",
         "symfony/polyfill-mbstring": "^1.25",
         "psr/log": "^1|^2|^3",
         "psr/container": "^2"

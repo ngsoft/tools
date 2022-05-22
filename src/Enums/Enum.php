@@ -17,7 +17,8 @@ use BadMethodCallException,
     ValueError;
 
 /**
- * Basic Enum Support
+ * Basic Enum Class Support
+ * Adds the ability to class constants to work as php 8.1 backed enums cases
  */
 abstract class Enum implements Stringable, JsonSerializable {
 
