@@ -29,8 +29,9 @@ final class Container implements ContainerInterface {
      */
     public function __construct(array $definitions = []) {
         $this->resolver = new Resolver($this);
-        $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
+
         $this->definitions = $definitions;
+        $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
     }
 
     /**
@@ -54,8 +55,8 @@ final class Container implements ContainerInterface {
         if (!$this->has($id)) {
             throw new NotFoundException($id, $this);
         }
-        if (!isset($this->storage[$id])) {
-            if (isset($this->definitions[$id])) {
+        if (is_null($this->storage[$id] ?? null)) {
+            if (!is_null($this->definitions[$id] ?? null )) {
                 if ($this->isCallable($this->definitions[$id])) {
                     if ($resolved = $this->resolver->resolveCallable($this->definitions[$id])) $this->storage[$id] = $resolved;
                     else throw new NotFoundException($id, $this);
@@ -73,8 +74,8 @@ final class Container implements ContainerInterface {
     /** {@inheritdoc} */
     public function has(string $id): bool {
         return
-                isset($this->storage[$id]) ||
-                isset($this->definitions[$id]) ||
+                !is_null($this->storage[$id] ?? null) ||
+                !is_null($this->definitions[$id] ?? null) ||
                 $this->isValidClass($id);
     }
 
