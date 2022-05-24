@@ -12,8 +12,10 @@ use Closure,
     ReflectionFunctionAbstract,
     ReflectionMethod,
     ReflectionNamedType,
-    ReflectionType,
-    RuntimeException;
+    ReflectionParameter,
+    ReflectionUnionType,
+    RuntimeException,
+    Throwable;
 
 /**
  * A Simple Resolver that autowire classes and functions
@@ -68,15 +70,22 @@ class Resolver {
         return $result;
     }
 
-    protected function resolveUnionType(\ReflectionUnionType $type, \ReflectionParameter $param): mixed {
+    /**
+     * @param ReflectionUnionType $type
+     * @param ReflectionParameter $param
+     * @return mixed
+     * @throws RuntimeException
+     */
+    protected function resolveUnionType(ReflectionUnionType $type, ReflectionParameter $param): mixed {
         /** @var ReflectionNamedType $namedType */
         foreach ($type->getTypes() as $namedType) {
 
             try {
 
-                $resolved = $this->resolveNamedType($namedType, $param);
-                return $resolved;
-            } catch (\Throwable) {
+                if ($resolved = $this->resolveNamedType($namedType, $param)) {
+                    return $resolved;
+                }
+            } catch (Throwable) {
 
             }
         }
@@ -85,7 +94,14 @@ class Resolver {
         throw new RuntimeException();
     }
 
-    protected function resolveNamedType(\ReflectionNamedType $type, \ReflectionParameter $param): mixed {
+    /**
+     * @param \ReflectionNamedType $type
+     * @param ReflectionParameter $param
+     * @return mixed
+     * @throws RuntimeException
+     * @throws NotFoundException
+     */
+    protected function resolveNamedType(\ReflectionNamedType $type, ReflectionParameter $param): mixed {
 
         if ($type->isBuiltin()) {
             $allowsNull = $type->allowsNull();
@@ -122,14 +138,29 @@ class Resolver {
         }
     }
 
-    protected function resolveType(\ReflectionType $type, \ReflectionParameter $param): mixed {
+    /**
+     * @param ReflectionParameter $param
+     * @return mixed
+     * @throws RuntimeException
+     */
+    protected function resolveType(ReflectionParameter $param): mixed {
+        $type = $param->getType();
 
+        if ($type === null) {
+            try {
+                if ($param->isDefaultValueAvailable()) {
+                    $resolved = $param->getDefaultValue();
+                    return $resolved;
+                }
+            } catch (ReflectionException) {
 
-        if ($type instanceof \ReflectionNamedType) {
+            }
+            return null;
+        } elseif ($type instanceof \ReflectionNamedType) {
             return $this->resolveNamedType($type, $param);
-        } elseif ($type instanceof \ReflectionUnionType) return $this->resolveUnionType($type, $param);
+        } elseif ($type instanceof ReflectionUnionType) return $this->resolveUnionType($type, $param);
         elseif ($type->allowsNull()) return null;
-
+        // intersection types not supported
         throw new RuntimeException();
     }
 
@@ -144,34 +175,11 @@ class Resolver {
         $result = [];
         if ($reflection->getNumberOfParameters() == 0) return $result;
 
-
-        $params = $reflection->getParameters();
-        /** @var \ReflectionParameter $param */
-        foreach ($params as $index => $param) {
-
-            $type = $param->getType();
-            $allowsNull = $type === null || $type->allowsNull();
-            if ($type === null) {
-                try {
-                    if ($param->isDefaultValueAvailable()) {
-                        // ReflectionException can be thrown here
-                        $resolved = $param->getDefaultValue();
-                        $result[] = $resolved;
-                        continue;
-                    } elseif ($allowsNull) {
-                        $result[] = null;
-                        continue;
-                    }
-                } catch (ReflectionException) {
-
-                }
-                throw new RuntimeException(sprintf('Cannot resolve parameter %u', $index));
-            }
-
+        foreach ($reflection->getParameters() as $index => $param) {
 
             try {
-                $result[] = $this->resolveType($type, $param);
-            } catch (\Throwable) {
+                $result[] = $this->resolveType($param);
+            } catch (Throwable) {
 
                 throw new RuntimeException(sprintf('Cannot resolve parameter %u', $index));
             }
