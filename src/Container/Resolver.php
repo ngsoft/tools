@@ -95,13 +95,13 @@ class Resolver {
     }
 
     /**
-     * @param \ReflectionNamedType $type
+     * @param ReflectionNamedType $type
      * @param ReflectionParameter $param
      * @return mixed
      * @throws RuntimeException
      * @throws NotFoundException
      */
-    protected function resolveNamedType(\ReflectionNamedType $type, ReflectionParameter $param): mixed {
+    protected function resolveNamedType(ReflectionNamedType $type, ReflectionParameter $param): mixed {
 
         if ($type->isBuiltin()) {
             $allowsNull = $type->allowsNull();
@@ -156,7 +156,7 @@ class Resolver {
 
             }
             return null;
-        } elseif ($type instanceof \ReflectionNamedType) {
+        } elseif ($type instanceof ReflectionNamedType) {
             return $this->resolveNamedType($type, $param);
         } elseif ($type instanceof ReflectionUnionType) return $this->resolveUnionType($type, $param);
         elseif ($type->allowsNull()) return null;
@@ -180,7 +180,6 @@ class Resolver {
             try {
                 $result[] = $this->resolveType($param);
             } catch (Throwable) {
-
                 throw new RuntimeException(sprintf('Cannot resolve parameter %u', $index));
             }
         }
