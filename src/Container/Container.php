@@ -36,13 +36,14 @@ final class Container implements ContainerInterface {
 
     /**
      * Add an Entry/Definition to the container
+     *
      * @param string $id
      * @param mixed $value
      * @return static
      */
     public function set(string $id, mixed $value): self {
         // cannot overwrite data
-        if (!isset($this->storage[$id])) {
+        if (is_null($this->storage[$id] ?? null)) {
             if ($this->isCallable($value)) {
                 $this->definitions[$id] = $value;
             } else $this->storage[$id] = $value;
