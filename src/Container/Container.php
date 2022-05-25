@@ -10,6 +10,8 @@ use Closure,
     ReflectionClass,
     ReflectionException;
 
+class_exists(NotFoundException::class);
+
 /**
  * Basic Container with autowiring
  */
@@ -17,6 +19,9 @@ final class Container implements ContainerInterface {
 
     /** @var array<string,mixed> */
     private array $storage = [];
+
+    /** @var bool */
+    private $autowiring = true;
 
     /** @var array<string,callable|Closure> */
     private array $definitions = [];
@@ -29,7 +34,6 @@ final class Container implements ContainerInterface {
      */
     public function __construct(array $definitions = []) {
         $this->resolver = new Resolver($this);
-
         $this->definitions = $definitions;
         $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
     }
@@ -41,7 +45,7 @@ final class Container implements ContainerInterface {
      * @param mixed $value
      * @return static
      */
-    public function set(string $id, mixed $value): self {
+    public function set(string $id, mixed $value): static {
         // cannot overwrite data
         if (is_null($this->storage[$id] ?? null)) {
             if ($this->isCallable($value)) {
@@ -49,6 +53,21 @@ final class Container implements ContainerInterface {
             } else $this->storage[$id] = $value;
         }
         return $this;
+    }
+
+    public function addDefinitions(array $definitions): static {
+
+        foreach ($definitions as $id => $value) {
+            if (!is_string($id)) {
+                throw new class extends \RuntimeException implements ContainerExceptionInterface {
+
+                        };
+            }
+
+            if ($this->isCallable($value)) {
+                $this->definitions[$id] = $value;
+            }
+        }
     }
 
     /** {@inheritdoc} */
@@ -78,11 +97,6 @@ final class Container implements ContainerInterface {
                 !is_null($this->storage[$id] ?? null) ||
                 !is_null($this->definitions[$id] ?? null) ||
                 $this->isValidClass($id);
-    }
-
-    /** @return Resolver */
-    public function getResolver(): Resolver {
-        return $this->resolver;
     }
 
     /**
