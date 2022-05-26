@@ -138,7 +138,12 @@ final class Container implements ContainerInterface {
     /** {@inheritdoc} */
     public function __debugInfo() {
         // do not bloat var_dumps as infinite recursions can occur
-        return [];
+
+        $defined = [];
+        foreach (array_keys($this->definitions) as $id) $defined[$id] = get_debug_type($this->definitions[$id]);
+        foreach (array_keys($this->storage) as $id) $defined[$id] = get_debug_type($this->storage[$id]);
+
+        return $defined;
     }
 
 }
