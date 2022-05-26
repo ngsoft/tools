@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Attributes;
 
 use Attribute,
+    ReflectionAttribute,
     ReflectionClass,
     ReflectionException;
 
@@ -36,8 +37,8 @@ trait AttributeTrait {
                 foreach ($reflClass->getProperties() as $prop) {
                     $name = $prop->getName();
                     if (isset($result[$name])) continue;
-                    /** @var \ReflectionAttribute $attr */
-                    foreach ($prop->getAttributes(static::class) as $attr) {
+                    /** @var ReflectionAttribute $attr */
+                    foreach ($prop->getAttributes(static::class, ReflectionAttribute::IS_INSTANCEOF) as $attr) {
                         $instance = $attr->newInstance();
                         $instance->name = $name;
                         $instance->attributeTargetType = Attribute::TARGET_PROPERTY;

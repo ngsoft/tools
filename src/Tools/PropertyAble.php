@@ -43,7 +43,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
             $meta = new HasProperties();
             /** @var ReflectionClass $reflClass */
             foreach (self::getClassParents($instance) as $reflClass) {
-                $attrs = $reflClass->getAttributes(HasProperties::class);
+                $attrs = $reflClass->getAttributes(HasProperties::class, \ReflectionAttribute:: IS_INSTANCEOF);
                 if (empty($attrs)) continue;
                 foreach ($attrs as $attr) {
                     $meta = $attr->newInstance();
