@@ -39,13 +39,25 @@ abstract class Enum implements Stringable, JsonSerializable {
     }
 
     /**
+     * Checks if current Enum is equals to input
+     *
+     * @param self|int|float|string $input
+     * @return bool
+     */
+    public function is(self|int|float|string $input): bool {
+
+        if ($input instanceof self) return static::class === $input::class && $input->value === $this->value;
+        return $input === $this->value;
+    }
+
+    /**
      * Get Enum instance by name
      *
      * @param string $name
      * @return static
      * @throws ValueError
      */
-    public static function get(string $name): static {
+    final public static function get(string $name): static {
         static::cases();
         $index = self::$indexes[static::class][$name] ?? null;
         if (!is_int($index)) throw new ValueError(sprintf(self::ERROR_ENUM_CASE, static::class, $name));
