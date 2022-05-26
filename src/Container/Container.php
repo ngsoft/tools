@@ -142,7 +142,6 @@ final class Container implements ContainerInterface {
         $defined = [];
         foreach (array_keys($this->definitions) as $id) $defined[$id] = get_debug_type($this->definitions[$id]);
         foreach (array_keys($this->storage) as $id) $defined[$id] = get_debug_type($this->storage[$id]);
-
         return $defined;
     }
 
