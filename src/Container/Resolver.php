@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace NGSOFT\Container;
 
 use Closure,
-    NGSOFT\Exceptions\NotFoundException,
-    Psr\Container\ContainerInterface,
-    ReflectionException,
+    NGSOFT\Exceptions\NotFoundException;
+use Psr\Container\{
+    ContainerInterface, NotFoundExceptionInterface
+};
+use ReflectionException,
     ReflectionFunction,
     ReflectionFunctionAbstract,
     ReflectionMethod,
@@ -43,7 +45,7 @@ class Resolver {
                 $args = $this->resolveParameters($reflection);
                 $result = new $className(...$args);
             } catch (RuntimeException $error) {
-                if ($error instanceof NotFoundException) throw $error;
+                if ($error instanceof NotFoundExceptionInterface) throw $error;
             }
         }
         return $result;
@@ -55,14 +57,13 @@ class Resolver {
      * @return mixed
      * @throws RuntimeException
      */
-    public function resolveCallable(callable $callable) {
+    public function resolveCallable(callable $callable): mixed {
         $result = null;
         $closure = $callable instanceof Closure ? $callable : Closure::fromCallable($callable);
         $reflection = new ReflectionFunction($closure);
 
         try {
             $args = $this->resolveParameters($reflection);
-
             $result = call_user_func_array($callable, $args);
         } catch (RuntimeException $error) {
             if ($error instanceof NotFoundException) throw $error;
@@ -176,7 +177,6 @@ class Resolver {
         if ($reflection->getNumberOfParameters() == 0) return $result;
 
         foreach ($reflection->getParameters() as $index => $param) {
-
             try {
                 $result[] = $this->resolveType($param);
             } catch (Throwable) {

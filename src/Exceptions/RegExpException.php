@@ -10,16 +10,12 @@ use NGSOFT\RegExp,
 
 class RegExpException extends RuntimeException {
 
-    /** @var RegExp */
-    private $regExp;
-
     public function __construct(
-            RegExp $regExp,
+            protected RegExp $regExp,
             string $message = "",
             int $code = 0,
             Throwable $previous = null
     ) {
-        $this->regExp = $regExp;
         $code = $code !== 0 ? $code : preg_last_error();
         if (empty($message)) $message = sprintf('Regex "%s", %s', $regExp, preg_last_error_msg());
 

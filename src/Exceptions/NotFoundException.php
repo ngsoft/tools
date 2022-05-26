@@ -11,19 +11,15 @@ use RuntimeException;
 
 class NotFoundException extends RuntimeException implements NotFoundExceptionInterface {
 
-    /** @var ContainerInterface */
-    protected $container;
-
     /**
-     * @param string $id Entry ID
      * @param ContainerInterface $container
+     * @param string $id
      */
     public function __construct(
+            protected ContainerInterface $container,
             string $id,
-            ContainerInterface $container
     ) {
-        $this->container = $container;
-        parent::__construct(sprintf('Entry "%s" not found.', $id));
+        parent::__construct(sprintf('Entry ID "%s" not found.', $id));
     }
 
     public function getContainer(): ContainerInterface {

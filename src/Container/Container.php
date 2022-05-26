@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure,
-    NGSOFT\Exceptions\NotFoundException,
-    Psr\Container\ContainerInterface,
+use Closure;
+use NGSOFT\Exceptions\{
+    InvalidDefinition, NotFoundException
+};
+use Psr\Container\ContainerInterface,
     ReflectionClass,
     ReflectionException;
 
 class_exists(NotFoundException::class);
+class_exists(InvalidDefinition::class);
 
 /**
  * Basic Container with autowiring
@@ -19,9 +22,6 @@ final class Container implements ContainerInterface {
 
     /** @var array<string,mixed> */
     private array $storage = [];
-
-    /** @var bool */
-    private $autowiring = true;
 
     /** @var array<string,callable|Closure> */
     private array $definitions = [];
@@ -34,8 +34,8 @@ final class Container implements ContainerInterface {
      */
     public function __construct(array $definitions = []) {
         $this->resolver = new Resolver($this);
-        $this->definitions = $definitions;
         $this->storage[ContainerInterface::class] = $this->storage[Container::class] = $this;
+        $this->addDefinitions($definitions);
     }
 
     /**
@@ -46,57 +46,68 @@ final class Container implements ContainerInterface {
      * @return static
      */
     public function set(string $id, mixed $value): static {
-        // cannot overwrite data
-        if (is_null($this->storage[$id] ?? null)) {
-            if ($this->isCallable($value)) {
-                $this->definitions[$id] = $value;
-            } else $this->storage[$id] = $value;
-        }
-        return $this;
+        return $this->addDefinitions([$id => $value]);
     }
 
+    /**
+     *
+     * @param array $definitions
+     * @return static
+     * @throws InvalidDefinition
+     */
     public function addDefinitions(array $definitions): static {
 
         foreach ($definitions as $id => $value) {
             if (!is_string($id)) {
-                throw new class extends \RuntimeException implements ContainerExceptionInterface {
-
-                        };
+                throw new InvalidDefinition($this, $id, $value);
             }
-
+            if ($this->isDefined($id)) continue;
             if ($this->isCallable($value)) {
                 $this->definitions[$id] = $value;
-            }
+            } else $this->storage[$id] = $value;
         }
+
+        return $this;
     }
 
     /** {@inheritdoc} */
     public function get(string $id) {
-        if (!$this->has($id)) {
-            throw new NotFoundException($id, $this);
+        $resolved = null;
+        if ($this->has($id)) {
+            if ($this->isDefined($id)) return $this->storage[$id];
+            elseif ($this->hasDefinition($id)) $resolved = $this->resolver->resolveCallable($this->definitions[$id]);
+            else $resolved = $this->resolver->resolveClassName($id);
         }
-        if (is_null($this->storage[$id] ?? null)) {
-            if (!is_null($this->definitions[$id] ?? null )) {
-                if ($this->isCallable($this->definitions[$id])) {
-                    if ($resolved = $this->resolver->resolveCallable($this->definitions[$id])) $this->storage[$id] = $resolved;
-                    else throw new NotFoundException($id, $this);
-                } elseif (is_scalar($this->definitions[$id] || is_object($this->definitions[$id]))) $this->storage[$id] = $this->definitions[$id];
-                else throw new NotFoundException($id, $this);
-            } elseif (
-                    class_exists($id) &&
-                    $resolved = $this->resolver->resolveClassName($id)
-            ) $this->storage[$id] = $resolved;
-            else throw new NotFoundException($id, $this);
-        }
-        return $this->storage[$id];
+        if (null === $resolved) throw new NotFoundException($this, $id);
+        return $this->storage[$id] = $resolved;
     }
 
     /** {@inheritdoc} */
     public function has(string $id): bool {
+
         return
-                !is_null($this->storage[$id] ?? null) ||
-                !is_null($this->definitions[$id] ?? null) ||
+                !is_null($this->storage[$id] ?? $this->definitions[$id] ?? null) ||
                 $this->isValidClass($id);
+    }
+
+    /**
+     * Checks if definition is defined (or already resolved)
+     *
+     * @param string $id
+     * @return bool
+     */
+    private function isDefined(string $id): bool {
+        return !is_null($this->storage[$id]);
+    }
+
+    /**
+     * Checks if a definition exists for entry
+     *
+     * @param string $id
+     * @return bool
+     */
+    private function hasDefinition(string $id): bool {
+        return $this->isCallable($this->definitions[$id] ?? null);
     }
 
     /**
@@ -106,19 +117,19 @@ final class Container implements ContainerInterface {
      */
     private function isValidClass(string $className): bool {
 
-        if (class_exists($className)) {
-            try {
-                $reflector = new ReflectionClass($className);
-                return $reflector->isInstantiable();
-            } catch (ReflectionException) {
-
-            }
+        static $cache = [];
+        if (is_bool($cache[$className] ?? null)) ;
+        try {
+            $reflector = new ReflectionClass($className);
+            $cache[$className] = $reflector->isInstantiable();
+        } catch (ReflectionException) {
+            $cache[$className] = false;
         }
-
-        return false;
+        return $cache[$className];
     }
 
     private function isCallable(mixed $input): bool {
+
         return
                 is_callable($input) &&
                 !(is_object($input) && !($input instanceof Closure));
