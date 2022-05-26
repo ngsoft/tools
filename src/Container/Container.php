@@ -118,7 +118,7 @@ final class Container implements ContainerInterface {
     private function isValidClass(string $className): bool {
 
         static $cache = [];
-        if (is_bool($cache[$className] ?? null)) ;
+        if (is_bool($cache[$className] ?? null)) return $cache[$className];
         try {
             $reflector = new ReflectionClass($className);
             $cache[$className] = $reflector->isInstantiable();
