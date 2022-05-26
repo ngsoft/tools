@@ -54,6 +54,21 @@ abstract class Enum implements Stringable, JsonSerializable {
      * Get Enum instance by name
      *
      * @param string $name
+     * @return static|null
+     */
+    final public function tryGet(string $name): ?static {
+
+        try {
+            return static::get($name);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Get Enum instance by name
+     *
+     * @param string $name
      * @return static
      * @throws ValueError
      */
