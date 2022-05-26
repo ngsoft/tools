@@ -47,6 +47,9 @@ class EnumUtils {
      */
     public static function addPhpDocToEnumClass(string $className): bool {
 
+        static $matchLine;
+        $matchLine = $matchLine ?? \NGSOFT\RegExp::create('class .*Color .*extends .*Enum');
+
         $contents = static::generateEnumClassPhpDoc($className);
 
         if (empty($contents)) return false;
@@ -78,8 +81,9 @@ class EnumUtils {
 
                 if ($orig === false) {
                     foreach (explode("\n", $classContents) as $fileLine) {
-                        if (str_contains($fileLine, 'class ') && str_contains($fileLine, $relClassName)) {
-                            $newContents = str_replace($fileLine, "$docs\$fileLine", $classContents);
+                        if ($matchLine->test($fileLine)) {
+                            $newContents = str_replace($fileLine, "$docs\n$fileLine", $classContents);
+                            break;
                         }
                     }
                 } else $newContents = str_replace($orig, $docs, $classContents);
