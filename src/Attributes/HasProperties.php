@@ -7,6 +7,8 @@ namespace NGSOFT\Attributes;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 class HasProperties {
 
+    use AttributeTrait;
+
     public function __construct(
             public bool $lazy = true,
             public bool $silent = false
