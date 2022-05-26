@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Attributes;
 
+use Attribute,
+    ReflectionClass,
+    ReflectionException;
+
 trait AttributeTrait {
+
+    public string $name = '';
+    public ?int $attributeTargetType = null;
 
     /**
      * @staticvar array $cache
@@ -22,7 +29,7 @@ trait AttributeTrait {
 
             $result = [];
 
-            $reflClass = new \ReflectionClass($className);
+            $reflClass = new ReflectionClass($className);
 
             do {
                 /** @var \ReflectionProperty $prop */
@@ -31,13 +38,17 @@ trait AttributeTrait {
                     if (isset($result[$name])) continue;
                     /** @var \ReflectionAttribute $attr */
                     foreach ($prop->getAttributes(static::class) as $attr) {
-                        $result[$name] = $attr->newInstance();
+                        $instance = $attr->newInstance();
+                        $instance->name = $name;
+                        $instance->attributeTargetType = Attribute::TARGET_PROPERTY;
+
+                        $result[$name] = $instance;
                     }
                 }
             } while (($reflClass = $reflClass->getParentClass()) !== false);
 
             return $cache[$key] = $result;
-        } catch (\ReflectionException) {
+        } catch (ReflectionException) {
             return [];
         }
     }
