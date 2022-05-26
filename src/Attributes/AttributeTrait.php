@@ -7,7 +7,6 @@ namespace NGSOFT\Attributes;
 trait AttributeTrait {
 
     /**
-     *
      * @staticvar array $cache
      * @param string|object $className
      * @return Property[]
@@ -32,7 +31,7 @@ trait AttributeTrait {
                     if (isset($result[$name])) continue;
                     /** @var \ReflectionAttribute $attr */
                     foreach ($prop->getAttributes(static::class) as $attr) {
-                        $result[$prop] = $attr->newInstance();
+                        $result[$name] = $attr->newInstance();
                     }
                 }
             } while (($reflClass = $reflClass->getParentClass()) !== false);

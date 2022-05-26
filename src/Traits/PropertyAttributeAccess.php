@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Traits;
 
-use NGSOFT\Attributes\Property;
+use NGSOFT\Attributes\Property,
+    RuntimeException;
 
-class PropertyAttributeAccess {
+trait PropertyAttributeAccess {
 
     private function getPropertyInfo(string $name): Property {
 
