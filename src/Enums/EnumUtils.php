@@ -77,28 +77,9 @@ class EnumUtils {
 
 
                 if ($orig === false) {
-                    $tokens = token_get_all($classContents, TOKEN_PARSE);
-
-                    $checkLines = [];
-
-                    foreach ($tokens as $token) {
-                        if (is_array($token)) {
-                            list($tokenIndex, $chars, $lineNumber) = $token;
-                            $tokenName = token_name($tokenIndex);
-                            // Enum class always extends NGSOFT\Enums\Enum
-                            if ($tokenName !== 'T_EXTENDS') continue;
-                            // line number begins to 1 and array to 0
-                            $checkLines[] = $lineNumber - 1;
-                        }
-                    }
-                    if (count($checkLines) > 0) {
-                        $lines = explode("\n", $classContents);
-                        foreach ($checkLines as $lineNumber) {
-                            $lineContents = $lines[$lineNumber];
-                            // RelClassName extends Enum
-                            if (str_contains($lineContents, $relClassName) && str_contains($lineContents, 'Enum')) {
-                                $newContents = str_replace($lineContents, "$docs\n$lineContents", $classContents);
-                            }
+                    foreach (explode("\n", $classContents) as $fileLine) {
+                        if (str_contains($fileLine, 'class ') && str_contains($fileLine, $relClassName)) {
+                            $newContents = str_replace($fileLine, "$docs\$fileLine", $classContents);
                         }
                     }
                 } else $newContents = str_replace($orig, $docs, $classContents);
