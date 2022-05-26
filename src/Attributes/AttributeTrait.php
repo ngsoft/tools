@@ -6,7 +6,18 @@ namespace NGSOFT\Attributes;
 
 trait AttributeTrait {
 
-    public static function getPropertyAttributes(string $className): array {
+    /**
+     *
+     * @staticvar array $cache
+     * @param string|object $className
+     * @return Property[]
+     */
+    public static function getPropertyAttributes(string|object $className): array {
+
+        static $cache = [];
+
+        $key = is_string($className) ?? $className::class;
+        if (isset($cache[$key])) return $cache[$key];
 
         try {
 
@@ -26,7 +37,7 @@ trait AttributeTrait {
                 }
             } while (($reflClass = $reflClass->getParentClass()) !== false);
 
-            return $result;
+            return $cache[$key] = $result;
         } catch (\ReflectionException) {
             return [];
         }
