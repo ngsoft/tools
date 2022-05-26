@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Enums;
 
-use InvalidArgumentException;
+use InvalidArgumentException,
+    NGSOFT\RegExp,
+    ReflectionClass;
+use const NAMESPACE_SEPARATOR;
 
 class EnumUtils {
 
@@ -26,7 +29,7 @@ class EnumUtils {
         $contents = '';
         static::assertValidClassname($className);
 
-        $reflector = new \ReflectionClass($className);
+        $reflector = new ReflectionClass($className);
         $currentDocs = $reflector->getDocComment();
         if (false === $currentDocs) $currentDocs = '';
 
@@ -47,16 +50,18 @@ class EnumUtils {
      */
     public static function addPhpDocToEnumClass(string $className): bool {
 
-        static $matchLine;
-        $matchLine = $matchLine ?? \NGSOFT\RegExp::create('class .*Color .*extends .*Enum');
+
 
         $contents = static::generateEnumClassPhpDoc($className);
 
         if (empty($contents)) return false;
 
-        $reflector = new \ReflectionClass($className);
-        $split = explode('\\', $className);
+        $reflector = new ReflectionClass($className);
+        $split = explode(NAMESPACE_SEPARATOR, $className);
         $relClassName = array_pop($split);
+
+        $matchLine = RegExp::create(sprintf('class .*%s .*extends .*Enum', $relClassName));
+
         $docs = $reflector->getDocComment();
         $orig = $docs;
         // empty doc block
