@@ -9,22 +9,22 @@ use BadMethodCallException;
 trait Unserializable {
 
     /** {@inheritdoc} */
-    final public function __sleep() {
+    final public function __sleep(): array {
         throw new BadMethodCallException('Cannot serialize ' . static::class);
     }
 
     /** {@inheritdoc} */
-    final public function __wakeup() {
+    final public function __wakeup(): void {
         throw new BadMethodCallException('Cannot unserialize ' . static::class);
     }
 
     /** {@inheritdoc} */
-    final public function __serialize() {
+    final public function __serialize(): array {
         throw new BadMethodCallException('Cannot serialize ' . static::class);
     }
 
     /** {@inheritdoc} */
-    final public function __unserialize(array $data) {
+    final public function __unserialize(array $data): void {
         throw new BadMethodCallException('Cannot unserialize ' . static::class);
     }
 
