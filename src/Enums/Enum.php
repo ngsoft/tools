@@ -199,7 +199,7 @@ abstract class Enum implements Stringable, JsonSerializable {
     }
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data) {
+    public function __unserialize(array $data): void {
         list($this->name, $this->value) = $data;
     }
 
