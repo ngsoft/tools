@@ -86,8 +86,8 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /** {@inheritdoc} */
-    public static function __set_state(array $array) {
-        return static::from($array);
+    public static function __set_state(array $properties) {
+        return static::from($properties);
     }
 
     /** {@inheritdoc} */
