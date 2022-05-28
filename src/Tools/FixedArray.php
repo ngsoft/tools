@@ -234,11 +234,11 @@ final class FixedArray implements ArrayAccess, Countable, IteratorAggregate, Str
     /**
      * Alternative way to retrieved cached data using var_export to export variables instead of serialize
      *
-     * @param array $array
+     * @param array $properties
      */
-    public static function __set_state(array $array): object {
+    public static function __set_state(array $properties): object {
         $i = new static();
-        $i->import($array);
+        $i->import($properties);
         return $i;
     }
 
