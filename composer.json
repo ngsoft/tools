@@ -1,8 +1,8 @@
 {
     "name": "ngsoft/tools",
     "description": "A set of reusable tools used on my projects.",
-    "keywords": ["arrayaccess", "session", "export", "dot", "data", "collection", "list", "sequence", "map", "set",
-        "psr-11", "enum"],
+    "keywords": ["arrayaccess", "session", "export", "collection", "list", "sequence", "map", "set",
+        "psr-11", "enum", "attribute", "reflection", "regexp"],
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
@@ -13,12 +13,15 @@
     "provide": {
         "psr/container-implementation": "^2.0"
     },
-    "require-dev": {},
+    "require-dev": {
+        "fig/cache-util": "^2"
+    },
     "require": {
         "php": ">=8.1",
         "symfony/polyfill-mbstring": "^1.25",
         "psr/log": "^1|^2|^3",
-        "psr/container": "^2"
+        "psr/container": "^2",
+        "psr/cache": "^1|^2|^3"
     },
     "autoload": {
         "psr-4": {

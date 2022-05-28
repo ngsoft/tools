@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-use EmptyIterator,
-    ErrorException,
+use ErrorException,
     FilesystemIterator,
+    Generator,
     InvalidArgumentException,
     RecursiveDirectoryIterator,
     RecursiveIteratorIterator,
     ReflectionClass,
     RuntimeException,
-    SplFileInfo,
-    Traversable;
-use function mb_strrpos,
-             mb_strtolower,
-             mb_substr,
+    SplFileInfo;
+use function str_ends_with,
              str_starts_with;
 
 /**
@@ -93,7 +90,7 @@ final class Tools {
     public static function errors_as_exceptions() {
 
         return set_error_handler(function ($type, $msg, $file, $line) {
-            if (!error_reporting()) return false;
+            if (!(error_reporting() & $type)) return false;
             throw new ErrorException($msg, 0, $type, $file, $line);
         });
     }
@@ -144,33 +141,26 @@ final class Tools {
      */
     public static function listFiles(string $dir, bool $recursive = false, string ...$extensions): array {
         $dir = realpath($dir);
+        $result = [];
         if (
                 $dir !== false and
                 is_dir($dir)
         ) {
-            $result = [];
-            $exts = array_map(fn($ext) => mb_strtolower(str_starts_with($ext, '.') ? $ext : ".$ext"), $extensions);
-            $extCount = count($extensions);
+            $hasExtensions = count($extensions) > 0;
             foreach (scandir($dir) as $file) {
                 if (
-                        $file == '.' or
-                        $file == '..'
+                        $file === '.' ||
+                        $file === '..'
                 ) continue;
 
                 if ($path = realpath($dir . DIRECTORY_SEPARATOR . $file)) {
 
-                    if (
-                            is_file($path) and
-                            $extCount > 0 ?
-                                    ( $fileExt = ($pos = mb_strrpos($file, '.')) !== false ?
-                                    mb_strtolower(mb_substr($file, $pos)) :
-                                    null and in_array($fileExt, $exts) ) :
-                                    true
-                    ) $result[] = $path;
-                    elseif (
-                            is_dir($path) and
-                            $recursive
-                    ) $result = array_merge($result, self::listFiles($path, $recursive, ...$extensions));
+                    if (is_dir($path)) {
+                        if (!$recursive) continue;
+                        $result = array_merge($result, self::listFiles($path, $recursive, ...$extensions));
+                    } elseif (is_file($path)) {
+                        if (!$hasExtensions || self::fileHasExtension($path, ...$extensions)) $result[] = $path;
+                    }
                 }
             }
             return $result;
@@ -181,57 +171,57 @@ final class Tools {
     /**
      * Get Recursive Dir Iterator
      * @param string $dir
-     * @return Traversable
+     * @return Generator<string,SplFileInfo>
      */
-    private static function getDirectoryIterator(string $dir): Traversable {
-        return
-                is_dir($dir) ?
-                new RecursiveIteratorIterator(
+    private static function getDirectoryIterator(string $dir): Generator {
+
+        if (!is_dir($dir)) throw new InvalidArgumentException(sprintf('%s is not a directory.', $dir));
+        yield from (new RecursiveIteratorIterator(
                         new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
                         RecursiveIteratorIterator::CHILD_FIRST
-                ) :
-                new EmptyIterator();
+        ));
     }
 
     /**
      * Get a Recursive Directory Iterator that list all the files
-     * If no extension provided will list all files (including directories)
-     * listFiles does the same but without iterator
      *
      * @param string $dir Directory to scan
      * @param string ...$extensions if at least one extension is set the iterator will only list files with that/those extension(s)
-     * @return SplFileInfo[]|Traversable An Iterator of SplFileInfo or empty if directory does not exists
+     * @return Generator<string,SplFileInfo> An Iterator of SplFileInfo or empty if directory does not exists
      */
-    public static function getRecursiveDirectoryIterator(string $dir, string ...$extensions) {
-        /** @var SplFileInfo $file */
-        foreach (self::getDirectoryIterator($dir) as $name => $file) {
-            if (
-                    !$extensions or
-                    (!$file->isDir() and self::fileHasExtension($name, ...$extensions))
-            ) {
-                // yield in function === returns a generator(even if return is before !)
-                yield $name => $file;
+    public static function getRecursiveDirectoryIterator(string $dir, string ...$extensions): Generator {
+
+        $findExtensions = count($extensions) > 0;
+        /** @var SplFileInfo $fileInfo */
+        foreach (self::getDirectoryIterator($dir) as $fileName => $fileInfo) {
+
+            if ($fileInfo->isDir()) continue;
+
+            if (!$findExtensions || self::fileHasExtension($fileName, ...$extensions)) {
+                yield $fileName => $fileInfo;
             }
         }
     }
 
     /**
      * Checks whenever the filename has the given extension(s)
-     * @param string $filename Filename to test
-     * @param string $extension Extension to match against
-     * @param string ...$additionalExtensions More extensions to match
+     *
+     * @param string $filename
+     * @param string ...$extensions
      * @return bool
+     * @throws InvalidArgumentException
      */
-    public static function fileHasExtension(string $filename, string $extension, string ...$additionalExtensions): bool {
+    public static function fileHasExtension(string $filename, string ...$extensions): bool {
+        if (count($extensions) === 0) {
+            throw new InvalidArgumentException('You need to specify at least one extention to match.');
+        }
 
-        $fileExt = ($pos = mb_strrpos($filename, '.')) !== false ?
-                mb_strtolower(mb_substr($filename, $pos)) :
-                null;
-
-        return $fileExt !== null and
-                in_array($fileExt,
-                        array_map(fn($ext) => mb_strtolower(str_starts_with($ext, '.') ? $ext : ".$ext"),
-                                array_merge([$extension], $additionalExtensions)));
+        $fileCheck = strtolower($filename);
+        foreach ($extensions as $extension) {
+            $extCheck = strtolower(str_starts_with($extension, '.') ? $extension : ".$extension");
+            if (str_ends_with($fileCheck, $extCheck)) return true;
+        }
+        return false;
     }
 
     /**
@@ -240,9 +230,9 @@ final class Tools {
      * @param string $filename
      * @param bool $once
      * @param array $data Data to extract as $data['key'] => $key in the file
-     * @return mixed|null
+     * @return mixed
      */
-    public static function include(string $filename, bool $once = true, array $data = []) {
+    public static function include(string $filename, bool $once = true, array $data = []): mixed {
         static $callback;
         if (!$callback) {
 
@@ -273,7 +263,11 @@ final class Tools {
 
         self::errors_as_exceptions();
         try {
-            foreach (self::listFiles($dir, true, $ext)as $phpfile) self::include($phpfile, true, $data);
+            /** @var SplFileInfo $fileInfo */
+            foreach (self::getRecursiveDirectoryIterator($dir, $ext) as $phpFile => $fileInfo) {
+
+                self::include($phpFile, true, $data);
+            }
         } finally {
             restore_error_handler();
         }
