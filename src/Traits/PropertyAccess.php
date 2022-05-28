@@ -18,7 +18,7 @@ trait PropertyAccess {
     use UnionType;
 
     /** {@inheritdoc} */
-    public function &__get($name) {
+    public function &__get(string $name): mixed {
         $getter = sprintf("get%s", Tools::toCamelCase($name));
         $value = null;
         if (method_exists($this, $getter)) {
@@ -29,7 +29,7 @@ trait PropertyAccess {
     }
 
     /** {@inheritdoc} */
-    public function __isset($name) {
+    public function __isset(string $name): bool {
         $getter = sprintf("get%s", Tools::toCamelCase($name));
         if (method_exists($this, $getter)) {
             $props = $this->parseTypes($getter);
@@ -39,7 +39,7 @@ trait PropertyAccess {
     }
 
     /** {@inheritdoc} */
-    public function __set($name, $value) {
+    public function __set(string $name, mixed $value): void {
         $setter = sprintf("set%s", Tools::toCamelCase($name));
         if (method_exists($this, $setter)) {
             //resolve type hint (type conversion even in strict mode using __set ...)
@@ -76,7 +76,7 @@ trait PropertyAccess {
     }
 
     /** {@inheritdoc} */
-    public function __unset($name) {
+    public function __unset(string $name): void {
         $setter = sprintf("set%s", Tools::toCamelCase($name));
         if (method_exists($this, $setter)) {
             $args = $this->parseTypes($setter);

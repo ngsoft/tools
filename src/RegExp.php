@@ -443,13 +443,13 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
     ////////////////////////////   Magic Methods   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data) {
+    public function __unserialize(array $data): void {
 
         $this->__construct($data['source'], $data['flags']);
     }
 
     /** {@inheritdoc} */
-    public function __serialize() {
+    public function __serialize(): array {
 
         return [
             'source' => $this->source,
@@ -471,7 +471,7 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
         return $regex;
     }
 
-    public function __debugInfo() {
+    public function __debugInfo(): array {
         return [
             'pattern' => $this->__toString(),
             'source' => $this->source,

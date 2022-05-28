@@ -107,7 +107,7 @@ final class Property {
         call_user_func($this->setter, $value);
     }
 
-    public function __clone() {
+    public function __clone(): void {
 
         if ($this->type == self::PROPERTY_TYPE_NONE) {
             $this->getter = Closure::bind($this->getter, $this, static::class);
@@ -115,7 +115,7 @@ final class Property {
         }
     }
 
-    public function __debugInfo() {
+    public function __debugInfo(): array {
         return [
             'configurable' => $this->getConfigurable(),
             'writable' => $this->getWritable(),

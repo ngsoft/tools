@@ -408,12 +408,12 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     }
 
     /** {@inheritdoc} */
-    public function __serialize() {
+    public function __serialize(): array {
         return $this->compact('pairs', 'keys', 'values');
     }
 
     /** {@inheritdoc} */
-    public function __clone() {
+    public function __clone(): void {
         $this->keys = clone $this->keys;
         $this->values = clone $this->values;
     }

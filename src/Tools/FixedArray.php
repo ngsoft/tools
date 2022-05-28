@@ -236,7 +236,7 @@ final class FixedArray implements ArrayAccess, Countable, IteratorAggregate, Str
      *
      * @param array $array
      */
-    public static function __set_state($array) {
+    public static function __set_state(array $array): object {
         $i = new static();
         $i->import($array);
         return $i;
@@ -248,7 +248,7 @@ final class FixedArray implements ArrayAccess, Countable, IteratorAggregate, Str
     }
 
     /** {@inheritdoc} */
-    public function __serialize() {
+    public function __serialize(): array {
         return $this->compact('storage', 'capacity', 'recursive');
     }
 

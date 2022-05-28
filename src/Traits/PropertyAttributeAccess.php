@@ -56,7 +56,7 @@ trait PropertyAttributeAccess {
         return $result;
     }
 
-    public function __unserialize(array $data) {
+    public function __unserialize(array $data): void {
         $result = [];
         foreach (Property::getPropertyAttributes($this) as $name => $prop) {
             if ($prop->serializable) $this->{$name} = $data[$name];

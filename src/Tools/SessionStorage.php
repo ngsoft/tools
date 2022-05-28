@@ -107,22 +107,22 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     ////////////////////////////   Getters/Setters   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function __isset($name) {
+    public function __isset(string $name): bool {
         return $this->offsetExists($name);
     }
 
     /** {@inheritdoc} */
-    public function __set($name, $value) {
+    public function __set(string $name, mixed $value): void {
         $this->offsetSet($name, $value);
     }
 
     /** {@inheritdoc} */
-    public function __unset($name) {
+    public function __unset(string $name): void {
         $this->offsetUnset($name);
     }
 
     /** {@inheritdoc} */
-    public function &__get($name) {
+    public function &__get(string $name): mixed {
         $value = $this->offsetGet($name);
         return $value;
     }

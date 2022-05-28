@@ -160,7 +160,7 @@ class Set implements Countable, IteratorAggregate, JsonSerializable, ArrayAccess
     }
 
     /** {@inheritdoc} */
-    public function __serialize() {
+    public function __serialize(): array {
         return $this->compact('storage', 'lastIndex');
     }
 
