@@ -6,10 +6,8 @@ namespace NGSOFT\Reflection;
 
 use ArrayAccess,
     Countable,
-    IteratorAggregate;
-use NGSOFT\Traits\{
-    ArrayAccessCountable, Exportable
-};
+    IteratorAggregate,
+    NGSOFT\Traits\ArrayAccessCountable;
 
 class RepeatableAttribute implements Countable, IteratorAggregate, ArrayAccess {
 

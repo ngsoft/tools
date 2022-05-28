@@ -22,10 +22,10 @@ class AttributeType extends Enum {
 
     public const ATTRIBUTE_CLASS = Attribute::TARGET_CLASS;
     public const ATTRIBUTE_CLASS_CONSTANT = Attribute::TARGET_CLASS_CONSTANT;
-    public const ATTRIBUTE_FUNCTION = Attribute::TARGET_FUNCTION;
-    public const ATTRIBUTE_METHOD = Attribute::TARGET_METHOD;
-    public const ATTRIBUTE_PARAMETER = Attribute::TARGET_PARAMETER;
     public const ATTRIBUTE_PROPERTY = Attribute::TARGET_PROPERTY;
+    public const ATTRIBUTE_METHOD = Attribute::TARGET_METHOD;
+    public const ATTRIBUTE_FUNCTION = Attribute::TARGET_FUNCTION;
+    public const ATTRIBUTE_PARAMETER = Attribute::TARGET_PARAMETER;
     public const ATTRIBUTE_ALL = Attribute::TARGET_ALL;
 
 }
