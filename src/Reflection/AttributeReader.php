@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Reflection;
 
 use Psr\{
-    Cache\CacheItemPoolInterface, Log\LoggerAwareTrait
+    Cache\CacheItemPoolInterface, Log\LoggerAwareTrait, Log\LoggerInterface
 };
 use ReflectionAttribute,
     ReflectionClass,
@@ -23,6 +23,20 @@ class AttributeReader {
     use LoggerAwareTrait;
 
     private ?CacheItemPoolInterface $cachePool = null;
+
+    /**
+     * Configure a new instance
+     *
+     * @param ?LoggerInterface $logger
+     * @param ?CacheItemPoolInterface $cachepool
+     * @return static
+     */
+    public static function create(LoggerInterface $logger = null, CacheItemPoolInterface $cachepool = null): static {
+        $instance = new static;
+        $instance->logger = $logger;
+        $instance->cachePool = $cachepool;
+        return $instance;
+    }
 
     /**
      * Get attributes for a class
@@ -55,6 +69,16 @@ class AttributeReader {
 
             $reflectionClass = new ReflectionClass($className);
 
+            if ($this->cachePool) {
+                $mtime = (new \SplFileInfo($reflectionClass->getFileName()))->getMTime();
+                $item = $this->cachePool->getItem(md5(sprintf('%s%d%d', is_object($className) ? $className::class : $className, $targetInt, $mtime)));
+                if ($item->isHit()) {
+                    var_dump('cache hit!');
+                    return $item->get();
+                }
+            }
+
+
             if ($targetInt === AttributeType::ATTRIBUTE_ALL || $targetInt === AttributeType::ATTRIBUTE_CLASS) {
                 $result[AttributeType::ATTRIBUTE_CLASS()->name] = $this->filterResults($this->getReflectionClassAttributes($reflectionClass), ...$attributeNames);
             }
@@ -82,6 +106,9 @@ class AttributeReader {
                     $result[AttributeType::ATTRIBUTE_METHOD()->name][$name] = $this->filterResults($this->getReflectionMethodAttributes($reflectionMethod), ...$attributeNames);
                 }
             }
+
+
+            if (count($result) > 0 && isset($item)) $this->cachePool->save($item->set($result));
         } catch (\ValueError $error) {
             throw $error;
         } catch (Throwable $error) {

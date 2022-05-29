@@ -7,8 +7,9 @@ namespace NGSOFT\Reflection;
 use Attribute,
     ReflectionAttribute,
     ReflectionClass,
-    ReflectionException,
-    RuntimeException;
+    RuntimeException,
+    Throwable,
+    ValueError;
 
 class AttributeMetadata {
 
@@ -21,6 +22,7 @@ class AttributeMetadata {
     public readonly bool $targetParameter;
     public readonly bool $isRepeatable;
     public readonly int $flags;
+    public readonly array $parameters;
 
     public function __construct(string $attributeName) {
 
@@ -39,6 +41,15 @@ class AttributeMetadata {
                     $targetFunction = ($attribute->flags & Attribute::TARGET_FUNCTION) > 0;
                     $targetParameter = ($attribute->flags & Attribute::TARGET_PARAMETER) > 0;
                     $isRepeatable = ($attribute->flags & Attribute::IS_REPEATABLE) > 0;
+                    $parameters = [];
+
+                    if (method_exists($attributeName, '__construct')) {
+                        $reflectionMethod = $reflectionClass->getMethod('__construct');
+
+                        foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
+                            $parameters[] = $reflectionParameter->getName();
+                        }
+                    }
 
                     $cache[$attributeName] = [
                         $attributeName,
@@ -49,12 +60,15 @@ class AttributeMetadata {
                         $targetFunction,
                         $targetParameter,
                         $isRepeatable,
-                        $attribute->flags
+                        $attribute->flags,
+                        $parameters,
                     ];
 
                     break;
                 }
-            } catch (ReflectionException $previous) {
+
+                if (!isset($attribute)) throw new ValueError(sprintf('%s is not a valid attribute name.', $attributeName));
+            } catch (Throwable $previous) {
                 throw new RuntimeException(sprintf('Cannot read attribute %s metadata.', $attributeName), 0, $previous);
             }
         }
@@ -68,7 +82,8 @@ class AttributeMetadata {
                 $this->targetFunction,
                 $this->targetParameter,
                 $this->isRepeatable,
-                $this->flags
+                $this->flags,
+                $this->parameters
                 ) = $cache[$attributeName];
     }
 
@@ -83,7 +98,8 @@ class AttributeMetadata {
             $this->targetFunction,
             $this->targetParameter,
             $this->isRepeatable,
-            $this->flags
+            $this->flags,
+            $this->parameters
         ];
     }
 
@@ -97,7 +113,8 @@ class AttributeMetadata {
                 $this->targetFunction,
                 $this->targetParameter,
                 $this->isRepeatable,
-                $this->flags
+                $this->flags,
+                $this->parameters
                 ) = $data;
     }
 
