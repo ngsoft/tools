@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace NGSOFT\Reflection;
 
 use Attribute,
+    InvalidArgumentException,
     ReflectionAttribute,
     ReflectionClass,
     ReflectionIntersectionType,
     ReflectionNamedType,
+    ReflectionParameter,
     ReflectionUnionType,
     RuntimeException,
     Throwable,
@@ -27,6 +29,7 @@ class AttributeMetadata
     public readonly bool $isRepeatable;
     public readonly int $flags;
     public readonly array $parameters;
+    public ?object $attribute = null;
 
     public function __construct(string $attributeName)
     {
@@ -85,13 +88,26 @@ class AttributeMetadata
                 ) = $cache[$attributeName];
     }
 
+    public function withAttribute(object $attribute)
+    {
+        $clone = clone $this;
+
+        if (get_class($attribute) !== $this->attributeName) {
+            throw new InvalidArgumentException(sprintf('Invalid Attribute "%s" set for %s', $attribute::class, $this->attributeName));
+        }
+
+        $clone->attribute = $attribute;
+
+        return $clone;
+    }
+
     private function parseParameters(\ReflectionClass $reflectionClass): array
     {
         $result = [];
         if ($reflectionClass->hasMethod('__construct')) {
             $reflectionMethod = $reflectionClass->getMethod('__construct');
 
-            /** @var \ReflectionParameter $reflectionParameter */
+            /** @var ReflectionParameter $reflectionParameter */
             foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
 
                 $type = 'mixed';
@@ -101,17 +117,8 @@ class AttributeMetadata
                     if ($reflectionType instanceof ReflectionNamedType) {
                         $type = $reflectionType->getName();
                     } else {
-                        /** @var ReflectionUnionType|ReflectionIntersectionType $reflectionType */
-                        switch (get_class($reflectionType)) {
-                            case ReflectionUnionType::class:
-                                $separator = '|';
-                                break;
-                            case ReflectionIntersectionType::class:
-                                $separator = '&';
-                                break;
-                        }
                         $types = array_map(fn($t) => $t->getName(), $reflectionType->getTypes());
-                        $type = implode($separator, $types);
+                        $type = implode($reflectionType instanceof ReflectionUnionType ? '|' : '&', $types);
                     }
                 } else $type = 'mixed';
                 $result[$reflectionParameter->getName()] = new AttributeParameter($reflectionParameter->getName(), $type);
