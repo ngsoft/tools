@@ -29,10 +29,12 @@ class AttributeMetadata
     public readonly bool $isRepeatable;
     public readonly int $flags;
     public readonly array $parameters;
-    public ?object $attribute = null;
-    public ?AttributeType $attributeType = null;
 
-    public function __construct(string $attributeName)
+    public function __construct(
+            string $attributeName,
+            public ?object $attribute = null,
+            public ?AttributeType $attributeType = null
+    )
     {
 
         static $cache = [];
