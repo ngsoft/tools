@@ -16,7 +16,7 @@ final class Set implements \Countable, \JsonSerializable, \Stringable, \Iterator
 
     /**
      * Create a new Set
-     * 
+     *
      * @return static
      */
     public static function create(): static
@@ -136,6 +136,12 @@ final class Set implements \Countable, \JsonSerializable, \Stringable, \Iterator
 
     /** {@inheritdoc} */
     public function jsonSerialize(): mixed
+    {
+        return $this->storage;
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo(): array
     {
         return $this->storage;
     }

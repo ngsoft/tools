@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use ValueError;
+use Countable,
+    Generator,
+    IteratorAggregate,
+    JsonSerializable,
+    Stringable,
+    Traversable,
+    ValueError;
 
 /**
  * Simulates one to many relationships found in databases
  */
-final class OwnedList implements \Countable, \Stringable, \IteratorAggregate, \JsonSerializable
+final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable
 {
 
     private Set $ownedList;
@@ -43,7 +49,7 @@ final class OwnedList implements \Countable, \Stringable, \IteratorAggregate, \J
     {
 
         if ($this->value === $value) {
-            throw new ValueError(sprintf('Value cannot own itself.'));
+            throw new ValueError('Value cannot own itself.');
         }
         $this->ownedList->add($value);
         return $this;
@@ -101,19 +107,31 @@ final class OwnedList implements \Countable, \Stringable, \IteratorAggregate, \J
         foreach ($this->entries() as $value) { yield $value; }
     }
 
+    /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->ownedList);
     }
 
-    public function getIterator(): \Traversable
+    /** {@inheritdoc} */
+    public function getIterator(): Traversable
     {
         yield from $this->entries();
     }
 
+    /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
         return [];
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo(): array
+    {
+        return [
+            'ownedBy' => $this->value,
+            'ownedList' => $this->ownedList,
+        ];
     }
 
     /** {@inheritdoc} */
