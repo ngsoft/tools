@@ -17,7 +17,7 @@ use ArrayAccess,
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map JS Map
  */
-class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \JsonSerializable
+final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \JsonSerializable
 {
 
     protected array $keys = [];
@@ -36,7 +36,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \Jso
         return $this;
     }
 
-    protected function indexes(): \Generator
+    protected function getIndexes(): \Generator
     {
         foreach (array_keys($this->keys) as $offset) { yield $offset; }
     }
@@ -92,13 +92,8 @@ class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \Jso
      */
     public function set(int|string|float|object $key, mixed $value): static
     {
-
-        if (($index = $this->indexOf($key)) === -1) {
-            return $this->append($key, $value);
-        }
-        $this->keys[$index] = $key;
-        $this->values[$index] = $value;
-        return $this;
+        $this->delete($key);
+        return $this->append($key, $value);
     }
 
     /**
@@ -140,7 +135,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \Jso
      */
     public function entries(): Generator
     {
-        foreach ($this->indexes() as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
+        foreach ($this->getIndexes() as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
     }
 
     /**
@@ -202,7 +197,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \Jso
         $result = [];
 
         foreach ($this->entries() as $key => $value) {
-            $result[is_scalar($key) ? $key : sprintf('%s#%s', get_debug_type($key), spl_object_id($key))] = $value;
+            $result[is_scalar($key) ? $key : sprintf('%s#%d', get_debug_type($key), spl_object_id($key))] = $value;
         }
 
         return $result;
