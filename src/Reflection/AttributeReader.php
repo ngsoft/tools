@@ -15,8 +15,10 @@ use ReflectionAttribute,
     ReflectionMethod,
     ReflectionParameter,
     ReflectionProperty,
+    SplFileInfo,
     Throwable,
-    ValueError;
+    ValueError,
+    WeakMap;
 
 class AttributeReader
 {
@@ -73,10 +75,9 @@ class AttributeReader
             $reflectionClass = new ReflectionClass($className);
 
             if ($this->cachePool) {
-                $mtime = (new \SplFileInfo($reflectionClass->getFileName()))->getMTime();
+                $mtime = (new SplFileInfo($reflectionClass->getFileName()))->getMTime();
                 $item = $this->cachePool->getItem(md5(sprintf('%s%d%d', is_object($className) ? $className::class : $className, $targetInt, $mtime)));
                 if ($item->isHit()) {
-                    var_dump('cache hit!');
                     return $item->get();
                 }
             }
@@ -121,13 +122,35 @@ class AttributeReader
         return $result;
     }
 
+    public function getClassMethodAttributes(string|object $class, string $methodName): array
+    {
+        static $cache = [];
+        $className = is_object($class) ? get_class($class) : $class;
+        $cache[$className] = $cache[$className] ?? [];
+        if (isset($cache[$className][$methodName])) return $cache[$className][$methodName];
+        if ($this->cachePool) {
+            $item = $this->cachePool->getItem(md5(sprintf('%s|%s::%s()', static::class, $className, $methodName)));
+            if ($item->isHit()) return $cache[$className][$methodName] = $item->get();
+        }
+        $result = [];
+        try {
+
+            $result = $this->getReflectionMethodAttributes(new \ReflectionMethod($className, $methodName));
+        } catch (\Throwable $error) {
+            $this->logger && $this->logger->warning(sprintf('Cannot get class %s methods attributes.', $className), [$error]);
+        }
+
+        if ($this->cachePool && count($result) > 0) $this->cachePool->save($item->set($result));
+        return $result;
+    }
+
     /**
      * @param ReflectionClass $reflectionClass
      * @return object[]
      */
     public function getReflectionClassAttributes(ReflectionClass $reflectionClass): array
     {
-        return $this->getAttributeInstances(...$reflectionClass->getAttributes());
+        return $this->getAttributeInstances($reflectionClass->getName(), ...$reflectionClass->getAttributes());
     }
 
     /**
@@ -136,7 +159,7 @@ class AttributeReader
      */
     public function getReflectionMethodAttributes(ReflectionMethod $reflectionMethod): array
     {
-        return $this->getAttributeInstances(...$reflectionMethod->getAttributes());
+        return $this->getAttributeInstances($reflectionMethod->getName(), ...$reflectionMethod->getAttributes());
     }
 
     /**
@@ -145,7 +168,7 @@ class AttributeReader
      */
     public function getReflectionPropertyAttributes(ReflectionProperty $reflectionProperty): array
     {
-        return $this->getAttributeInstances(...$reflectionProperty->getAttributes());
+        return $this->getAttributeInstances($reflectionProperty->getName(), ...$reflectionProperty->getAttributes());
     }
 
     /**
@@ -154,12 +177,12 @@ class AttributeReader
      */
     public function getReflectionClassConstantAttributes(ReflectionClassConstant $reflectionClassConstant): array
     {
-        return $this->getAttributeInstances(...$reflectionClassConstant->getAttributes());
+        return $this->getAttributeInstances($reflectionClassConstant->getName(), ...$reflectionClassConstant->getAttributes());
     }
 
     public function getReflectionFunctionAttributes(ReflectionFunction $reflectionFunction): array
     {
-        return $this->getAttributeInstances(...$reflectionFunction->getAttributes());
+        return $this->getAttributeInstances($reflectionFunction->getName(), ...$reflectionFunction->getAttributes());
     }
 
     /**
@@ -168,7 +191,7 @@ class AttributeReader
      */
     public function getReflectionParameterAttributes(ReflectionParameter $reflectionParameter)
     {
-        return $this->getAttributeInstances(...$reflectionParameter->getAttributes());
+        return $this->getAttributeInstances($reflectionParameter->getName(), ...$reflectionParameter->getAttributes());
     }
 
     /**
@@ -190,7 +213,7 @@ class AttributeReader
         return $this->getAttributeMetadata($attributeName)->isRepeatable;
     }
 
-    private function getAttributeInstances(ReflectionAttribute ...$attributes): array
+    private function getAttributeInstances(string $name, ReflectionAttribute ...$attributes): array
     {
 
         $result = [];
@@ -199,12 +222,18 @@ class AttributeReader
 
             try {
                 $attributeName = $reflectionAttribute->getName();
+
                 $instance = $reflectionAttribute->newInstance();
+
+                $metaInstance = $this->getAttributeMetadata($attributeName)
+                        ->withAttribute($instance)
+                        ->withName($name)
+                        ->withAttributeType($reflectionAttribute->getTarget());
 
                 if ($this->isRepeatableAttribute($attributeName)) {
                     $result[$attributeName] = $result[$attributeName] ?? new RepeatableAttribute();
-                    $result[$attributeName][] = $instance;
-                } else $result[$attributeName] = $instance;
+                    $result[$attributeName][] = $metaInstance;
+                } else $result[$attributeName] = $metaInstance;
             } catch (ReflectionException $error) {
                 $this->logger && $this->logger->warning('Cannot get attribute instance.', [$error]);
             }
@@ -212,6 +241,14 @@ class AttributeReader
 
 
         return $result;
+    }
+
+    private function getFileInfo(string|object $class): SplFileInfo
+    {
+        static $cache;
+        $cache = $cache ?? new WeakMap();
+        //$className = is_object($class) ? get_class($class) : $class;
+        return $cache[$class] = $cache[$class] ?? new SplFileInfo((new \ReflectionClass($class))->getFileName());
     }
 
     private function filterResults(array $input, string ...$attributeNames)

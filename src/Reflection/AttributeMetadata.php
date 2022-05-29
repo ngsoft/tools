@@ -32,6 +32,7 @@ class AttributeMetadata
 
     public function __construct(
             string $attributeName,
+            public ?string $name = null,
             public ?object $attribute = null,
             public ?AttributeType $attributeType = null
     )
@@ -89,6 +90,13 @@ class AttributeMetadata
                 $this->flags,
                 $this->parameters
                 ) = $cache[$attributeName];
+    }
+
+    public function withName(string $name): static
+    {
+        $clone = clone $this;
+        $clone->name = $name;
+        return $clone;
     }
 
     public function withAttribute(object $attribute): static
@@ -153,6 +161,7 @@ class AttributeMetadata
             $this->isRepeatable,
             $this->flags,
             $this->parameters,
+            $this->name,
             $this->attribute,
             $this->attributeType,
         ];
@@ -171,6 +180,7 @@ class AttributeMetadata
                 $this->isRepeatable,
                 $this->flags,
                 $this->parameters,
+                $this->name,
                 $this->attribute,
                 $this->attributeType,
                 ) = $data;
