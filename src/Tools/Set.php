@@ -4,201 +4,156 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use ArrayAccess,
-    Countable,
-    Generator,
-    InvalidArgumentException,
-    IteratorAggregate,
-    JsonSerializable,
-    LogicException,
-    NGSOFT\Traits\Exportable,
-    Stringable;
-use function get_debug_type;
+use Generator;
 
 /**
- * A collection of unique strings
- * A removed entry will not reallocate its index
- *
- * Same api as JS Set() with indexes as we need them, the difference is you can only add strings
- * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
- *
+ * The Set object lets you store unique values of any type, whether primitive values or object references.
  */
-class Set implements Countable, IteratorAggregate, JsonSerializable, ArrayAccess, Stringable {
+final class Set implements \Countable, \JsonSerializable, \Stringable, \IteratorAggregate
+{
 
-    use Exportable;
-
-    /** @var string[] */
-    private $storage = [];
+    private array $storage = [];
 
     /**
-     * Keep the last added key index
-     * increments when a value is added
-     * @var int
+     * Create a new Set
+     * 
+     * @return static
      */
-    private $lastIndex = -1;
-
-    ////////////////////////////   API   ////////////////////////////
+    public static function create(): static
+    {
+        return new static();
+    }
 
     /**
-     * Removes all elements and reset the index
+     * Get Index of value inside the set
+     *
+     * @param mixed $value
+     * @return int
+     */
+    public function indexOf(mixed $value): int
+    {
+        $index = array_search($value, $this->storage, true);
+        return $index !== false ? $index : -1;
+    }
+
+    private function getIndexes(): Generator
+    {
+        foreach (array_keys($this->storage) as $offset) { yield $offset; }
+    }
+
+    /**
+     * The add() method appends a new element with a specified value to the end of a Set object.
+     *
+     * @param mixed $value
+     * @return static
+     */
+    public function add(mixed $value): static
+    {
+        if (!$this->has($value)) $this->storage[] = $value;
+        return $this;
+    }
+
+    /**
+     * The clear() method removes all elements from a Set object.
+     *
      * @return void
      */
-    public function clear(): void {
-
+    public function clear(): void
+    {
         $this->storage = [];
-        $this->lastIndex = -1;
     }
 
     /**
-     * Append a string in the set if it doesn't exists
+     * The delete() method removes a specified value from a Set object, if it is in the set.
      *
-     * @param string $value
-     * @return int the value index
-     */
-    public function add(string $value): int {
-        if (empty($value)) throw new InvalidArgumentException('Value cannot be empty.');
-        if (!$this->has($value)) {
-            $this->lastIndex++;
-            $this->storage[$this->lastIndex] = $value;
-        }
-        return $this->indexOf($value);
-    }
-
-    /**
-     * Removes a value from the set
-     *
-     * @param string $value
-     * @return void
-     */
-    public function delete(string $value): void {
-        $index = $this->indexOf($value);
-        if ($index != -1) unset($this->storage[$index]);
-    }
-
-    /**
-     * Checks if a string exists in the collection
-     * @param string $value
+     * @param mixed $value
      * @return bool
      */
-    public function has(string $value): bool {
-        return in_array($value, $this->storage);
+    public function delete(mixed $value): bool
+    {
+        $offset = $this->indexOf($value);
+        if ($offset > -1) {
+            unset($this->storage[$offset]);
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Returns the string index
-     * @param string $value
-     * @return int the index in the collection, -1 if not found
-     */
-    public function indexOf(string $value): int {
-        $id = array_search($value, $this->storage);
-        return $id === false ? -1 : $id;
-    }
-
-    /**
-     * Returns a new iterator indexed by id
-     * not the same as JS as we need the index some times
+     * The entries() method returns a new Iterator object that contains an array of [value, value] for each element in the Set object, in insertion order.
      *
-     * @return \Generator<int,string>
+     * @return Generator
      */
-    public function entries(): Generator {
-        foreach ($this->storage as $id => $value) {
-            yield $id => $value;
-        }
+    public function entries(): Generator
+    {
+        foreach ($this->getIndexes() as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
     }
 
     /**
-     * Returns a new iterator with only the values
-     * @return \Generator<string>
-     */
-    public function values(): Generator {
-        foreach ($this->storage as $value) {
-            yield $value;
-        }
-    }
-
-    /**
-     * Returns a new iterator with only the indexes
-     * @return \Generator<int>
-     */
-    public function keys(): Generator {
-        foreach (array_keys($this->storage) as $index) {
-            yield $index;
-        }
-    }
-
-    /**
-     * The forEach() method executes a provided function once for each value in the Set
+     * The forEach() method executes a provided function once for each value in the Set object, in insertion order.
      *
-     * @param callable $callable callable that takes 2 arguments: (string $value, int $index)
+     * @param callable $callable ($value,$value, Set)
      * @return void
      */
-    public function forEach(callable $callable): void {
-        foreach ($this->entries() as $index => $value) {
-            $callable($value, $index);
-        }
+    public function forEach(callable $callable): void
+    {
+
+        foreach ($this->entries() as $value) { call_user_func_array($callable, [$value, $value, $this]); }
     }
 
     /**
-     * Exports the set as an array
+     * The has() method returns a boolean indicating whether an element with the specified value exists in a Set object or not.
      *
-     * @return array
+     * @param mixed $value
+     * @return bool
      */
-    public function toArray(): array {
-        return $this->storage;
+    public function has(mixed $value): bool
+    {
+        return $this->indexOf($value) !== -1;
     }
 
-    ////////////////////////////   Interfaces   ////////////////////////////
+    /**
+     * The values() method returns a new Iterator object that contains the values for each element in the Set object in insertion order.
+     *
+     * @return Generator
+     */
+    public function values(): Generator
+    {
+        foreach ($this->entries() as $value) { yield $value; }
+    }
 
     /** {@inheritdoc} */
-    public function count(): int {
+    public function count(): int
+    {
         return count($this->storage);
     }
 
     /** {@inheritdoc} */
-    protected function export(): array {
-        return $this->storage;
-    }
-
-    /** {@inheritdoc} */
-    public function __serialize(): array {
-        return $this->compact('storage', 'lastIndex');
-    }
-
-    /** {@inheritdoc} */
-    protected function import(array $array): void {
-        $this->clear();
-        $this->extract($array);
-    }
-
-    /**
-     * @return \Generator<int,string>
-     */
-    public function getIterator(): \Traversable {
+    public function getIterator(): \Traversable
+    {
         yield from $this->entries();
     }
 
     /** {@inheritdoc} */
-    public function offsetExists(mixed $offset): bool {
-        return
-                is_int($offset) and
-                isset($this->storage[$offset]);
+    public function jsonSerialize(): mixed
+    {
+        return $this->storage;
     }
 
     /** {@inheritdoc} */
-    public function offsetGet(mixed $offset): mixed {
-        return $this->storage[$offset] ?? null;
+    public function __toString()
+    {
+        return sprintf('[object %s]', static::class);
     }
 
-    /** {@inheritdoc} */
-    public function offsetSet(mixed $offset, mixed $value): void {
-        if (is_string($offset) or is_int($offset)) throw new LogicException(sprintf('Invalid offset %s, data can be added, not replaced', (string) $offset));
-        elseif (!is_string($value)) throw new InvalidArgumentException(sprintf('Invalid value type: string requested, %s given.', get_debug_type($value)));
-        elseif (is_null($offset)) $this->add($value);
+    public function __serialize(): array
+    {
+        return $this->storage;
     }
 
-    /** {@inheritdoc} */
-    public function offsetUnset($offset): void {
-        unset($this->storage[$offset]);
+    public function __unserialize(array $data): void
+    {
+        $this->storage = $data;
     }
 
 }

@@ -8,8 +8,10 @@ use ArrayAccess,
     Countable,
     Generator,
     IteratorAggregate,
+    JsonSerializable,
     Stringable,
     Traversable;
+use function get_debug_type;
 
 /**
  * The Map object holds key-value pairs and remembers the original insertion order of the keys.
@@ -17,7 +19,7 @@ use ArrayAccess,
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map JS Map
  */
-final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \JsonSerializable
+final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, JsonSerializable
 {
 
     protected array $keys = [];
@@ -36,7 +38,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
         return $this;
     }
 
-    protected function getIndexes(): \Generator
+    protected function getIndexes(): Generator
     {
         foreach (array_keys($this->keys) as $offset) { yield $offset; }
     }

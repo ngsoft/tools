@@ -10,6 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable,
     OutOfRangeException,
+    Stringable,
     Traversable;
 
 /**
@@ -18,7 +19,7 @@ use ArrayAccess,
  * SplFixedArray only works with int offsets (not null or strings)
  *
  */
-final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable
+final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
 {
 
     public const DEFAULT_CAPACITY = 8;
@@ -141,6 +142,29 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     public function offsetUnset(mixed $offset): void
     {
         unset($this->storage[$offset]);
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo(): array
+    {
+        return $this->storage;
+    }
+
+    /** {@inheritdoc} */
+    public function __serialize(): array
+    {
+        return [$this->size, $this->storage];
+    }
+
+    /** {@inheritdoc} */
+    public function __unserialize(array $data): void
+    {
+        list($this->size, $this->storage) = $data;
+    }
+
+    public function __toString()
+    {
+        return sprintf('[object %s]', static::class);
     }
 
 }
