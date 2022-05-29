@@ -7,7 +7,9 @@ namespace NGSOFT\Tools;
 use ArrayAccess,
     Countable,
     Generator,
-    IteratorAggregate;
+    IteratorAggregate,
+    Stringable,
+    Traversable;
 
 /**
  * The Map object holds key-value pairs and remembers the original insertion order of the keys.
@@ -15,7 +17,7 @@ use ArrayAccess,
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map JS Map
  */
-class Map implements ArrayAccess, IteratorAggregate, Countable
+class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, \JsonSerializable
 {
 
     protected array $keys = [];
@@ -32,6 +34,11 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
         $this->keys[] = $key;
         $this->values[] = $value;
         return $this;
+    }
+
+    protected function indexes(): \Generator
+    {
+        foreach (array_keys($this->keys) as $offset) { yield $offset; }
     }
 
     /**
@@ -60,8 +67,10 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
     }
 
     /**
-     * The get() method returns a specified element from a Map object. If the value that is associated to the provided key is an object,
-     * then you will get a reference to that object and any change made to that object will effectively modify it inside the Map object.
+     * The get() method returns a specified element from a Map object.
+     * If the value that is associated to the provided key is an object,
+     * then you will get a reference to that object and any change made
+     * to that object will effectively modify it inside the Map object.
      *
      * @param mixed $key
      * @return mixed
@@ -77,14 +86,16 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
     /**
      * The set() method adds or updates an element with a specified key and a value to a Map object.
      *
-     * @param mixed $key
+     * @param int|string|float|object $key
      * @param mixed $value
      * @return static
      */
-    public function set(mixed $key, mixed $value): static
+    public function set(int|string|float|object $key, mixed $value): static
     {
-        $index = $this->indexOf($key);
-        if ($index === -1) return $this->append($key, $value);
+
+        if (($index = $this->indexOf($key)) === -1) {
+            return $this->append($key, $value);
+        }
         $this->keys[$index] = $key;
         $this->values[$index] = $value;
         return $this;
@@ -108,8 +119,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
      */
     public function keys(): Generator
     {
-
-        foreach ($this->keys as $key) yield $key;
+        foreach ($this->keys as $key) { yield $key; }
     }
 
     /**
@@ -120,8 +130,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
      */
     public function values(): Generator
     {
-
-        foreach ($this->values as $value) yield $value;
+        foreach ($this->values as $value) { yield $value; }
     }
 
     /**
@@ -131,8 +140,7 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
      */
     public function entries(): Generator
     {
-
-        foreach (array_keys($this->keys) as $offset) yield $this->keys[$offset] => $this->values[$offset];
+        foreach ($this->indexes() as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
     }
 
     /**
@@ -143,38 +151,78 @@ class Map implements ArrayAccess, IteratorAggregate, Countable
      */
     public function forEach(callable $callable): void
     {
-        foreach ($this->entries() as $key => $value) call_user_func_array($callable, [$value, $key, $this]);
+        foreach ($this->entries() as $key => $value) { call_user_func_array($callable, [$value, $key, $this]); }
     }
 
+    /** {@inheritdoc} */
     public function offsetExists(mixed $offset): bool
     {
         return $this->has($offset);
     }
 
+    /** {@inheritdoc} */
     public function offsetGet(mixed $offset): mixed
     {
-
         return $this->get($offset);
     }
 
+    /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->set($offset, $value);
     }
 
+    /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
         $this->delete($offset);
     }
 
+    /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->keys);
     }
 
-    public function getIterator(): \Traversable
+    /** {@inheritdoc} */
+    public function getIterator(): Traversable
     {
         yield from $this->entries();
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize(): mixed
+    {
+        return [];
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo(): array
+    {
+        $result = [];
+
+        foreach ($this->entries() as $key => $value) {
+            $result[is_scalar($key) ? $key : sprintf('%s#%s', get_debug_type($key), spl_object_id($key))] = $value;
+        }
+
+        return $result;
+    }
+
+    /** {@inheritdoc} */
+    public function __serialize(): array
+    {
+        return [$this->keys, $this->values];
+    }
+
+    /** {@inheritdoc} */
+    public function __unserialize(array $data): void
+    {
+        list($this->keys, $this->values) = $data;
+    }
+
+    public function __toString()
+    {
+        return sprintf('[object %s]', static::class);
     }
 
 }
