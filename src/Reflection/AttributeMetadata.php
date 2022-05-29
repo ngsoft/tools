@@ -30,6 +30,7 @@ class AttributeMetadata
     public readonly int $flags;
     public readonly array $parameters;
     public ?object $attribute = null;
+    public ?AttributeType $attributeType = null;
 
     public function __construct(string $attributeName)
     {
@@ -88,19 +89,28 @@ class AttributeMetadata
                 ) = $cache[$attributeName];
     }
 
-    public function withAttribute(object $attribute)
+    public function withAttribute(object $attribute): static
     {
         $clone = clone $this;
-
         if (get_class($attribute) !== $this->attributeName) {
             throw new InvalidArgumentException(sprintf('Invalid Attribute "%s" set for %s', $attribute::class, $this->attributeName));
         }
-
         $clone->attribute = $attribute;
-
         return $clone;
     }
 
+    public function withAttributeType(AttributeType|int $attributeType): static
+    {
+        $clone = clone $this;
+        $clone->attributeType = is_int($attributeType) ? AttributeType::from($attributeType) : $attributeType;
+        return $clone;
+    }
+
+    /**
+     * @phan-suppress PhanUndeclaredMethod
+     * @param \ReflectionClass $reflectionClass
+     * @return array
+     */
     private function parseParameters(\ReflectionClass $reflectionClass): array
     {
         $result = [];
@@ -140,7 +150,9 @@ class AttributeMetadata
             $this->targetParameter,
             $this->isRepeatable,
             $this->flags,
-            $this->parameters
+            $this->parameters,
+            $this->attribute,
+            $this->attributeType,
         ];
     }
 
@@ -156,7 +168,9 @@ class AttributeMetadata
                 $this->targetParameter,
                 $this->isRepeatable,
                 $this->flags,
-                $this->parameters
+                $this->parameters,
+                $this->attribute,
+                $this->attributeType,
                 ) = $data;
     }
 
