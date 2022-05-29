@@ -24,10 +24,25 @@ class AttributeReader {
 
     private ?CacheItemPoolInterface $cachePool = null;
 
-    public function getClassAttributes(string|object $className, int|AttributeType $type = AttributeType::ATTRIBUTE_ALL, string ...$attributeNames): array {
+    /**
+     * Get attributes for a class
+     *
+     * @param string|object $className
+     * @param int|AttributeType $type
+     * @param string|array $attributeNames
+     * @return array<string,object[]>
+     * @throws ValueError
+     */
+    public function getClassAttributes(
+            string|object $className,
+            int|AttributeType $type = AttributeType::ATTRIBUTE_ALL,
+            string|array $attributeNames = []
+    ): array {
 
         /** @var AttributeType $target */
         $target = $type instanceof AttributeType ? $type : AttributeType::from($type);
+
+        $attributeNames = is_array($attributeNames) ? $attributeNames : [$attributeNames];
 
         $targetInt = $target->value;
 
@@ -35,20 +50,20 @@ class AttributeReader {
         try {
 
             if ($target->is(AttributeType::ATTRIBUTE_FUNCTION) || $target->is(AttributeType::ATTRIBUTE_PARAMETER)) {
-                throw new ValueError(sprintf('Invalid type %s::%s defined for %s', AttributeType::class, $target->name, __METHOD__));
+                throw new ValueError(sprintf('Invalid type %s::%s defined for %s()', AttributeType::class, $target->name, __METHOD__));
             }
 
             $reflectionClass = new ReflectionClass($className);
 
             if ($targetInt === AttributeType::ATTRIBUTE_ALL || $targetInt === AttributeType::ATTRIBUTE_CLASS) {
-                $result[AttributeType::ATTRIBUTE_CLASS()->name] = $this->getReflectionClassAttributes($reflectionClass);
+                $result[AttributeType::ATTRIBUTE_CLASS()->name] = $this->filterResults($this->getReflectionClassAttributes($reflectionClass), ...$attributeNames);
             }
             if ($targetInt === AttributeType::ATTRIBUTE_ALL || $targetInt === AttributeType::ATTRIBUTE_CLASS_CONSTANT) {
                 $result[AttributeType::ATTRIBUTE_CLASS_CONSTANT()->name] = [];
                 /** @var ReflectionClassConstant $reflectionClassConstant */
                 foreach ($reflectionClass->getReflectionConstants() as $reflectionClassConstant) {
                     $name = $reflectionClassConstant->getName();
-                    $result[AttributeType::ATTRIBUTE_CLASS_CONSTANT()->name][$name] = $this->getReflectionClassConstantAttributes($reflectionClassConstant);
+                    $result[AttributeType::ATTRIBUTE_CLASS_CONSTANT()->name][$name] = $this->filterResults($this->getReflectionClassConstantAttributes($reflectionClassConstant), ...$attributeNames);
                 }
             }
             if ($targetInt === AttributeType::ATTRIBUTE_ALL || $targetInt === AttributeType::ATTRIBUTE_PROPERTY) {
@@ -56,7 +71,7 @@ class AttributeReader {
                 /** @var ReflectionProperty $reflectionProperty */
                 foreach ($reflectionClass->getProperties() as $reflectionProperty) {
                     $name = $reflectionProperty->getName();
-                    $result[AttributeType::ATTRIBUTE_PROPERTY()->name][$name] = $this->getReflectionPropertyAttributes($reflectionProperty);
+                    $result[AttributeType::ATTRIBUTE_PROPERTY()->name][$name] = $this->filterResults($this->getReflectionPropertyAttributes($reflectionProperty), ...$attributeNames);
                 }
             }
             if ($targetInt === AttributeType::ATTRIBUTE_ALL || $targetInt === AttributeType::ATTRIBUTE_METHOD) {
@@ -64,17 +79,11 @@ class AttributeReader {
                 /** @var ReflectionMethod $reflectionMethod */
                 foreach ($reflectionClass->getMethods() as $reflectionMethod) {
                     $name = $reflectionMethod->getName();
-                    $result[AttributeType::ATTRIBUTE_METHOD()->name][$name] = $this->getReflectionMethodAttributes($reflectionMethod);
-                    if ($targetInt === AttributeType::ATTRIBUTE_ALL) {
-                        $result[AttributeType::ATTRIBUTE_METHOD()->name][$name][AttributeType::ATTRIBUTE_PARAMETER()->name] = [];
-                        /** @var ReflectionParameter $reflectionParameter */
-                        foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
-                            $name = $reflectionParameter->getName();
-                            $result[AttributeType::ATTRIBUTE_METHOD()->name][$name][AttributeType::ATTRIBUTE_PARAMETER()->name][$name] = $this->getReflectionParameterAttributes($reflectionParameter);
-                        }
-                    }
+                    $result[AttributeType::ATTRIBUTE_METHOD()->name][$name] = $this->filterResults($this->getReflectionMethodAttributes($reflectionMethod), ...$attributeNames);
                 }
             }
+        } catch (\ValueError $error) {
+            throw $error;
         } catch (Throwable $error) {
             $this->logger && $this->logger->warning(sprintf('Cannot get attributes for class %s', is_object($className) ? $className::class : $className), [$error]);
         }
@@ -82,18 +91,34 @@ class AttributeReader {
         return $result;
     }
 
+    /**
+     * @param ReflectionClass $reflectionClass
+     * @return object[]
+     */
     public function getReflectionClassAttributes(ReflectionClass $reflectionClass): array {
         return $this->getAttributeInstances(...$reflectionClass->getAttributes());
     }
 
+    /**
+     * @param ReflectionMethod $reflectionMethod
+     * @return object[]
+     */
     public function getReflectionMethodAttributes(ReflectionMethod $reflectionMethod): array {
         return $this->getAttributeInstances(...$reflectionMethod->getAttributes());
     }
 
+    /**
+     * @param ReflectionProperty $reflectionProperty
+     * @return object[]
+     */
     public function getReflectionPropertyAttributes(ReflectionProperty $reflectionProperty): array {
         return $this->getAttributeInstances(...$reflectionProperty->getAttributes());
     }
 
+    /**
+     * @param ReflectionClassConstant $reflectionClassConstant
+     * @return object[]
+     */
     public function getReflectionClassConstantAttributes(ReflectionClassConstant $reflectionClassConstant): array {
         return $this->getAttributeInstances(...$reflectionClassConstant->getAttributes());
     }
@@ -102,11 +127,21 @@ class AttributeReader {
         return $this->getAttributeInstances(...$reflectionFunction->getAttributes());
     }
 
+    /**
+     * @param ReflectionParameter $reflectionParameter
+     * @return object[]
+     */
     public function getReflectionParameterAttributes(ReflectionParameter $reflectionParameter) {
         return $this->getAttributeInstances(...$reflectionParameter->getAttributes());
     }
 
-    private function getAttributeMetadata(string $attributeName): AttributeMetadata {
+    /**
+     * Get Metadata infos for attributes
+     *
+     * @param string $attributeName
+     * @return AttributeMetadata
+     */
+    public function getAttributeMetadata(string $attributeName): AttributeMetadata {
 
         static $cache = [];
         $cache[$attributeName] = $cache[$attributeName] ?? new AttributeMetadata($attributeName);
@@ -136,6 +171,23 @@ class AttributeReader {
             }
         }
 
+
+        return $result;
+    }
+
+    private function filterResults(array $input, string ...$attributeNames) {
+        if (empty($attributeNames)) return $input;
+
+        $result = [];
+        foreach ($input as $className => $attribute) {
+
+            foreach ($attributeNames as $attributeName) {
+
+                if ($attributeName === $className || is_subclass_of($className, $attributeName)) {
+                    $result[$className] = $attribute;
+                }
+            }
+        }
 
         return $result;
     }
