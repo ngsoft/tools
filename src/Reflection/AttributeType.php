@@ -18,7 +18,8 @@ use Attribute,
  * @method static static ATTRIBUTE_PROPERTY()
  * @method static static ATTRIBUTE_ALL()
  */
-class AttributeType extends Enum {
+class AttributeType extends Enum
+{
 
     public const ATTRIBUTE_CLASS = Attribute::TARGET_CLASS;
     public const ATTRIBUTE_CLASS_CONSTANT = Attribute::TARGET_CLASS_CONSTANT;

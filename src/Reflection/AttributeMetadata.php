@@ -11,7 +11,8 @@ use Attribute,
     Throwable,
     ValueError;
 
-class AttributeMetadata {
+class AttributeMetadata
+{
 
     public readonly string $attributeName;
     public readonly bool $targetClass;
@@ -24,7 +25,8 @@ class AttributeMetadata {
     public readonly int $flags;
     public readonly array $parameters;
 
-    public function __construct(string $attributeName) {
+    public function __construct(string $attributeName)
+    {
 
         static $cache = [];
 
@@ -87,7 +89,8 @@ class AttributeMetadata {
                 ) = $cache[$attributeName];
     }
 
-    public function __serialize(): array {
+    public function __serialize(): array
+    {
 
         return [
             $this->attributeName,
@@ -103,7 +106,8 @@ class AttributeMetadata {
         ];
     }
 
-    public function __unserialize(array $data): void {
+    public function __unserialize(array $data): void
+    {
         list(
                 $this->attributeName,
                 $this->targetClass,

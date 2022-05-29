@@ -18,7 +18,8 @@ use ReflectionAttribute,
     Throwable,
     ValueError;
 
-class AttributeReader {
+class AttributeReader
+{
 
     use LoggerAwareTrait;
 
@@ -31,7 +32,8 @@ class AttributeReader {
      * @param ?CacheItemPoolInterface $cachepool
      * @return static
      */
-    public static function create(LoggerInterface $logger = null, CacheItemPoolInterface $cachepool = null): static {
+    public static function create(LoggerInterface $logger = null, CacheItemPoolInterface $cachepool = null): static
+    {
         $instance = new static;
         $instance->logger = $logger;
         $instance->cachePool = $cachepool;
@@ -51,7 +53,8 @@ class AttributeReader {
             string|object $className,
             int|AttributeType $type = AttributeType::ATTRIBUTE_ALL,
             string|array $attributeNames = []
-    ): array {
+    ): array
+    {
 
         /** @var AttributeType $target */
         $target = $type instanceof AttributeType ? $type : AttributeType::from($type);
@@ -122,7 +125,8 @@ class AttributeReader {
      * @param ReflectionClass $reflectionClass
      * @return object[]
      */
-    public function getReflectionClassAttributes(ReflectionClass $reflectionClass): array {
+    public function getReflectionClassAttributes(ReflectionClass $reflectionClass): array
+    {
         return $this->getAttributeInstances(...$reflectionClass->getAttributes());
     }
 
@@ -130,7 +134,8 @@ class AttributeReader {
      * @param ReflectionMethod $reflectionMethod
      * @return object[]
      */
-    public function getReflectionMethodAttributes(ReflectionMethod $reflectionMethod): array {
+    public function getReflectionMethodAttributes(ReflectionMethod $reflectionMethod): array
+    {
         return $this->getAttributeInstances(...$reflectionMethod->getAttributes());
     }
 
@@ -138,7 +143,8 @@ class AttributeReader {
      * @param ReflectionProperty $reflectionProperty
      * @return object[]
      */
-    public function getReflectionPropertyAttributes(ReflectionProperty $reflectionProperty): array {
+    public function getReflectionPropertyAttributes(ReflectionProperty $reflectionProperty): array
+    {
         return $this->getAttributeInstances(...$reflectionProperty->getAttributes());
     }
 
@@ -146,11 +152,13 @@ class AttributeReader {
      * @param ReflectionClassConstant $reflectionClassConstant
      * @return object[]
      */
-    public function getReflectionClassConstantAttributes(ReflectionClassConstant $reflectionClassConstant): array {
+    public function getReflectionClassConstantAttributes(ReflectionClassConstant $reflectionClassConstant): array
+    {
         return $this->getAttributeInstances(...$reflectionClassConstant->getAttributes());
     }
 
-    public function getReflectionFunctionAttributes(ReflectionFunction $reflectionFunction): array {
+    public function getReflectionFunctionAttributes(ReflectionFunction $reflectionFunction): array
+    {
         return $this->getAttributeInstances(...$reflectionFunction->getAttributes());
     }
 
@@ -158,7 +166,8 @@ class AttributeReader {
      * @param ReflectionParameter $reflectionParameter
      * @return object[]
      */
-    public function getReflectionParameterAttributes(ReflectionParameter $reflectionParameter) {
+    public function getReflectionParameterAttributes(ReflectionParameter $reflectionParameter)
+    {
         return $this->getAttributeInstances(...$reflectionParameter->getAttributes());
     }
 
@@ -168,18 +177,21 @@ class AttributeReader {
      * @param string $attributeName
      * @return AttributeMetadata
      */
-    public function getAttributeMetadata(string $attributeName): AttributeMetadata {
+    public function getAttributeMetadata(string $attributeName): AttributeMetadata
+    {
 
         static $cache = [];
         $cache[$attributeName] = $cache[$attributeName] ?? new AttributeMetadata($attributeName);
         return $cache[$attributeName];
     }
 
-    private function isRepeatableAttribute(string $attributeName): bool {
+    private function isRepeatableAttribute(string $attributeName): bool
+    {
         return $this->getAttributeMetadata($attributeName)->isRepeatable;
     }
 
-    private function getAttributeInstances(ReflectionAttribute ...$attributes): array {
+    private function getAttributeInstances(ReflectionAttribute ...$attributes): array
+    {
 
         $result = [];
 
@@ -202,7 +214,8 @@ class AttributeReader {
         return $result;
     }
 
-    private function filterResults(array $input, string ...$attributeNames) {
+    private function filterResults(array $input, string ...$attributeNames)
+    {
         if (empty($attributeNames)) return $input;
 
         $result = [];
