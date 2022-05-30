@@ -180,20 +180,11 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
      * Get all values shared with input
      *
      * @param int|float|string|object $input
-     * @return array
+     * @return ?OwnedList
      */
-    public function get(int|float|string|object $input): array
+    public function get(int|float|string|object $input): ?OwnedList
     {
-        $result = [];
-
-        if ($list = $this->getOwnedList($input)) {
-            foreach ($list as $value) {
-                $result[] = $value;
-            }
-        }
-
-
-        return $result;
+        return $this->getOwnedList($input);
     }
 
     /**
@@ -213,7 +204,6 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     /** {@inheritdoc} */
     public function offsetExists(mixed $offset): bool
     {
-
         return $this->hasValue($offset);
     }
 
@@ -266,12 +256,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     /** {@inheritdoc} */
     public function __debugInfo(): array
     {
-
-        $result = [];
-        foreach ($this->entries() as $ownedBy => $owned) {
-            $result[] = [$ownedBy, $owned];
-        }
-        return $result;
+        return $this->ownedLists;
     }
 
     /** {@inheritdoc} */

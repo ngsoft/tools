@@ -157,7 +157,7 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
     public function __debugInfo(): array
     {
         return [
-            'ownedBy' => $this->value,
+            'value' => $this->value,
             'ownedList' => $this->ownedList,
         ];
     }
