@@ -220,15 +220,15 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        if (null === $offset) {
-            if ($value instanceof OwnedList) {
-                foreach ($value as $value1 => $value2) {
-                    $this->add($value1, $value2);
-                }
-            } else { throw new OutOfBoundsException('Cannot add index to ' . static::class); }
+        if ($value instanceof OwnedList && null === $offset) {
+            foreach ($value as $value1 => $value2) {
+                $this->add($value1, $value2);
+            }
+        } elseif (null === $offset) {
+            throw new OutOfBoundsException('Cannot add index to ' . static::class);
         } elseif (is_array($value)) {
-            foreach ($value as $toAdd) {
-                $this->add($offset, $toAdd);
+            foreach ($value as $otherValue) {
+                $this->add($offset, $otherValue);
             }
         } else $this->add($offset, $value);
     }
