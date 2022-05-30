@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use Generator;
+use Countable,
+    Generator,
+    IteratorAggregate,
+    JsonSerializable,
+    Stringable,
+    Traversable;
 
 /**
  * The Set object lets you store unique values of any type, whether primitive values or object references.
  */
-final class Set implements \Countable, \JsonSerializable, \Stringable, \IteratorAggregate
+final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate
 {
 
     private array $storage = [];
@@ -129,7 +134,7 @@ final class Set implements \Countable, \JsonSerializable, \Stringable, \Iterator
     }
 
     /** {@inheritdoc} */
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         yield from $this->entries();
     }

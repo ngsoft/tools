@@ -170,11 +170,31 @@ final class SharedList implements \Countable, \IteratorAggregate, \JsonSerializa
         return $this->ownedLists[$this->values->indexOf($value)] ?? null;
     }
 
-    public function get(int|float|string|object $value): Generator
+    /**
+     * Get all values shared with input
+     *
+     * @param int|float|string|object $input
+     * @return array
+     */
+    public function get(int|float|string|object $input): array
     {
-        if ($list = $this->getOwnedList($value)) yield from $list;
+        $result = [];
+
+        if ($list = $this->getOwnedList($input)) {
+            foreach ($list as $value) {
+                $result[] = $value;
+            }
+        }
+
+
+        return $result;
     }
 
+    /**
+     * Iterates all values shared lists
+     *
+     * @return Generator
+     */
     public function entries(): Generator
     {
         foreach ($this->ownedLists as $list) {
@@ -184,9 +204,9 @@ final class SharedList implements \Countable, \IteratorAggregate, \JsonSerializa
         }
     }
 
+    /** {@inheritdoc} */
     public function count(): int
     {
-
         $count = 0;
         foreach ($this->ownedLists as $list) {
             $count += count($list);
@@ -194,17 +214,19 @@ final class SharedList implements \Countable, \IteratorAggregate, \JsonSerializa
         return $count / 2;
     }
 
+    /** {@inheritdoc} */
     public function getIterator(): \Traversable
     {
-
         yield from $this->entries();
     }
 
+    /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
         return [];
     }
 
+    /** {@inheritdoc} */
     public function __toString(): string
     {
         return sprintf('[object %s]', static::class);
