@@ -12,8 +12,7 @@ use ArrayAccess,
     JsonSerializable,
     OutOfBoundsException,
     Stringable,
-    Traversable,
-    ValueError;
+    Traversable;
 
 /**
  * Simulates Many-To-Many relations found in database
@@ -222,16 +221,16 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     public function offsetSet(mixed $offset, mixed $value): void
     {
         if (null === $offset) {
-            throw new OutOfBoundsException('Cannot add index to ' . static::class);
-        }
-
-        if (is_array($value)) {
+            if ($value instanceof OwnedList) {
+                foreach ($value as $value1 => $value2) {
+                    $this->add($value1, $value2);
+                }
+            } else { throw new OutOfBoundsException('Cannot add index to ' . static::class); }
+        } elseif (is_array($value)) {
             foreach ($value as $toAdd) {
                 $this->add($offset, $toAdd);
             }
-            return;
-        }
-        $this->add($offset, $value);
+        } else $this->add($offset, $value);
     }
 
     /** {@inheritdoc} */
