@@ -226,11 +226,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         }
 
         if (is_array($value)) {
-
-            foreach ($value as $index => $toAdd) {
-                if (!is_int($index)) {
-                    throw new ValueError('Array contains non numeric keys.');
-                }
+            foreach ($value as $toAdd) {
                 $this->add($offset, $toAdd);
             }
             return;
