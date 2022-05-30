@@ -10,8 +10,10 @@ use ArrayAccess,
     InvalidArgumentException,
     IteratorAggregate,
     JsonSerializable,
+    OutOfBoundsException,
     Stringable,
-    Traversable;
+    Traversable,
+    ValueError;
 
 /**
  * Simulates Many-To-Many relations found in database
@@ -210,12 +212,29 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     /** {@inheritdoc} */
     public function offsetGet(mixed $offset): mixed
     {
+        if (null === $offset) {
+            throw new OutOfBoundsException('Cannot add index to ' . static::class);
+        }
         return $this->get($offset);
     }
 
     /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        if (null === $offset) {
+            throw new OutOfBoundsException('Cannot add index to ' . static::class);
+        }
+
+        if (is_array($value)) {
+
+            foreach ($value as $index => $toAdd) {
+                if (!is_int($index)) {
+                    throw new ValueError('Array contains non numeric keys.');
+                }
+                $this->add($offset, $toAdd);
+            }
+            return;
+        }
         $this->add($offset, $value);
     }
 
