@@ -45,6 +45,11 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
         $this->setSize($size);
     }
 
+    public function clear(): void
+    {
+        $this->storage = [];
+    }
+
     /**
      * Gets the size of the array.
      *

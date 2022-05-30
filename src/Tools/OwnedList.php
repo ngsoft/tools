@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use Countable,
+use ArrayAccess,
+    Countable,
     Generator,
     IteratorAggregate,
     JsonSerializable,
@@ -15,7 +16,7 @@ use Countable,
 /**
  * Simulates one to many relationships found in databases
  */
-final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable
+final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable, ArrayAccess
 {
 
     private Set $ownedList;
@@ -105,6 +106,33 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
     public function values(): Generator
     {
         foreach ($this->entries() as $value) { yield $value; }
+    }
+
+    /** {@inheritdoc} */
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->has($offset);
+    }
+
+    /** {@inheritdoc} */
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->has($offset) ? $this->value : null;
+    }
+
+    /** {@inheritdoc} */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+
+        if (null === $offset) {
+            $this->add($value);
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->delete($offset);
     }
 
     /** {@inheritdoc} */

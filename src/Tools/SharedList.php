@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use Generator,
-    InvalidArgumentException;
+use ArrayAccess,
+    Countable,
+    Generator,
+    InvalidArgumentException,
+    IteratorAggregate,
+    JsonSerializable,
+    Stringable,
+    Traversable;
 
 /**
  * Simulates Many-To-Many relations found in database
  *
  * @link https://en.wikipedia.org/wiki/Many-to-many_(data_model)
  */
-final class SharedList implements \Countable, \IteratorAggregate, \JsonSerializable, \Stringable
+final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable, ArrayAccess
 {
 
     private Set $values;
@@ -205,6 +211,31 @@ final class SharedList implements \Countable, \IteratorAggregate, \JsonSerializa
     }
 
     /** {@inheritdoc} */
+    public function offsetExists(mixed $offset): bool
+    {
+
+        return $this->hasValue($offset);
+    }
+
+    /** {@inheritdoc} */
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->get($offset);
+    }
+
+    /** {@inheritdoc} */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->add($offset, $value);
+    }
+
+    /** {@inheritdoc} */
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->deleteValue($offset);
+    }
+
+    /** {@inheritdoc} */
     public function count(): int
     {
         $count = 0;
@@ -215,7 +246,7 @@ final class SharedList implements \Countable, \IteratorAggregate, \JsonSerializa
     }
 
     /** {@inheritdoc} */
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         yield from $this->entries();
     }
