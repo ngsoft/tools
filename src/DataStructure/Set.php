@@ -10,6 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable,
     OutOfBoundsException,
+    RuntimeException,
     Stringable,
     Traversable;
 
@@ -192,6 +193,12 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     public function __unserialize(array $data): void
     {
         $this->storage = $data;
+    }
+
+    /** {@inheritdoc} */
+    public function __clone()
+    {
+        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
 
 }

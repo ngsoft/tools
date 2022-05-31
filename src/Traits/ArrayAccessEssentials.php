@@ -9,7 +9,8 @@ use ArrayAccess,
     LogicException,
     UnexpectedValueException;
 
-trait ArrayAccessEssentials {
+trait ArrayAccessEssentials
+{
 
     use ArrayAccessCountable;
 
@@ -24,7 +25,8 @@ trait ArrayAccessEssentials {
      * @param array $array
      * @return array
      */
-    protected function merge(array $orig, array $array): array {
+    protected function merge(array $orig, array $array): array
+    {
         $result = $orig;
         foreach ($array as $key => $value) {
             if (is_int($key)) $result[] = $value;
@@ -44,7 +46,8 @@ trait ArrayAccessEssentials {
      * @param iterable $obj
      * @return array
      */
-    protected function iterableToArray(iterable $obj): array {
+    protected function iterableToArray(iterable $obj): array
+    {
         $result = [];
         foreach ($obj as $key => $value) {
             if (
@@ -61,7 +64,8 @@ trait ArrayAccessEssentials {
      * Checks if trait is used in a ArrayAccess class
      * @throws LogicException
      */
-    protected function assertArrayAccess() {
+    protected function assertArrayAccess()
+    {
         if (!($this instanceof ArrayAccess)) {
             throw new LogicException(sprintf('%s is not an instance of ArrayAccess.', get_class($this)));
         }
@@ -72,7 +76,8 @@ trait ArrayAccessEssentials {
      * @param mixed $value
      * @throws UnexpectedValueException
      */
-    protected function assertIsBool($value) {
+    protected function assertIsBool($value)
+    {
         if (!is_bool($value)) {
             throw new UnexpectedValueException(sprintf('Invalid return value: boolean requested, %s given.', gettype($value)));
         }
@@ -85,7 +90,8 @@ trait ArrayAccessEssentials {
      * @param mixed $value
      * @return bool
      */
-    public function has($value): bool {
+    public function has($value): bool
+    {
         if ($value instanceof self) {
             $value = $value->storage;
         }
@@ -97,7 +103,8 @@ trait ArrayAccessEssentials {
      * @param mixed $value
      * @return int the index or -1 if not found
      */
-    public function indexOf($value): int {
+    public function indexOf($value): int
+    {
         if ($value instanceof self) {
             $value = $value->storage;
         }
@@ -110,7 +117,8 @@ trait ArrayAccessEssentials {
      *
      * @return Generator
      */
-    public function entries(): Generator {
+    public function entries(): Generator
+    {
         foreach ($this->getIterator() as $id => $value) {
             yield $id => $value;
         }
@@ -120,7 +128,8 @@ trait ArrayAccessEssentials {
      * Returns a new iterator with only the values
      * @return Generator
      */
-    public function values(): Generator {
+    public function values(): Generator
+    {
         foreach ($this->getIterator() as $value) {
             yield $value;
         }
@@ -130,7 +139,8 @@ trait ArrayAccessEssentials {
      * Returns a new iterator with only the indexes
      * @return Generator
      */
-    public function keys(): Generator {
+    public function keys(): Generator
+    {
         foreach (array_keys($this->storage) as $index) {
             yield $index;
         }
@@ -142,7 +152,8 @@ trait ArrayAccessEssentials {
      * @param iterable ...$objects
      * @return static
      */
-    public function concat(iterable ...$objects): self {
+    public function concat(iterable ...$objects): self
+    {
         $result = clone $this;
         $result->clear();
         foreach ($this->storage as $key => $value) {
@@ -161,7 +172,8 @@ trait ArrayAccessEssentials {
      * @param callable $callback a callback
      * @return static
      */
-    public function map(callable $callback): self {
+    public function map(callable $callback): self
+    {
         //we don't know the constructor arguments
         $result = clone $this;
         $result->clear();
@@ -177,7 +189,8 @@ trait ArrayAccessEssentials {
      * @param callable $callback
      * @return static
      */
-    public function filter(callable $callback): self {
+    public function filter(callable $callback): self
+    {
         $result = clone $this;
         $result->clear();
         foreach ($this->getIterator() as $key => $value) {
@@ -194,7 +207,8 @@ trait ArrayAccessEssentials {
      * @param callable $callback
      * @return boolean
      */
-    public function some(callable $callback): bool {
+    public function some(callable $callback): bool
+    {
         if ($this->count() === 0) return false;
         foreach ($this->getIterator() as $key => $value) {
             $retval = $callback($value, $key);
@@ -206,11 +220,12 @@ trait ArrayAccessEssentials {
 
     /**
      * Tests if all the elements from the storage pass the test implemented by the callable
-     * 
+     *
      * @param callable $callback
      * @return boolean
      */
-    public function every(callable $callback): bool {
+    public function every(callable $callback): bool
+    {
         if ($this->count() === 0) return false;
         foreach ($this->getIterator() as $key => $value) {
             $retval = $callback($value, $key);
@@ -225,8 +240,9 @@ trait ArrayAccessEssentials {
      * @param callable $callback
      * @return static
      */
-    public function forEach(callable $callback): self {
-        foreach ($this->getIterator() as $key => $value) $callback($value, $key);
+    public function forEach(callable $callback): self
+    {
+        foreach ($this->getIterator() as $key => $value) $callback($value, $key, $this);
         return $this;
     }
 

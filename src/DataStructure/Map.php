@@ -9,6 +9,7 @@ use ArrayAccess,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    RuntimeException,
     Stringable,
     Traversable;
 use function get_debug_type;
@@ -217,9 +218,16 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
         list($this->keys, $this->values) = $data;
     }
 
+    /** {@inheritdoc} */
     public function __toString()
     {
         return sprintf('[object %s]', static::class);
+    }
+
+    /** {@inheritdoc} */
+    public function __clone()
+    {
+        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
 
 }

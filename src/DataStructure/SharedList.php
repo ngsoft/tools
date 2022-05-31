@@ -11,6 +11,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable,
     LogicException,
+    RuntimeException,
     Stringable,
     Traversable;
 
@@ -221,24 +222,27 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         yield from $this->entries();
     }
 
+    /** {@inheritdoc} */
     public function offsetExists(mixed $offset): bool
     {
         return $this->hasValue($offset);
     }
 
+    /** {@inheritdoc} */
     public function offsetGet(mixed $offset): mixed
     {
-        return $this->get($offset);
+        throw new LogicException(sprintf('Cannot get value, please use %s::get().', static::class));
     }
 
+    /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new LogicException(sprintf('%s cannot set value to offset.', static::class));
+        throw new LogicException(sprintf('Cannot set value, please use %s::add().', static::class));
     }
 
+    /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
-
         $this->deleteValue($offset);
     }
 
@@ -270,6 +274,12 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     public function __unserialize(array $data): void
     {
         list($this->values, $this->ownedLists) = $data;
+    }
+
+    /** {@inheritdoc} */
+    public function __clone()
+    {
+        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
 
 }

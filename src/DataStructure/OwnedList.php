@@ -10,6 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable,
     OutOfBoundsException,
+    RuntimeException,
     Stringable,
     Traversable,
     ValueError;
@@ -174,6 +175,12 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
     public function __unserialize(array $data): void
     {
         list($this->value, $this->ownedList) = $data;
+    }
+
+    /** {@inheritdoc} */
+    public function __clone()
+    {
+        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
 
 }
