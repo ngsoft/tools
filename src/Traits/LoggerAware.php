@@ -12,7 +12,8 @@ interface_exists(LoggerAwareInterface::class);
 class_exists(LogLevel::class);
 class_exists(NullLogger::class);
 
-trait LoggerAware {
+trait LoggerAware
+{
 
     use LoggerAwareTrait;
 
@@ -22,7 +23,8 @@ trait LoggerAware {
      * @param string $message
      * @param array $context
      */
-    protected function log($level, string $message, array $context = []) {
+    protected function log(mixed $level, string $message, array $context = [])
+    {
 
         $this->getLogger()->log($level, $message, $context);
     }
@@ -31,7 +33,8 @@ trait LoggerAware {
      * Get Logger instance
      * @return LoggerInterface
      */
-    public function getLogger(): LoggerInterface {
+    public function getLogger(): LoggerInterface
+    {
         if (!$this->logger) $this->setLogger(new NullLogger());
         return $this->logger;
     }
