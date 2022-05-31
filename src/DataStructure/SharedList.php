@@ -10,7 +10,7 @@ use ArrayAccess,
     InvalidArgumentException,
     IteratorAggregate,
     JsonSerializable,
-    OutOfBoundsException,
+    LogicException,
     Stringable,
     Traversable;
 
@@ -19,7 +19,7 @@ use ArrayAccess,
  *
  * @link https://en.wikipedia.org/wiki/Many-to-many_(data_model)
  */
-final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
+final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable, ArrayAccess
 {
 
     private array $values = [];
@@ -219,6 +219,27 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     public function getIterator(): Traversable
     {
         yield from $this->entries();
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->hasValue($offset);
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        throw new LogicException(sprintf('%s cannot set value to offset.', static::class));
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+
+        $this->deleteValue($offset);
     }
 
     /** {@inheritdoc} */

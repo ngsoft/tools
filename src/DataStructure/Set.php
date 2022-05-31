@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Countable,
+use ArrayAccess,
+    Countable,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    OutOfBoundsException,
     Stringable,
     Traversable;
 
 /**
  * The Set object lets you store unique values of any type, whether primitive values or object references.
  */
-final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate
+final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate, ArrayAccess
 {
 
     private array $storage = [];
@@ -136,6 +138,32 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     public function getIterator(): Traversable
     {
         yield from $this->entries();
+    }
+
+    /** {@inheritdoc} */
+    public function offsetExists(mixed $offset): bool
+    {
+        return false;
+    }
+
+    /** {@inheritdoc} */
+    public function offsetGet(mixed $offset): mixed
+    {
+        throw new OutOfBoundsException(sprintf('%s does not have offset.', static::class));
+    }
+
+    /** {@inheritdoc} */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+
+        if (null !== $offset) $this->offsetGet($offset);
+        $this->add($value);
+    }
+
+    /** {@inheritdoc} */
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->offsetGet($offset);
     }
 
     /** {@inheritdoc} */

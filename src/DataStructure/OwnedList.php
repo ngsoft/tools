@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Countable,
+use ArrayAccess,
+    Countable,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    OutOfBoundsException,
     Stringable,
     Traversable,
     ValueError;
@@ -15,7 +17,7 @@ use Countable,
 /**
  * Simulates one to many relationships found in databases
  */
-final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable
+final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable, ArrayAccess
 {
 
     private Set $ownedList;
@@ -117,6 +119,28 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
     public function getIterator(): Traversable
     {
         yield from $this->entries();
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return false;
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        throw new OutOfBoundsException(sprintf('%s does not have keys.', static::class));
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+
+        if (null !== $offset) $this->offsetGet($offset);
+        $this->add($value);
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        $this->offsetGet($offset);
     }
 
     /** {@inheritdoc} */
