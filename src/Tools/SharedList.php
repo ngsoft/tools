@@ -19,10 +19,10 @@ use ArrayAccess,
  *
  * @link https://en.wikipedia.org/wiki/Many-to-many_(data_model)
  */
-final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable, ArrayAccess
+final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
 {
 
-    private Set $values;
+    private array $values = [];
 
     /** @var OwnedList[] */
     private array $ownedLists = [];
@@ -37,16 +37,9 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         return new static();
     }
 
-    public function __construct()
-    {
-        $this->values = Set::create();
-    }
-
     public function clear(): void
     {
-
-        $this->ownedLists = [];
-        $this->values->clear();
+        $this->ownedLists = $this->values = [];
     }
 
     /**
@@ -75,7 +68,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
      */
     public function hasValue(int|float|string|object $value): bool
     {
-        return $this->values->has($value);
+        return $this->indexOf($value) > -1;
     }
 
     /**
@@ -94,16 +87,27 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         if ($value1 === $value2) {
             throw new InvalidArgumentException('Cannot add many-to-many relationship between 2 identical values.');
         }
-        $this->values
-                ->add($value1)
-                ->add($value2);
-        $offset1 = $this->values->indexOf($value1);
-        $offset2 = $this->values->indexOf($value2);
-        $this->ownedLists[$offset1] = $this->ownedLists[$offset1] ?? new OwnedList($value1);
-        $this->ownedLists[$offset2] = $this->ownedLists[$offset2] ?? new OwnedList($value2);
-        $this->ownedLists[$offset1]->add($value2);
-        $this->ownedLists[$offset2]->add($value1);
+
+        $this->ownedLists[$this->addValue($value1)]->add($value2);
+        $this->ownedLists[$this->addValue($value2)]->add($value1);
         return $this;
+    }
+
+    private function indexOf(int|float|string|object $value): int
+    {
+        $index = array_search($value, $this->values, true);
+        return $index !== false ? $index : -1;
+    }
+
+    private function addValue(int|float|string|object $value): int
+    {
+        $offset = $this->indexOf($value);
+        if ($offset < 0) {
+            $this->values[] = $value;
+            $this->ownedLists[] = new OwnedList($value);
+            $offset = $this->indexOf($value);
+        }
+        return $offset;
     }
 
     /**
@@ -126,7 +130,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
 
         if (
-                ($list1 = $this->getOwnedList($value1) ) &&
+                ($list1 = $this->getOwnedList($value1)) &&
                 ($list2 = $this->getOwnedList($value2))
         ) {
 
@@ -156,15 +160,14 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     public function deleteValue(int|float|string|object $value): bool
     {
 
-        $offset = $this->values->indexOf($value);
+        $offset = $this->indexOf($value);
         if ($offset > -1) {
             if ($list = $this->getOwnedList($value)) {
                 $result = true;
                 foreach ($list as $otherValue) {
                     $result = $this->delete($value, $otherValue) && $result;
                 }
-                unset($this->ownedLists[$offset]);
-                $result = $this->values->delete($value) && $result;
+                unset($this->ownedLists[$offset], $this->values[$offset]);
                 return $result;
             }
         }
@@ -174,7 +177,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
     private function getOwnedList(int|float|string|object $value): ?OwnedList
     {
-        return $this->ownedLists[$this->values->indexOf($value)] ?? null;
+        return $this->ownedLists[$this->indexOf($value)] ?? null;
     }
 
     /**
@@ -200,43 +203,6 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
                 yield from $list;
             }
         }
-    }
-
-    /** {@inheritdoc} */
-    public function offsetExists(mixed $offset): bool
-    {
-        return $this->hasValue($offset);
-    }
-
-    /** {@inheritdoc} */
-    public function offsetGet(mixed $offset): mixed
-    {
-        if (null === $offset) {
-            throw new OutOfBoundsException('Cannot add index to ' . static::class);
-        }
-        return $this->get($offset);
-    }
-
-    /** {@inheritdoc} */
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        if ($value instanceof OwnedList && null === $offset) {
-            foreach ($value as $value1 => $value2) {
-                $this->add($value1, $value2);
-            }
-        } elseif (null === $offset) {
-            throw new OutOfBoundsException('Cannot add index to ' . static::class);
-        } elseif (is_array($value)) {
-            foreach ($value as $otherValue) {
-                $this->add($offset, $otherValue);
-            }
-        } else $this->add($offset, $value);
-    }
-
-    /** {@inheritdoc} */
-    public function offsetUnset(mixed $offset): void
-    {
-        $this->deleteValue($offset);
     }
 
     /** {@inheritdoc} */

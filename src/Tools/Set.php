@@ -35,7 +35,7 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      * @param mixed $value
      * @return int
      */
-    public function indexOf(mixed $value): int
+    private function indexOf(mixed $value): int
     {
         $index = array_search($value, $this->storage, true);
         return $index !== false ? $index : -1;
@@ -102,7 +102,6 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      */
     public function forEach(callable $callable): void
     {
-
         foreach ($this->entries() as $value) { call_user_func_array($callable, [$value, $value, $this]); }
     }
 
