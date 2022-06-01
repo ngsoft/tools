@@ -81,11 +81,26 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
         return $offset;
     }
 
+    /**
+     * Checks if relationship exists between 2 values
+     *
+     * @param int|float|string|object $value
+     * @param int|float|string|object $sharedValue
+     * @return bool
+     */
     public function has(int|float|string|object $value, int|float|string|object $sharedValue): bool
     {
         return $this->indexOfPair($value, $sharedValue) > -1;
     }
 
+    /**
+     * Add a relationship between 2 values
+     *
+     * @param int|float|string|object $value
+     * @param int|float|string|object $sharedValue
+     * @return static
+     * @throws InvalidArgumentException
+     */
     public function add(int|float|string|object $value, int|float|string|object $sharedValue): static
     {
         if ($value === $sharedValue) {
@@ -99,6 +114,12 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
         return $this;
     }
 
+    /**
+     * Removes a value and all its relationships
+     *
+     * @param int|float|string|object $value
+     * @return static
+     */
     public function deleteValue(int|float|string|object $value): static
     {
 
@@ -115,6 +136,13 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
         return $this;
     }
 
+    /**
+     * Removes a relationship between 2 values
+     *
+     * @param int|float|string|object $value
+     * @param int|float|string|object $sharedValue
+     * @return static
+     */
     public function delete(int|float|string|object $value, int|float|string|object $sharedValue): static
     {
         unset($this->pairs[$this->indexOfPair($value, $sharedValue)]);
@@ -129,12 +157,18 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
         return $this;
     }
 
-    public function get(int|float|string|object $value): ?Set
+    /**
+     * Get value shared list
+     *
+     * @param int|float|string|object $value
+     * @return Set
+     */
+    public function get(int|float|string|object $value): Set
     {
 
-        $result = null;
+        $result = new Set();
         if (($index = $this->indexOf($value)) > -1) {
-            $result = new Set();
+
             $index = $this->indexOf($value);
             foreach ($this->pairs as list($offset, $sharedOffset)) {
                 if ($offset === $index) {
@@ -143,9 +177,8 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
                     $result->add($this->values[$offset]);
                 }
             }
-            return !$result->isEmpty() ? $result : null;
         }
-        return null;
+        return $result;
     }
 
     /**
