@@ -19,7 +19,8 @@ use function str_ends_with,
 /**
  * Useful Functions to use in my projects
  */
-final class Tools {
+final class Tools
+{
 
     /**
      * Package Version Information
@@ -68,7 +69,8 @@ final class Tools {
      * @param mixed ...$args args to be passed to the callback
      * @return mixed
      */
-    public static function safe_exec(callable $callback, ...$args) {
+    public static function safe_exec(callable $callback, ...$args)
+    {
         static $handler;
         if (!$handler) {
             $handler = static function () {
@@ -87,7 +89,8 @@ final class Tools {
      * Convenient Function used to convert php errors, warning, ... as Throwable
      * @return callable|null
      */
-    public static function errors_as_exceptions() {
+    public static function errors_as_exceptions()
+    {
 
         return set_error_handler(function ($type, $msg, $file, $line) {
             if (!(error_reporting() & $type)) return false;
@@ -101,7 +104,8 @@ final class Tools {
      * @param string $path
      * @return string
      */
-    public static function normalize_path(string $path): string {
+    public static function normalize_path(string $path): string
+    {
         return preg_replace('#[\\\/]+#', '/', $path);
     }
 
@@ -111,7 +115,8 @@ final class Tools {
      * @param string $dir
      * @return bool
      */
-    public static function pushd(string $dir): bool {
+    public static function pushd(string $dir): bool
+    {
 
         $current = getcwd();
         if (
@@ -128,7 +133,8 @@ final class Tools {
      * Restore the last active directory changed by pushd
      * @return bool
      */
-    public static function popd(): bool {
+    public static function popd(): bool
+    {
         $previous = array_pop(self::$pushd_history) ?? getcwd();
         return is_dir($previous) and chdir($previous);
     }
@@ -139,7 +145,8 @@ final class Tools {
      * @param string ...$extensions extensions to list (or all files if empty)
      * @return string[]
      */
-    public static function listFiles(string $dir, bool $recursive = false, string ...$extensions): array {
+    public static function listFiles(string $dir, bool $recursive = false, string ...$extensions): array
+    {
         $dir = realpath($dir);
         $result = [];
         if (
@@ -173,7 +180,8 @@ final class Tools {
      * @param string $dir
      * @return Generator<string,SplFileInfo>
      */
-    private static function getDirectoryIterator(string $dir): Generator {
+    private static function getDirectoryIterator(string $dir): Generator
+    {
 
         if (!is_dir($dir)) throw new InvalidArgumentException(sprintf('%s is not a directory.', $dir));
         yield from (new RecursiveIteratorIterator(
@@ -189,7 +197,8 @@ final class Tools {
      * @param string ...$extensions if at least one extension is set the iterator will only list files with that/those extension(s)
      * @return Generator<string,SplFileInfo> An Iterator of SplFileInfo or empty if directory does not exists
      */
-    public static function getRecursiveDirectoryIterator(string $dir, string ...$extensions): Generator {
+    public static function getRecursiveDirectoryIterator(string $dir, string ...$extensions): Generator
+    {
 
         $findExtensions = count($extensions) > 0;
         /** @var SplFileInfo $fileInfo */
@@ -211,7 +220,8 @@ final class Tools {
      * @return bool
      * @throws InvalidArgumentException
      */
-    public static function fileHasExtension(string $filename, string ...$extensions): bool {
+    public static function fileHasExtension(string $filename, string ...$extensions): bool
+    {
         if (count($extensions) === 0) {
             throw new InvalidArgumentException('You need to specify at least one extention to match.');
         }
@@ -232,7 +242,8 @@ final class Tools {
      * @param array $data Data to extract as $data['key'] => $key in the file
      * @return mixed
      */
-    public static function include(string $filename, bool $once = true, array $data = []): mixed {
+    public static function include(string $filename, bool $once = true, array $data = []): mixed
+    {
         static $callback;
         if (!$callback) {
 
@@ -259,7 +270,8 @@ final class Tools {
      * @param string $ext PHP file extension to use
      * @return void
      */
-    public static function autoload(string $dir, array $data = [], string $ext = 'php'): void {
+    public static function autoload(string $dir, array $data = [], string $ext = 'php'): void
+    {
 
         self::errors_as_exceptions();
         try {
@@ -283,7 +295,8 @@ final class Tools {
      * @return array
      * @throws InvalidArgumentException
      */
-    public static function getClassesImplementing(string $parentClass, bool $onlyInstanciable = true): array {
+    public static function getClassesImplementing(string $parentClass, bool $onlyInstanciable = true): array
+    {
 
         static $classcount, $cache;
         $classcount = $classcount ?? 0;
@@ -341,7 +354,8 @@ final class Tools {
      * @param iterable $array
      * @return array
      */
-    public static function array_map(callable $callback, iterable $array): array {
+    public static function array_map(callable $callback, iterable $array): array
+    {
         $new = [];
         foreach ($array as $key => $value) {
             $new[$key] = $callback($value, $key, $array);
@@ -356,7 +370,8 @@ final class Tools {
      * @return bool
      * @throws RuntimeException
      */
-    public static function array_some(callable $callback, iterable $array): bool {
+    public static function array_some(callable $callback, iterable $array): bool
+    {
         foreach ($array as $key => $value) {
             $result = $callback($value, $key, $array);
             if (!is_bool($result)) throw new RuntimeException('Callback callable must return a boolean.');
@@ -372,7 +387,8 @@ final class Tools {
      * @return bool
      * @throws RuntimeException
      */
-    public static function array_every(callable $callback, iterable $array): bool {
+    public static function array_every(callable $callback, iterable $array): bool
+    {
         foreach ($array as $key => $value) {
             $result = $callback($value, $key, $array);
             if (!is_bool($result)) throw new RuntimeException('Callback callable must return a boolean.');
@@ -386,7 +402,8 @@ final class Tools {
      * @param iterable $obj
      * @return array
      */
-    public static function iterable_to_array(iterable $obj): array {
+    public static function iterable_to_array(iterable $obj): array
+    {
         $result = [];
         foreach ($obj as $key => $value) {
             if (is_iterable($value)) {
@@ -402,7 +419,8 @@ final class Tools {
      * @param iterable $array
      * @return array
      */
-    private static function array_merge(iterable $source, iterable $array): array {
+    private static function array_merge(iterable $source, iterable $array): array
+    {
         $result = self::iterable_to_array($source);
         foreach ($array as $key => $value) {
             if (is_int($key)) $result[] = $value;
@@ -423,7 +441,8 @@ final class Tools {
      * @param iterable ...$iterables one to many iterables
      * @return array
      */
-    public static function array_concat(iterable ...$iterables): array {
+    public static function array_concat(iterable ...$iterables): array
+    {
         $result = [];
         foreach ($iterables as $iterable) {
             $result = self::array_merge($result, $iterable);
@@ -438,7 +457,8 @@ final class Tools {
      * @param bool $webonly Put local urls as invalid ( eg : "http://localhost/index.php" )
      * @return bool
      */
-    public static function isValidUrl(string $url, bool $webonly = false): bool {
+    public static function isValidUrl(string $url, bool $webonly = false): bool
+    {
         return preg_match($webonly ? self::WEB_URL_REGEX : self::LOCAL_URL_REGEX, $url) > 0;
     }
 
@@ -447,7 +467,8 @@ final class Tools {
      * @param string $camelCased
      * @return string
      */
-    public static function to_snake(string $camelCased): string {
+    public static function to_snake(string $camelCased): string
+    {
         return strtolower(preg_replace('/[A-Z]/', '_\\0', lcfirst($camelCased)));
     }
 
@@ -456,7 +477,8 @@ final class Tools {
      * @param string $snake_case
      * @return string
      */
-    public static function toCamelCase(string $snake_case): string {
+    public static function toCamelCase(string $snake_case): string
+    {
         return preg_replace_callback('/(^|_|\.)+(.)/', function ($match) {
             return ('.' === $match[1] ? '_' : '') . strtoupper($match[2]);
         }, $snake_case);
@@ -467,7 +489,8 @@ final class Tools {
      * @link https://stackoverflow.com/questions/3656713/how-to-get-current-time-in-milliseconds-in-php
      * @return int
      */
-    public static function millitime(): int {
+    public static function millitime(): int
+    {
         list($usec, $sec) = explode(' ', microtime());
         return (int) ((int) $sec * 1000 + ((float) $usec * 1000));
     }
@@ -477,12 +500,35 @@ final class Tools {
      * @link https://stackoverflow.com/questions/2040240/php-function-to-generate-v4-uuid
      * @return string
      */
-    public static function generate_uuid_v4(): string {
+    public static function generate_uuid_v4(): string
+    {
         if (function_exists('com_create_guid') === true) return trim(com_create_guid(), '{}');
         $data = openssl_random_pseudo_bytes(16);
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    /**
+     * Returns whether this string consists entirely of ASCII characters
+     *
+     * @param string $input
+     * @return bool
+     */
+    public static function isAscii(string $input): bool
+    {
+        return \preg_match('/[^\x00-\x7F]/', $input) === 0;
+    }
+
+    /**
+     * Returns whether this string consists entirely of printable ASCII characters
+     *
+     * @param string $input
+     * @return bool
+     */
+    public static function isPrintableAscii(string $input): bool
+    {
+        return \preg_match('/[^\x20-\x7E]/', $input) === 0;
     }
 
 }

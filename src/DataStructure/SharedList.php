@@ -4,29 +4,19 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    Countable,
+use Countable,
     Generator,
     InvalidArgumentException,
     IteratorAggregate,
     JsonSerializable,
-    LogicException,
-    RuntimeException,
-    Stringable,
-    Traversable;
+    Stringable;
 
-/**
- * Simulates Many-To-Many relations found in database
- *
- * @link https://en.wikipedia.org/wiki/Many-to-many_(data_model)
- */
-final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable, ArrayAccess
+class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
 {
 
     private array $values = [];
-
-    /** @var OwnedList[] */
-    private array $ownedLists = [];
+    private array $pairs = [];
+    private int $offset = -1;
 
     /**
      * Create a new SharedList
@@ -40,25 +30,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
     public function clear(): void
     {
-        $this->ownedLists = $this->values = [];
-    }
-
-    /**
-     * Checks if relationship exists between 2 values
-     *
-     * @param int|float|string|object $value1
-     * @param int|float|string|object $value2
-     * @return bool
-     */
-    public function has(
-            int|float|string|object $value1,
-            int|float|string|object $value2
-    ): bool
-    {
-        if ($list = $this->getOwnedList($value1)) {
-            return $list->has($value2);
-        }
-        return false;
+        $this->values = $this->pairs = [];
     }
 
     /**
@@ -72,124 +44,108 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         return $this->indexOf($value) > -1;
     }
 
-    /**
-     * Add a relationship between 2 values
-     *
-     * @param int|float|string|object $value1
-     * @param int|float|string|object $value2
-     * @return static
-     * @throws InvalidArgumentException
-     */
-    public function add(
-            int|float|string|object $value1,
-            int|float|string|object $value2
-    ): static
-    {
-        if ($value1 === $value2) {
-            throw new InvalidArgumentException('Cannot add many-to-many relationship between 2 identical values.');
-        }
-
-        $this->ownedLists[$this->addValue($value1)]->add($value2);
-        $this->ownedLists[$this->addValue($value2)]->add($value1);
-        return $this;
-    }
-
     private function indexOf(int|float|string|object $value): int
     {
         $index = array_search($value, $this->values, true);
         return $index !== false ? $index : -1;
     }
 
-    private function addValue(int|float|string|object $value): int
+    private function indexOfPair(int|float|string|object $value, int|float|string|object $sharedValue): int
     {
         $offset = $this->indexOf($value);
+        $sharedOffset = $this->indexOf($sharedValue);
+        $index = array_search([$offset, $sharedOffset], $this->pairs);
+        if ($index === false) $index = array_search([$sharedOffset, $offset], $this->pairs);
+        return $index !== false ? $index : -1;
+    }
+
+    private function valueHasPair(int|float|string|object $value): bool
+    {
+
+        if (($index = $this->indexOf($value)) > -1) {
+            foreach ($this->pairs as list($offset, $sharedOffset)) {
+                if ($index === $offset || $index === $sharedOffset) return true;
+            }
+        }
+        return false;
+    }
+
+    private function addValue(int|float|string|object $value): int
+    {
+
+        $offset = $this->indexOf($value);
         if ($offset < 0) {
-            $this->values[] = $value;
-            $this->ownedLists[] = new OwnedList($value);
-            $offset = $this->indexOf($value);
+            $offset = ++$this->offset;
+            $this->values[$offset] = $value;
         }
         return $offset;
     }
 
-    /**
-     * Removes relationship between 2 values
-     *
-     * @param int|float|string|object $value1
-     * @param int|float|string|object $value2
-     * @return bool
-     * @throws InvalidArgumentException
-     */
-    public function delete(
-            int|float|string|object $value1,
-            int|float|string|object $value2
-    ): bool
+    public function has(int|float|string|object $value, int|float|string|object $sharedValue): bool
     {
-
-        if ($value1 === $value2) {
-            throw new InvalidArgumentException('Cannot remove many-to-many relationship between 2 identical values.');
-        }
-
-
-        if (
-                ($list1 = $this->getOwnedList($value1)) &&
-                ($list2 = $this->getOwnedList($value2))
-        ) {
-
-            $result = $list1->delete($value2);
-            $result = $list2->delete($value1) && $result;
-
-            if (count($list1) === 0) {
-                $result = $this->deleteValue($value1) && $result;
-            }
-            if (count($list2) === 0) {
-                $result = $this->deleteValue($value2) && $result;
-            }
-
-
-            return $result;
-        }
-
-        return false;
+        return $this->indexOfPair($value, $sharedValue) > -1;
     }
 
-    /**
-     * Removes a single value and all relationships with that value
-     *
-     * @param int|float|string|object $value
-     * @return bool
-     */
-    public function deleteValue(int|float|string|object $value): bool
+    public function add(int|float|string|object $value, int|float|string|object $sharedValue): static
+    {
+        if ($value === $sharedValue) {
+            throw new InvalidArgumentException('Cannot add many-to-many relationship between 2 identical values.');
+        }
+        if (!$this->has($value, $sharedValue)) {
+            $offset = $this->addValue($value);
+            $sharedOffset = $this->addValue($sharedValue);
+            $this->pairs[] = [$offset, $sharedOffset];
+        }
+        return $this;
+    }
+
+    public function deleteValue(int|float|string|object $value): static
     {
 
-        $offset = $this->indexOf($value);
-        if ($offset > -1) {
-            if ($list = $this->getOwnedList($value)) {
-                $result = true;
-                foreach ($list as $otherValue) {
-                    $result = $this->delete($value, $otherValue) && $result;
+        $index = $this->indexOf($value);
+
+        foreach (array_keys($this->pairs) as $pairIndex) {
+            list($offset, $sharedOffset) = $this->pairs[$pairIndex];
+            if ($offset === $index || $sharedOffset === $index) {
+                unset($this->pairs[$pairIndex]);
+            }
+        }
+
+        unset($this->values[$index]);
+        return $this;
+    }
+
+    public function delete(int|float|string|object $value, int|float|string|object $sharedValue): static
+    {
+        unset($this->pairs[$this->indexOfPair($value, $sharedValue)]);
+
+        if (!$this->valueHasPair($value)) {
+            $this->deleteValue($value);
+        }
+        if (!$this->valueHasPair($sharedValue)) {
+            $this->deleteValue($sharedValue);
+        }
+
+        return $this;
+    }
+
+    public function get(int|float|string|object $value): ?Set
+    {
+
+        $result = null;
+        if (($index = $this->indexOf($value)) > -1) {
+            $result = new Set();
+            $index = $this->indexOf($value);
+            foreach ($this->pairs as list($offset, $sharedOffset)) {
+                if ($offset === $index) {
+                    $result->add($this->values[$sharedOffset]);
+                } elseif ($sharedOffset === $index) {
+                    $result->add($this->values[$offset]);
                 }
-                unset($this->ownedLists[$offset], $this->values[$offset]);
-                return $result;
             }
+            return !$result->isEmpty() ? $result : null;
         }
-
-        return false;
-    }
-
-    private function getOwnedList(int|float|string|object $value): ?OwnedList
-    {
-        return $this->ownedLists[$this->indexOf($value)] ?? null;
-    }
-
-    /**
-     * Get all values shared with input
-     *
-     * @param int|float|string|object $input
-     * @return ?OwnedList
-     */
-    public function get(int|float|string|object $input): ?OwnedList
-    {
-        return $this->getOwnedList($input);
+        return null;
     }
 
     /**
@@ -199,87 +155,46 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
      */
     public function entries(): Generator
     {
-        foreach ($this->ownedLists as $list) {
-            if (count($list) > 0) {
-                yield from $list;
-            }
+        foreach ($this->pairs as list($offset, $sharedOffset)) {
+            yield $this->values[$offset] => $this->values[$sharedOffset];
         }
     }
 
-    /** {@inheritdoc} */
     public function count(): int
     {
-        $count = 0;
-        foreach ($this->ownedLists as $list) {
-            $count += count($list);
-        }
-        return $count / 2;
+        return count($this->pairs);
     }
 
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
+    public function getIterator(): \Traversable
     {
         yield from $this->entries();
     }
 
-    /** {@inheritdoc} */
-    public function offsetExists(mixed $offset): bool
-    {
-        return $this->hasValue($offset);
-    }
-
-    /** {@inheritdoc} */
-    public function offsetGet(mixed $offset): mixed
-    {
-        throw new LogicException(sprintf('Cannot get value, please use %s::get().', static::class));
-    }
-
-    /** {@inheritdoc} */
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        throw new LogicException(sprintf('Cannot set value, please use %s::add().', static::class));
-    }
-
-    /** {@inheritdoc} */
-    public function offsetUnset(mixed $offset): void
-    {
-        $this->deleteValue($offset);
-    }
-
-    /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
         return [];
     }
 
-    /** {@inheritdoc} */
     public function __toString(): string
     {
         return sprintf('[object %s]', static::class);
     }
 
-    /** {@inheritdoc} */
-    public function __debugInfo(): array
-    {
-        return $this->ownedLists;
-    }
-
-    /** {@inheritdoc} */
     public function __serialize(): array
     {
-        return [$this->values, $this->ownedLists];
+        return [$this->values, $this->pairs, $this->offset];
     }
 
-    /** {@inheritdoc} */
-    public function __unserialize(array $data): void
+    public function __unserialize(array $data)
     {
-        list($this->values, $this->ownedLists) = $data;
+        list($this->values, $this->pairs, $this->offset) = $data;
     }
 
-    /** {@inheritdoc} */
-    public function __clone()
+    public function __debugInfo(): array
     {
-        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
+        $info = [];
+        foreach ($this as $value => $sharedValue) { $info[] = [$value, $sharedValue]; }
+        return $info;
     }
 
 }
