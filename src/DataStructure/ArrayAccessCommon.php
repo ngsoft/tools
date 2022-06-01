@@ -22,11 +22,12 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
             protected bool $recursive = false
     )
     {
+        $this->assertValidImport($array);
         $this->storage = $array;
     }
 
     /**
-     * Appens a value at the end of the array updating the internal pointer
+     * Appends a value at the end of the array updating the internal pointer
      *
      * @param mixed $offset
      * @param mixed $value
@@ -34,9 +35,38 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
      */
     abstract protected function append(mixed $offset, mixed $value): void;
 
+    /**
+     * Checks if import is valid
+     *
+     * @param array $import
+     * @return void
+     */
+    abstract protected function assertValidImport(array $import): void;
+
     protected function getNewInstance(): static
     {
         return new static(recursive: $this->recursive);
+    }
+
+    /**
+     * Exports to json
+     *
+     * @param int $flags
+     * @return string
+     */
+    public function toJson(int $flags = JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR): string
+    {
+        return json_encode($this, $flags);
+    }
+
+    /**
+     * Exports to array
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return $this->storage;
     }
 
     /**
@@ -221,6 +251,27 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
     public function __debugInfo(): array
     {
         return $this->storage;
+    }
+
+    /** {@inheritdoc} */
+    public function __serialize(): array
+    {
+
+        return [$this->storage, $this->recursive];
+    }
+
+    /** {@inheritdoc} */
+    public function __unserialize(array $data)
+    {
+        list($this->storage, $this->recursive) = $data;
+    }
+
+    public function __clone(): void
+    {
+        $storage = &$this->storage;
+        foreach ($storage as $key => &$value) {
+            if (is_object($value)) $value = clone $value;
+        }
     }
 
 }

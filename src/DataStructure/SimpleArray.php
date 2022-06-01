@@ -17,6 +17,16 @@ class SimpleArray extends ArrayAccessCommon
         return new static($array, $recursive);
     }
 
+    protected function assertValidImport(array $import): void
+    {
+
+        foreach (array_keys($import) as $offset) {
+            if (!is_int($offset)) {
+                throw new OutOfBoundsException(sprintf('%s only accepts offsets of type int, %s given.', static::class, get_debug_type($offset)));
+            }
+        }
+    }
+
     protected function append(mixed $offset, mixed $value): void
     {
 
