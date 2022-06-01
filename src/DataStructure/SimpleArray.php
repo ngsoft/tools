@@ -12,17 +12,9 @@ use function get_debug_type;
 class SimpleArray extends ArrayAccessCommon
 {
 
-    public static function create(array &$array = [], bool $recursive = false): static
+    public static function create(array $array = [], bool $recursive = false): static
     {
         return new static($array, $recursive);
-    }
-
-    public function __construct(
-            array &$array = [],
-            protected bool $recursive = false
-    )
-    {
-        $this->storage = $array;
     }
 
     protected function append(mixed $offset, mixed $value): void
@@ -40,17 +32,6 @@ class SimpleArray extends ArrayAccessCommon
         $this->offsetUnset($offset);
         if ($value instanceof self) $value = $value->storage;
         $this->storage[$offset] = $value;
-    }
-
-    /**
-     * Clears the SimpleArray
-     *
-     * @return void
-     */
-    public function clear(): void
-    {
-        $array = [];
-        $this->storage = &$array;
     }
 
     /**
@@ -90,7 +71,10 @@ class SimpleArray extends ArrayAccessCommon
     public function shift(): mixed
     {
         $value = array_shift($this->storage);
-        return is_array($value) ? new static($value) : $value;
+        if (is_array($value) && $this->recursive) {
+            $value = new static($value, $this->recursive);
+        }
+        return $value;
     }
 
     /**
@@ -101,7 +85,10 @@ class SimpleArray extends ArrayAccessCommon
     public function pop(): mixed
     {
         $value = array_pop($this->storage);
-        return is_array($value) ? new static($value) : $value;
+        if (is_array($value) && $this->recursive) {
+            $value = new static($value, $this->recursive);
+        }
+        return $value;
     }
 
     /**

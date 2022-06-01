@@ -17,6 +17,14 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
 
     protected array $storage;
 
+    public function __construct(
+            array $array = [],
+            protected bool $recursive = false
+    )
+    {
+        $this->storage = $array;
+    }
+
     /**
      * Appens a value at the end of the array updating the internal pointer
      *
@@ -25,6 +33,22 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
      * @return void
      */
     abstract protected function append(mixed $offset, mixed $value): void;
+
+    protected function getNewInstance(): static
+    {
+        return new static(recursive: $this->recursive);
+    }
+
+    /**
+     * Clears the SimpleArray
+     *
+     * @return void
+     */
+    public function clear(): void
+    {
+        $array = [];
+        $this->storage = &$array;
+    }
 
     /**
      * Returns a new iterator indexed by id
@@ -62,7 +86,7 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
      */
     public function map(callable $callback): static
     {
-        $result = new static();
+        $result = $this->getNewInstance();
         foreach ($this->getIterator() as $key => $value) { $result->offsetSet($key, $callback($value, $key, $this)); }
         return $result;
     }
@@ -75,7 +99,7 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
      */
     public function filter(callable $callback): static
     {
-        $result = new static();
+        $result = $this->getNewInstance();
         foreach ($this->getIterator() as $key => $value) {
             $retval = $callback($value, $key, $this);
             if (!$retval) continue;
@@ -144,7 +168,11 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
         }
         if ($this->offsetExists($offset)) {
             $value = &$this->storage[$offset];
-            if ($this->recursive && is_array($value)) $value = new static($value, $this->recursive);
+            if ($this->recursive && is_array($value)) {
+                $instance = $this->getNewInstance();
+                $instance->storage = $value;
+                $value = $instance;
+            }
         }
         return $value;
     }
