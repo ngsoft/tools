@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    Countable,
-    Generator,
-    IteratorAggregate,
-    JsonSerializable,
-    Stringable,
+use Generator,
+    InvalidArgumentException,
     Traversable;
 
-abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
+/**
+ * @phan-file-suppress PhanTypeMismatchReturn
+ */
+trait ArrayAccessCommon
 {
 
     protected array $storage;
@@ -24,6 +23,53 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
     {
         $this->assertValidImport($array);
         $this->storage = $array;
+    }
+
+    public static function create(array $array = [], bool $recursive = false): static
+    {
+        return new static($array, $recursive);
+    }
+
+    /**
+     * Instanciates a new instance using the given array
+     * @param array $array
+     * @return static
+     */
+    public static function from(array $array): static
+    {
+        return new static($array, true);
+    }
+
+    /**
+     * Instanciates a new instance using the given json
+     * @param string $json
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public static function fromJson(string $json): static
+    {
+        $array = json_decode($json, true);
+        if (
+                (json_last_error() === JSON_ERROR_NONE)
+                and is_array($array)
+        ) return static::from($array);
+        throw new InvalidArgumentException("Cannot import: Invalid JSON");
+    }
+
+    /**
+     * Instanciates a new instance using the given json file
+     *
+     * @param string $filename
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public static function fromJsonFile(string $filename): static
+    {
+        if (is_file($filename)) {
+            $string = file_get_contents($filename);
+            if (false !== $string) return static::fromJson($string);
+        }
+        throw new InvalidArgumentException("Cannot import: Invalid JSON File");
     }
 
     /**
@@ -266,10 +312,11 @@ abstract class ArrayAccessCommon implements ArrayAccess, Countable, IteratorAggr
         list($this->storage, $this->recursive) = $data;
     }
 
+    /** {@inheritdoc} */
     public function __clone(): void
     {
         $storage = &$this->storage;
-        foreach ($storage as $key => &$value) {
+        foreach ($storage as &$value) {
             if (is_object($value)) $value = clone $value;
         }
     }

@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Generator,
+use ArrayAccess,
+    Countable,
+    IteratorAggregate,
+    JsonSerializable,
     OutOfBoundsException,
-    Traversable;
+    Stringable;
 use function get_debug_type;
 
-class SimpleArray extends ArrayAccessCommon
+class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
 {
 
-    public static function create(array $array = [], bool $recursive = false): static
-    {
-        return new static($array, $recursive);
-    }
+    use ArrayAccessCommon;
 
     protected function assertValidImport(array $import): void
     {

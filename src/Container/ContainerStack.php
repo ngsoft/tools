@@ -12,7 +12,7 @@ use Psr\Container\{
 class ContainerStack
 {
 
-    public function __construct(protected ContainerInterface $container, protected self $next = null)
+    public function __construct(protected ContainerInterface $container, protected ?self $next = null)
     {
         if ($container === $next) {
             throw new LogicException(sprintf('Cannot stack the same container %s#%d on top of one another.', get_class($container), spl_object_id($container)));
