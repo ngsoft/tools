@@ -31,6 +31,7 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
     public function clear(): void
     {
         $this->values = $this->pairs = [];
+        $this->offset = -1;
     }
 
     /**
@@ -145,6 +146,7 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
      */
     public function delete(int|float|string|object $value, int|float|string|object $sharedValue): static
     {
+
         unset($this->pairs[$this->indexOfPair($value, $sharedValue)]);
 
         if (!$this->valueHasPair($value)) {
@@ -188,8 +190,8 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
      */
     public function entries(): Generator
     {
-        foreach ($this->pairs as list($offset, $sharedOffset)) {
-            yield $this->values[$offset] => $this->values[$sharedOffset];
+        foreach ($this->values as $offset => $value) {
+            yield $value => $this->get($value);
         }
     }
 
@@ -226,7 +228,7 @@ class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stri
     public function __debugInfo(): array
     {
         $info = [];
-        foreach ($this as $value => $sharedValue) { $info[] = [$value, $sharedValue]; }
+        foreach ($this as $value => $set) { $info[] = [$value, $set]; }
         return $info;
     }
 
