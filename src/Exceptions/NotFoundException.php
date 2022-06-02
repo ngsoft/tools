@@ -19,9 +19,10 @@ class NotFoundException extends RuntimeException implements NotFoundExceptionInt
     public function __construct(
             protected ContainerInterface $container,
             string $id,
+            ?\Throwable $previous = null
     )
     {
-        parent::__construct(sprintf('%s Entry ID "%s" not found.', get_class($container), $id));
+        parent::__construct(sprintf('%s Entry ID "%s" not found.', get_class($container), $id), 0, $previous);
     }
 
     public function getContainer(): ContainerInterface

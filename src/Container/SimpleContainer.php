@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Psr\Container\ContainerInterface;
+use Closure,
+    NGSOFT\Exceptions\NotFoundException,
+    Psr\Container\ContainerInterface;
 
 class SimpleContainer implements ContainerInterface
 {
