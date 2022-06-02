@@ -8,17 +8,15 @@ use Closure;
 use NGSOFT\Exceptions\{
     ContainerResolverException, NotFoundException
 };
-use Psr\Container\{
-    ContainerExceptionInterface, ContainerInterface
-};
-use ReflectionClass,
-    ReflectionException,
+use Psr\Container\ContainerInterface,
+    ReflectionClass,
     ReflectionFunction,
     ReflectionIntersectionType,
     ReflectionMethod,
     ReflectionNamedType,
     ReflectionParameter,
-    ReflectionUnionType;
+    ReflectionUnionType,
+    Throwable;
 
 /**
  * @phan-file-suppress PhanTypeMismatchArgumentSuperType
@@ -26,32 +24,40 @@ use ReflectionClass,
 class ContainerResolver
 {
 
-    public function resolve(string $key, mixed $entry, ContainerInterface $container): mixed
+    protected $errors = [];
+
+    public function resolve(string $id, mixed $entry, ContainerInterface $container): mixed
     {
-        $resolved = $error = null;
+        $resolved = null;
+        $this->errors = [];
         try {
             if (is_null($entry)) {
-                if ($reflectionClass = $this->resolveClassName($key)) {
+                if ($reflectionClass = $this->resolveClassName($id)) {
 
                     if ($reflectionClass->isInstantiable()) {
                         if ($constructor = $reflectionClass->getConstructor()) {
-                            if ($params = $this->resolveParameters($constructor, $container)) { $resolved = $reflectionClass->newInstance(...$params); }
+                            if ($params = $this->resolveParameters($id, $constructor, $container)) { $resolved = $reflectionClass->newInstance(...$params); }
                         } else {
                             return $reflectionClass->newInstanceWithoutConstructor();
                         }
                     }
                 }
             } elseif ($entry instanceof Closure) {
-                if ($params = $this->resolveParameters(new ReflectionFunction($entry), $container)) { $resolved = call_user_func_array($entry, $params); }
+                if ($params = $this->resolveParameters($id, new ReflectionFunction($entry), $container)) { $resolved = call_user_func_array($entry, $params); }
             } else $resolved = $entry;
-        } catch (\Throwable $error) {
-            throw new NotFoundException($container, $key, $error);
+        } catch (Throwable $error) {
+            throw new NotFoundException($container, $id, $error);
         }
-        if ($resolved === null) throw new NotFoundException($container, $key);
+        if ($resolved === null) throw new NotFoundException($container, $id);
         return $resolved;
     }
 
-    private function resolveParameters(ReflectionMethod|ReflectionFunction $reflectionMethod, ContainerInterface $container): array
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    private function resolveParameters(string $id, ReflectionMethod|ReflectionFunction $reflectionMethod, ContainerInterface $container): array
     {
         if ($reflectionMethod->getNumberOfParameters() === 0) return [];
 
@@ -68,28 +74,28 @@ class ContainerResolver
                 continue;
             }
 
-            $result[] = $this->resolveType($reflectionType, $reflectionParameter, $container);
+            $result[] = $this->resolveType($id, $reflectionType, $reflectionParameter, $container);
         }
 
         return $result;
     }
 
-    private function resolveType(ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $reflectionType, ReflectionParameter $reflectionParameter, ContainerInterface $container): mixed
+    private function resolveType(string $id, ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $reflectionType, ReflectionParameter $reflectionParameter, ContainerInterface $container): mixed
     {
 
         if ($reflectionType instanceof ReflectionIntersectionType) {
             throw new ContainerResolverException('Intersection types are not allowed by this container.');
-        } elseif ($reflectionType instanceof ReflectionIntersectionType) $reflectionType = $reflectionType->getTypes();
-        else $reflectionType = [$reflectionType];
+        } elseif ($reflectionType instanceof \ReflectionUnionType) $reflectionTypes = $reflectionType->getTypes();
+        else $reflectionTypes = [$reflectionType];
 
-        foreach ($reflectionType as $reflectionNamedType) {
+        foreach ($reflectionTypes as $reflectionNamedType) {
+
             $type = $reflectionNamedType->getName();
 
             if (
-                    $reflectionNamedType->isBuiltin() &&
-                    $reflectionParameter->isDefaultValueAvailable()
+                    $reflectionNamedType->isBuiltin()
             ) {
-                return $reflectionParameter->getDefaultValue();
+                if ($reflectionParameter->isDefaultValueAvailable()) return $reflectionParameter->getDefaultValue();
             } elseif (in_array($type, ['static', 'self'])) {
                 //we try to resolve that class so => infinite loop
                 continue;
@@ -102,7 +108,7 @@ class ContainerResolver
             return null;
         }
 
-        throw new ContainerResolverException(sprintf('Cannot resolve parameter %d', $reflectionParameter->getPosition()), 0, $error);
+        throw new ContainerResolverException(sprintf('Cannot resolve entry "%s" parameter #%d of type %s', $id, $reflectionParameter->getPosition(), $reflectionType));
     }
 
     private function resolveClassName(string $className): ?ReflectionClass
