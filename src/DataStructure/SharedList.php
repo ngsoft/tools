@@ -11,7 +11,12 @@ use Countable,
     JsonSerializable,
     Stringable;
 
-class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
+/**
+ * Simulates Many-To-Many relations found in database
+ *
+ * @link https://en.wikipedia.org/wiki/Many-to-many_(data_model)
+ */
+final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
 {
 
     private array $values = [];
