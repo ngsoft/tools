@@ -9,7 +9,8 @@ use Psr\Container\{
 };
 use RuntimeException;
 
-class NotFoundException extends RuntimeException implements NotFoundExceptionInterface {
+class NotFoundException extends RuntimeException implements NotFoundExceptionInterface
+{
 
     /**
      * @param ContainerInterface $container
@@ -18,11 +19,13 @@ class NotFoundException extends RuntimeException implements NotFoundExceptionInt
     public function __construct(
             protected ContainerInterface $container,
             string $id,
-    ) {
-        parent::__construct(sprintf('Entry ID "%s" not found.', $id));
+    )
+    {
+        parent::__construct(sprintf('%s Entry ID "%s" not found.', get_class($container), $id));
     }
 
-    public function getContainer(): ContainerInterface {
+    public function getContainer(): ContainerInterface
+    {
         return $this->container;
     }
 
