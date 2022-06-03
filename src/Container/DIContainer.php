@@ -23,20 +23,8 @@ use Psr\Container\ContainerInterface,
  *
  * @phan-file-suppress PhanTypeMismatchArgumentSuperType
  */
-class DIContainer implements Container
+class DIContainer extends Container
 {
-
-    public function __construct(
-            protected array $definitions = []
-    )
-    {
-        $this->definitions[ContainerInterface::class] = $this->definitions[__CLASS__] = $this;
-    }
-
-    public function set(string $id, mixed $entry): void
-    {
-        $this->definitions[$id] = $entry;
-    }
 
     /** {@inheritdoc} */
     public function get(string $id): mixed
@@ -159,11 +147,6 @@ class DIContainer implements Container
     protected function resolveClassName(string $className): ?ReflectionClass
     {
         return class_exists($className) ? new ReflectionClass($className) : null;
-    }
-
-    public function __debugInfo(): array
-    {
-        return array_keys($this->definitions);
     }
 
 }

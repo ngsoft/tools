@@ -11,41 +11,20 @@ use Closure,
 /**
  * Container with only basic functionality
  */
-final class SimpleContainer implements Container
+final class SimpleContainer extends Container
 {
-
-    private array $entries = [];
-
-    public function __construct(array $definitions = [])
-    {
-        $definitions[ContainerInterface::class] = $definitions[ContainerInterface::class] ?? $this;
-        $definitions[SimpleContainer::class] = $definitions[SimpleContainer::class] ?? $this;
-        $this->entries = $definitions;
-    }
-
-    /**
-     * Adds an entry to the container
-     *
-     * @param string $key
-     * @param mixed $entry
-     * @return void
-     */
-    public function set(string $key, mixed $entry): void
-    {
-        $this->entries[$key] = $entry;
-    }
 
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        if (!$this->isResolved($id)) { $this->entries[$id] = call_user_func($this->entries[$id], $this); }
-        return $this->entries[$id];
+        if (!$this->isResolved($id)) { $this->definitions[$id] = call_user_func($this->definitions[$id], $this); }
+        return $this->definitions[$id];
     }
 
     /** {@inheritdoc} */
     public function has(string $id): bool
     {
-        return array_key_exists($id, $this->entries);
+        return array_key_exists($id, $this->definitions);
     }
 
     private function isResolved(string $key): bool
@@ -54,7 +33,7 @@ final class SimpleContainer implements Container
             throw new NotFoundException($this, $key);
         }
 
-        return $this->entries[$key] instanceof Closure === false;
+        return $this->definitions[$key] instanceof Closure === false;
     }
 
 }

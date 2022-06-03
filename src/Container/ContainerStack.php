@@ -128,15 +128,15 @@ class ContainerStack implements ContainerInterface, Stringable
         return $this->container->has($id) || ($this->next?->has($id) ?? false);
     }
 
+    /** {@inheritdoc} */
     public function __debugInfo(): array
     {
-
         $result = [$this->__toString()];
         if ($this->next) $result[] = $this->next->__toString();
-
         return $result;
     }
 
+    /** {@inheritdoc} */
     public function __toString()
     {
         return sprintf('object(%s)#%d', get_class($this->container), spl_object_id($this->container));
