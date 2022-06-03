@@ -59,7 +59,7 @@ class DIContainer extends Container
                         if ($constructor = $reflectionClass->getConstructor()) {
                             $resolved = $this->loadClass($reflectionClass->newInstance(...$this->resolveParameters($id, $constructor)));
                         } else {
-                            return $this->loadClass($reflectionClass->newInstanceWithoutConstructor());
+                            $resolved = $this->loadClass($reflectionClass->newInstanceWithoutConstructor());
                         }
                     } else throw new ContainerResolverException(sprintf('Entry "%s" cannot be instanciated.', $id));
                 }
