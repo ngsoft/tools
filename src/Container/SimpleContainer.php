@@ -8,7 +8,7 @@ use Closure,
     NGSOFT\Exceptions\NotFoundException,
     Psr\Container\ContainerInterface;
 
-class SimpleContainer implements ContainerInterface
+class SimpleContainer implements Container
 {
 
     private array $entries = [];

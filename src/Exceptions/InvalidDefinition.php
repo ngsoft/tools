@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Exceptions;
 
-use NGSOFT\Container\Container;
+use NGSOFT\Container\DIContainer;
 use Psr\Container\{
     ContainerExceptionInterface, ContainerInterface
 };
@@ -22,7 +22,7 @@ class InvalidDefinition extends ValueError implements ContainerExceptionInterfac
         );
     }
 
-    public function getContainer(): Container
+    public function getContainer(): ContainerInterface
     {
         return $this->container;
     }
