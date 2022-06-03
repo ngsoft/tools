@@ -18,6 +18,30 @@ abstract class Container implements ContainerInterface, Stringable
     }
 
     /**
+     * Register a service
+     *
+     * @param ServiceProvider $provider
+     * @return void
+     */
+    public function register(ServiceProvider $provider): void
+    {
+        $provider->provide($this);
+    }
+
+    /**
+     * Adds multiple definitions
+     *
+     * @param array $definitions
+     * @return void
+     */
+    public function setMultiple(array $definitions): void
+    {
+        foreach ($definitions as $id => $entry) {
+            $this->set($id, $entry);
+        }
+    }
+
+    /**
      * Add a definition to the container
      *
      * @param string $id
