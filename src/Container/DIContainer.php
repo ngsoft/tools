@@ -19,6 +19,8 @@ use Psr\Container\ContainerInterface,
     Throwable;
 
 /**
+ * Container that supports autowiring or dependency injection
+ *
  * @phan-file-suppress PhanTypeMismatchArgumentSuperType
  */
 class DIContainer implements Container
@@ -68,20 +70,31 @@ class DIContainer implements Container
 
                     if ($reflectionClass->isInstantiable()) {
                         if ($constructor = $reflectionClass->getConstructor()) {
-                            if ($params = $this->resolveParameters($id, $constructor)) { $resolved = $reflectionClass->newInstance(...$params); }
+                            $resolved = $this->loadClass($reflectionClass->newInstance(...$this->resolveParameters($id, $constructor)));
                         } else {
-                            return $reflectionClass->newInstanceWithoutConstructor();
+                            return $this->loadClass($reflectionClass->newInstanceWithoutConstructor());
                         }
                     } else throw new ContainerResolverException(sprintf('Entry "%s" cannot be instanciated.', $id));
                 }
             } elseif ($entry instanceof Closure) {
                 $resolved = call_user_func_array($entry, $this->resolveParameters($id, new ReflectionFunction($entry)));
+                if (is_object($resolved)) {
+                    $resolved = $this->loadClass($resolved);
+                } elseif (is_null($resolved)) {
+                    throw new ContainerResolverException(sprintf('Entry "%s" {closure} does not return any value.', $id));
+                }
             } else $resolved = $entry;
         } catch (Throwable $error) {
             throw new NotFoundException($this, $id, $error);
         }
         if ($resolved === null) throw new NotFoundException($this, $id);
         return $resolved;
+    }
+
+    protected function loadClass(object $instance): object
+    {
+        // add parameter injection Attribute
+        return $instance;
     }
 
     protected function resolveParameters(string $id, ReflectionMethod|ReflectionFunction $reflectionMethod): array
@@ -135,7 +148,14 @@ class DIContainer implements Container
             return null;
         }
 
-        throw new ContainerResolverException(sprintf('Cannot resolve entry "%s" %s parameter #%d of type %s', $id, $reflectionParameter->getDeclaringFunction(), $reflectionParameter->getPosition(), $reflectionType));
+        throw new ContainerResolverException(sprintf(
+                                'Cannot resolve entry "%s" %s parameter #%d "%s" of type %s',
+                                $id,
+                                $reflectionParameter->getDeclaringFunction()->getName(),
+                                $reflectionParameter->getPosition(),
+                                $reflectionParameter->getName(),
+                                $reflectionType
+        ));
     }
 
     protected function resolveClassName(string $className): ?ReflectionClass
