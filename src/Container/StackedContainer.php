@@ -12,32 +12,32 @@ use Stringable,
     ValueError;
 
 /**
- * A container stack that enables to use many DI solutions
- *
+ * A container stack that enables the use many DI solutions simultaneously
+ * the first match in the stack will be returned
  */
-class ContainerStack implements ContainerInterface, Stringable
+class StackedContainer implements ContainerInterface, Stringable
 {
 
     protected ?ContainerInterface $container = null;
 
+    /**
+     *
+     * @param ContainerInterface|ContainerInterface[] $container A single or multiple container(s) to manage
+     * @param bool $appendContainer  append or prepend container using stackContainer method
+     * @param self|null $next next container in the stack
+     * @throws LogicException
+     * @throws ValueError
+     */
     final public function __construct(
             ContainerInterface|array $container,
             protected bool $appendContainer = true,
             protected ?self $next = null
     )
     {
-        if ($container === $next) {
-            throw new LogicException(sprintf('Cannot stack the same container %s#%d on top of one another.', get_class($container), spl_object_id($container)));
-        }
 
         if (is_array($container)) {
             foreach ($container as $containerInstance) {
-                if ($containerInstance instanceof ContainerInterface === false) {
-                    throw new ValueError(sprintf('Container does not implements %s', ContainerInterface::class));
-                }
-
-                if ($appendContainer) $this->appendContainer($containerInstance);
-                else $this->prependContainer($containerInstance);
+                $this->stackContainer($containerInstance);
             }
         } else $this->container = $container;
     }
@@ -91,8 +91,12 @@ class ContainerStack implements ContainerInterface, Stringable
     protected function assertContainerOnce(ContainerInterface $container)
     {
 
+        if ($container instanceof self) {
+            throw new LogicException('Cannot use a stack as a container.');
+        }
+
         if ($this->hasContainer($container)) {
-            throw new ValueError('Cannot stack the same container twice.');
+            throw new LogicException('Cannot stack the same container twice.');
         }
     }
 
