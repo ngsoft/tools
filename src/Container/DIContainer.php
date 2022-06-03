@@ -132,9 +132,7 @@ class DIContainer implements Container
 
             $type = $reflectionNamedType->getName();
 
-            if (
-                    $reflectionNamedType->isBuiltin()
-            ) {
+            if ($reflectionNamedType->isBuiltin()) {
                 if ($reflectionParameter->isDefaultValueAvailable()) return $reflectionParameter->getDefaultValue();
             } elseif (in_array($type, ['static', 'self'])) {
                 //we try to resolve that class so => infinite loop

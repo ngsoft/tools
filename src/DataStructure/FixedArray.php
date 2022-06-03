@@ -169,7 +169,7 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
 
     public function __toString()
     {
-        return sprintf('[object %s]', static::class);
+        return sprintf('object(%s)#%d', get_class($this->container), spl_object_id($this->container));
     }
 
     /** {@inheritdoc} */

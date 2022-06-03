@@ -217,7 +217,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
     public function __toString(): string
     {
-        return sprintf('[object %s]', static::class);
+        return sprintf('object(%s)#%d', get_class($this->container), spl_object_id($this->container));
     }
 
     public function __serialize(): array

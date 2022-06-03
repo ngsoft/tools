@@ -166,7 +166,7 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     /** {@inheritdoc} */
     public function __toString()
     {
-        return sprintf('[object %s]', static::class);
+        return sprintf('object(%s)#%d', get_class($this->container), spl_object_id($this->container));
     }
 
     public function __serialize(): array
