@@ -9,6 +9,7 @@ use ArrayAccess,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    NGSOFT\Traits\StringableObject,
     OutOfRangeException,
     Stringable,
     Traversable;
@@ -21,6 +22,8 @@ use ArrayAccess,
  */
 final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
 {
+
+    use StringableObject;
 
     public const DEFAULT_CAPACITY = 8;
 
@@ -165,11 +168,6 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     public function __unserialize(array $data): void
     {
         list($this->size, $this->storage) = $data;
-    }
-
-    public function __toString()
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     /** {@inheritdoc} */

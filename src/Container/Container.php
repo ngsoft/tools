@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Psr\Container\ContainerInterface,
+use NGSOFT\Traits\StringableObject,
+    Psr\Container\ContainerInterface,
     Stringable;
 
 abstract class Container implements ContainerInterface, Stringable
 {
+
+    use StringableObject;
 
     public function __construct(
             protected array $definitions = []
@@ -57,12 +60,6 @@ abstract class Container implements ContainerInterface, Stringable
     public function __debugInfo(): array
     {
         return array_keys($this->definitions);
-    }
-
-    /** {@inheritdoc} */
-    public function __toString()
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
 }

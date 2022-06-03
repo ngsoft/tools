@@ -9,6 +9,7 @@ use ArrayAccess,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    NGSOFT\Traits\StringableObject,
     RuntimeException,
     Stringable,
     Traversable;
@@ -22,6 +23,8 @@ use function get_debug_type;
  */
 final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, JsonSerializable
 {
+
+    use StringableObject;
 
     protected array $keys = [];
     protected array $values = [];
@@ -216,12 +219,6 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     public function __unserialize(array $data): void
     {
         list($this->keys, $this->values) = $data;
-    }
-
-    /** {@inheritdoc} */
-    public function __toString()
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     /** {@inheritdoc} */

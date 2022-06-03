@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    Countable,
+use Countable,
     Generator,
     IteratorAggregate,
     JsonSerializable,
-    OutOfBoundsException,
+    NGSOFT\Traits\StringableObject,
     RuntimeException,
     Stringable,
     Traversable;
@@ -19,6 +18,8 @@ use ArrayAccess,
  */
 final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate
 {
+
+    use StringableObject;
 
     private array $storage = [];
 
@@ -161,12 +162,6 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     public function __debugInfo(): array
     {
         return $this->storage;
-    }
-
-    /** {@inheritdoc} */
-    public function __toString()
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     public function __serialize(): array

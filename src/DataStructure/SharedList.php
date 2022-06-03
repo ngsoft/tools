@@ -9,7 +9,9 @@ use Countable,
     InvalidArgumentException,
     IteratorAggregate,
     JsonSerializable,
-    Stringable;
+    NGSOFT\Traits\StringableObject,
+    Stringable,
+    Traversable;
 
 /**
  * Simulates Many-To-Many relations found in database
@@ -18,6 +20,8 @@ use Countable,
  */
 final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
 {
+
+    use StringableObject;
 
     private array $values = [];
     private array $pairs = [];
@@ -205,7 +209,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         return count($this->pairs);
     }
 
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         yield from $this->entries();
     }
@@ -213,11 +217,6 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
     public function jsonSerialize(): mixed
     {
         return [];
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     public function __serialize(): array

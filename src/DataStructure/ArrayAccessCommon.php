@@ -6,6 +6,7 @@ namespace NGSOFT\DataStructure;
 
 use Generator,
     InvalidArgumentException,
+    NGSOFT\Traits\StringableObject,
     Traversable;
 
 /**
@@ -13,6 +14,8 @@ use Generator,
  */
 trait ArrayAccessCommon
 {
+
+    use StringableObject;
 
     protected array $storage;
 
@@ -285,12 +288,6 @@ trait ArrayAccessCommon
     public function jsonSerialize(): mixed
     {
         return $this->storage;
-    }
-
-    /** {@inheritdoc} */
-    public function __toString(): string
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     /** {@inheritdoc} */

@@ -9,6 +9,7 @@ use ArrayAccess,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    NGSOFT\Traits\StringableObject,
     OutOfBoundsException,
     RuntimeException,
     Stringable,
@@ -20,6 +21,8 @@ use ArrayAccess,
  */
 final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable, ArrayAccess
 {
+
+    use StringableObject;
 
     private Set $ownedList;
 
@@ -157,12 +160,6 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
             'value' => $this->value,
             'ownedList' => $this->ownedList,
         ];
-    }
-
-    /** {@inheritdoc} */
-    public function __toString()
-    {
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     /** {@inheritdoc} */
