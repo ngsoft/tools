@@ -221,7 +221,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     /** {@inheritdoc} */
     public function __toString()
     {
-        return sprintf('object(%s)#%d', get_class($this->container), spl_object_id($this->container));
+        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
     }
 
     /** {@inheritdoc} */

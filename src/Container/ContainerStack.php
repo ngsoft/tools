@@ -8,18 +8,21 @@ use LogicException;
 use Psr\Container\{
     ContainerExceptionInterface, ContainerInterface
 };
-use ValueError;
+use Stringable,
+    ValueError;
 
 /**
  * A container stack that enables to use many DI solutions
+ *
  */
-class ContainerStack implements ContainerInterface, \Stringable
+class ContainerStack implements ContainerInterface, Stringable
 {
 
     protected ?ContainerInterface $container = null;
 
     final public function __construct(
             ContainerInterface|array $container,
+            protected bool $appendContainer = true,
             protected ?self $next = null
     )
     {
@@ -33,9 +36,22 @@ class ContainerStack implements ContainerInterface, \Stringable
                     throw new ValueError(sprintf('Container does not implements %s', ContainerInterface::class));
                 }
 
-                $this->appendContainer($containerInstance);
+                if ($appendContainer) $this->appendContainer($containerInstance);
+                else $this->prependContainer($containerInstance);
             }
         } else $this->container = $container;
+    }
+
+    /**
+     * Adds a container to the stack
+     *
+     * @param ContainerInterface $container
+     * @return void
+     */
+    public function stackContainer(ContainerInterface $container): void
+    {
+        if ($this->appendContainer) $this->appendContainer($container);
+        else $this->prependContainer($container);
     }
 
     /**
@@ -52,7 +68,7 @@ class ContainerStack implements ContainerInterface, \Stringable
             return;
         }
 
-        $this->next = new static($container, $this->next);
+        $this->next = new static($container, $this->appendContainer, $this->next);
     }
 
     /**
@@ -68,7 +84,7 @@ class ContainerStack implements ContainerInterface, \Stringable
             $this->container = $container;
             return;
         }
-        $this->next = new static($this->container, $this->next);
+        $this->next = new static($this->container, $this->appendContainer, $this->next);
         $this->container = $container;
     }
 
@@ -81,7 +97,7 @@ class ContainerStack implements ContainerInterface, \Stringable
     }
 
     /**
-     * Check if container already registered
+     * Check if container already stacked
      *
      * @param ContainerInterface $container
      * @return bool
