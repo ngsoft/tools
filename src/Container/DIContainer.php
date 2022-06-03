@@ -8,8 +8,7 @@ use Closure;
 use NGSOFT\Exceptions\{
     ContainerResolverException, NotFoundException
 };
-use Psr\Container\ContainerInterface,
-    ReflectionClass,
+use ReflectionClass,
     ReflectionFunction,
     ReflectionIntersectionType,
     ReflectionMethod,
