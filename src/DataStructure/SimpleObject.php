@@ -40,7 +40,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
             return;
         }
 
-        if (!is_int($offset) && !is_int($offset)) {
+        if (!is_int($offset) && !is_string($offset)) {
             throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int, %s given.', static::class, get_debug_type($offset)));
         }
 
