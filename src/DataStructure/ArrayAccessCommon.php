@@ -109,6 +109,22 @@ trait ArrayAccessCommon
     }
 
     /**
+     * Saves Contents to json file
+     *
+     * @param string $file
+     * @return bool
+     */
+    public function saveToJson(string $file): bool
+    {
+
+        $dir = dirname($file);
+        if (is_dir($dir) || mkdir($dir, 0777, true)) {
+            return file_put_contents($file, $this->toJson()) > 0;
+        }
+        return false;
+    }
+
+    /**
      * Exports to array
      *
      * @return array
