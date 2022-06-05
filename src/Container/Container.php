@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use NGSOFT\Traits\StringableObject,
+use Closure,
+    NGSOFT\Traits\StringableObject,
     Psr\Container\ContainerInterface,
     Stringable;
 
@@ -33,6 +34,20 @@ abstract class Container implements ContainerInterface, Stringable
     public function addHandler(Closure $handler): void
     {
         $this->handlers[] = $handler;
+    }
+
+    /**
+     * Execute handlers when resolving the entry
+     * 
+     * @param mixed $resoved
+     * @return mixed
+     */
+    protected function handle(mixed $resoved): mixed
+    {
+        foreach ($this->handlers as $handler) {
+            $resoved = $handler($this, $resoved);
+        }
+        return $resoved;
     }
 
     /**

@@ -30,11 +30,7 @@ class DIContainer extends Container
     {
         if (!$this->isResolved($id)) {
             $resolved = $this->resolve($id, $this->definitions[$id] ?? null);
-
-            foreach ($this->handlers as $handler) {
-                $resolved = $handler($this, $resolved);
-            }
-            $this->definitions[$id] = $resolved;
+            $this->definitions[$id] = $this->handle($resolved);
         }
         return $this->definitions[$id];
     }
