@@ -13,11 +13,26 @@ abstract class Container implements ContainerInterface, Stringable
 
     use StringableObject;
 
+    /** @var Closure[] */
+    protected array $handlers = [];
+
     public function __construct(
             protected array $definitions = []
     )
     {
         $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this;
+    }
+
+    /**
+     * Add an handler to manage entry resolution
+     * eg: add an handler to autowire LoggerAware ...
+     *
+     * @param Closure $handler
+     * @return void
+     */
+    public function addHandler(Closure $handler): void
+    {
+        $this->handlers[] = $handler;
     }
 
     /**

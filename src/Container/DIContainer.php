@@ -28,7 +28,14 @@ class DIContainer extends Container
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        if (!$this->isResolved($id)) $this->definitions[$id] = $this->resolve($id, $this->definitions[$id] ?? null);
+        if (!$this->isResolved($id)) {
+            $resolved = $this->resolve($id, $this->definitions[$id] ?? null);
+
+            foreach ($this->handlers as $handler) {
+                $resolved = $handler($this, $resolved);
+            }
+            $this->definitions[$id] = $resolved;
+        }
         return $this->definitions[$id];
     }
 

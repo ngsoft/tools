@@ -17,7 +17,16 @@ final class SimpleContainer extends Container
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        if (!$this->isResolved($id)) { $this->definitions[$id] = call_user_func($this->definitions[$id], $this); }
+        if (!$this->isResolved($id)) {
+
+
+            $resolved = call_user_func($this->definitions[$id], $this);
+
+            foreach ($this->handlers as $handler) {
+                $resolved = $handler($this, $resolved);
+            }
+            $this->definitions[$id] = $resolved;
+        }
         return $this->definitions[$id];
     }
 
