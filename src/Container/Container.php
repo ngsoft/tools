@@ -31,23 +31,23 @@ abstract class Container implements ContainerInterface, Stringable
      * @param Closure $handler
      * @return void
      */
-    public function addHandler(Closure $handler): void
+    public function addResolutionHandler(Closure $handler): void
     {
         $this->handlers[] = $handler;
     }
 
     /**
      * Execute handlers when resolving the entry
-     * 
-     * @param mixed $resoved
+     *
+     * @param mixed $resolved
      * @return mixed
      */
-    protected function handle(mixed $resoved): mixed
+    protected function handle(mixed $resolved): mixed
     {
         foreach ($this->handlers as $handler) {
-            $resoved = $handler($this, $resoved);
+            $resolved = $handler($this, $resoved);
         }
-        return $resoved;
+        return $resolved;
     }
 
     /**
