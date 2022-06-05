@@ -18,7 +18,7 @@ use ReflectionClass,
     Throwable;
 
 /**
- * Container that supports autowiring or dependency injection
+ * Container that supports autowiring for dependency injection
  *
  * @phan-file-suppress PhanTypeMismatchArgumentSuperType
  */
