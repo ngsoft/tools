@@ -15,4 +15,11 @@ class ClassAttribute
         $this->className = $reflector->getName();
     }
 
+    public function withAttribute(object $attribute): static
+    {
+        $clone = clone $this;
+        $clone->attribute = $attribute;
+        return $clone;
+    }
+
 }
