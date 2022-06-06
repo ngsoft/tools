@@ -31,7 +31,7 @@ class AttributeMetadata
     public readonly array $parameters;
 
     public function __construct(
-            string $attributeName,
+            string|object $attributeName,
             public ?string $name = null,
             public ?object $attribute = null,
             public ?AttributeType $attributeType = null
@@ -39,6 +39,8 @@ class AttributeMetadata
     {
 
         static $cache = [];
+
+        $attributeName = is_string($attributeName) ? $attributeName : get_class($attributeName);
 
         if (!isset($cache[$attributeName])) {
 
