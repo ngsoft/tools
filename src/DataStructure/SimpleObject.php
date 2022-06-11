@@ -17,9 +17,32 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
     use ArrayAccessCommon;
 
-    public static function create(array $array = [], bool $recursive = false): static
+    protected string $filename = '';
+
+    /**
+     * Instanciates a new instance using the given json file and syncs it (writes to it when keys are added/removed)
+     *
+     * @param string $filename
+     * @param bool $recursive
+     * @return static
+     * @throws InvalidArgumentException
+     */
+    public static function syncJsonFile(string $filename, bool $recursive = true): static
     {
-        return new static($array, $recursive);
+        $instance = static::fromJsonFile($filename, $recursive);
+        $instance->filename = $filename;
+        return $instance;
+    }
+
+    /**
+     * Write to json file when modified
+     * @return void
+     */
+    protected function update(): void
+    {
+        if (!empty($this->filename)) {
+            $this->saveToJson($this->filename);
+        }
     }
 
     protected function assertValidImport(array $import): void
@@ -85,6 +108,18 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     public function __isset(string $name): bool
     {
         return $this->offsetExists($name);
+    }
+
+    /** {@inheritdoc} */
+    public function __serialize(): array
+    {
+        return [$this->storage, $this->recursive, $this->filename];
+    }
+
+    /** {@inheritdoc} */
+    public function __unserialize(array $data)
+    {
+        list($this->storage, $this->recursive, $this->filename) = $data;
     }
 
 }
