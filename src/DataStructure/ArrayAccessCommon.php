@@ -36,26 +36,28 @@ trait ArrayAccessCommon
     /**
      * Instanciates a new instance using the given array
      * @param array $array
+     * @param bool $recursive
      * @return static
      */
-    public static function from(array $array): static
+    public static function from(array $array, bool $recursive = true): static
     {
-        return new static($array, true);
+        return new static($array, $recursive);
     }
 
     /**
      * Instanciates a new instance using the given json
      * @param string $json
+     * @param bool $recursive
      * @return static
      * @throws InvalidArgumentException
      */
-    public static function fromJson(string $json): static
+    public static function fromJson(string $json, bool $recursive = true): static
     {
         $array = json_decode($json, true);
         if (
                 (json_last_error() === JSON_ERROR_NONE)
                 and is_array($array)
-        ) return static::from($array);
+        ) return static::from($array, $recursive);
         throw new InvalidArgumentException("Cannot import: Invalid JSON");
     }
 
@@ -63,14 +65,15 @@ trait ArrayAccessCommon
      * Instanciates a new instance using the given json file
      *
      * @param string $filename
+     * @param bool $recursive
      * @return static
      * @throws InvalidArgumentException
      */
-    public static function fromJsonFile(string $filename): static
+    public static function fromJsonFile(string $filename, bool $recursive = true): static
     {
         if (is_file($filename)) {
             $string = file_get_contents($filename);
-            if (false !== $string) return static::fromJson($string);
+            if (false !== $string) return static::fromJson($string, $recursive);
         }
         throw new InvalidArgumentException("Cannot import: Invalid JSON File");
     }
@@ -95,6 +98,17 @@ trait ArrayAccessCommon
     protected function getNewInstance(): static
     {
         return new static(recursive: $this->recursive);
+    }
+
+    /**
+     * Gets run when data are modified
+     *
+     *
+     * @return void
+     */
+    protected function update(): void
+    {
+
     }
 
     /**
@@ -276,12 +290,14 @@ trait ArrayAccessCommon
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->append($offset, $value);
+        $this->update();
     }
 
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
         unset($this->storage[$offset]);
+        $this->update();
     }
 
     /** {@inheritdoc} */
