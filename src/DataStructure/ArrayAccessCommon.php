@@ -18,6 +18,8 @@ trait ArrayAccessCommon
     use StringableObject;
 
     protected array $storage;
+    protected array $objects = [];
+    protected ?self $parent = null;
 
     public function __construct(
             array $array = [],
@@ -103,10 +105,9 @@ trait ArrayAccessCommon
     /**
      * Gets run when data are modified
      *
-     *
      * @return void
      */
-    protected function update(): void
+    public function update(): void
     {
 
     }
@@ -278,9 +279,14 @@ trait ArrayAccessCommon
         if ($this->offsetExists($offset)) {
             $value = &$this->storage[$offset];
             if ($this->recursive && is_array($value)) {
+                if (isset($this->objects[$offset])) {
+                    return $this->objects[$offset];
+                }
                 $instance = $this->getNewInstance();
+                $instance->parent = $this;
                 $instance->storage = $value;
-                $value = $instance;
+                $this->objects[$offset] = $instance;
+                return $instance;
             }
         }
         return $value;
@@ -331,7 +337,6 @@ trait ArrayAccessCommon
     /** {@inheritdoc} */
     public function __serialize(): array
     {
-
         return [$this->storage, $this->recursive];
     }
 

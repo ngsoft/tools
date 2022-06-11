@@ -9,7 +9,8 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable,
     OutOfBoundsException,
-    Stringable;
+    Stringable,
+    Throwable;
 use function get_debug_type;
 
 class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
@@ -25,11 +26,14 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * @param string $filename
      * @param bool $recursive
      * @return static
-     * @throws InvalidArgumentException
      */
     public static function syncJsonFile(string $filename, bool $recursive = true): static
     {
-        $instance = static::fromJsonFile($filename, $recursive);
+        try {
+            $instance = static::fromJsonFile($filename, $recursive);
+        } catch (Throwable) {
+            $instance = static::create([], $recursive);
+        }
         $instance->filename = $filename;
         return $instance;
     }
@@ -38,11 +42,11 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Write to json file when modified
      * @return void
      */
-    protected function update(): void
+    public function update(): void
     {
         if (!empty($this->filename)) {
             $this->saveToJson($this->filename);
-        }
+        } else { $this->parent?->update(); }
     }
 
     protected function assertValidImport(array $import): void
@@ -64,10 +68,9 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         }
 
         if (!is_int($offset) && !is_string($offset)) {
-            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int, %s given.', static::class, get_debug_type($offset)));
+            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', static::class, get_debug_type($offset)));
         }
-
-        $this->offsetUnset($offset);
+        unset($this->storage[$offset]);
         if ($value instanceof self) $value = $value->storage;
         $this->storage[$offset] = $value;
     }
