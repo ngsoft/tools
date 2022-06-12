@@ -8,11 +8,13 @@ use ErrorException,
     FilesystemIterator,
     Generator,
     InvalidArgumentException,
+    NGSOFT\Traits\UnionType,
     RecursiveDirectoryIterator,
     RecursiveIteratorIterator,
     ReflectionClass,
     RuntimeException,
     SplFileInfo;
+use const __MICROTIME_START__;
 use function str_ends_with,
              str_starts_with;
 
@@ -21,6 +23,8 @@ use function str_ends_with,
  */
 final class Tools
 {
+
+    use UnionType;
 
     /**
      * Package Version Information
@@ -361,6 +365,8 @@ final class Tools
 
         foreach ($iterable as $key => $value) {
 
+            self::hintType($key, 'int', 'string');
+
             if (true !== $callback($value, $key, $iterable)) {
                 continue;
             }
@@ -383,9 +389,13 @@ final class Tools
     {
         $new = [];
         foreach ($iterable as $key => $value) {
+
+            self::hintType($key, 'int', 'string');
+
             // key can be passed by reference
             $result = $callback($value, $key, $iterable);
 
+            //no return value? $value passed by reference?
             if ($result === null) {
                 $result = $value;
             }

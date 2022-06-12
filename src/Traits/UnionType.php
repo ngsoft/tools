@@ -61,7 +61,7 @@ trait UnionType
 
         if (count($types) == 0) throw new InvalidArgumentException('Invalid Argument count, at least one type is requested.');
         //replace long names (why use them?)
-        $types = array_map(fn ($t) => $replace[$t] ?? $t, $types);
+        $types = array_map(fn($t) => $replace[$t] ?? $t, $types);
 
         // support for multiple types at once, not using is_scalar check to get builtin type exception
         if (in_array('scalar', $types)) {
@@ -74,7 +74,7 @@ trait UnionType
         $types = array_unique($types);
         foreach ($types as $type) {
             if (interface_exists($type) or class_exists($type)) {
-                if ($value instanceof $type) return;
+                if (is_a($value, $type)) return;
             } elseif (get_debug_type($value) == $type) return;
             elseif (isset($checks[$type]) and call_user_func_array($checks[$type], [$value])) return;
             elseif (preg_match('/^resource/', $type) > 0 and preg_match('/^resource/', get_debug_type($value)) > 0) return;
@@ -129,4 +129,5 @@ trait UnionType
             return $cached[$method] = [];
         }
     }
+
 }
