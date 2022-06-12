@@ -18,8 +18,6 @@ trait ArrayAccessCommon
     use StringableObject;
 
     protected array $storage;
-    protected array $objects = [];
-    protected ?self $parent = null;
 
     public function __construct(
             array $array = [],
@@ -100,16 +98,6 @@ trait ArrayAccessCommon
     protected function getNewInstance(): static
     {
         return new static(recursive: $this->recursive);
-    }
-
-    /**
-     * Gets run when data are modified
-     *
-     * @return void
-     */
-    public function update(): void
-    {
-
     }
 
     /**
@@ -279,13 +267,8 @@ trait ArrayAccessCommon
         if ($this->offsetExists($offset)) {
             $value = &$this->storage[$offset];
             if ($this->recursive && is_array($value)) {
-                if (isset($this->objects[$offset])) {
-                    return $this->objects[$offset];
-                }
                 $instance = $this->getNewInstance();
-                $instance->parent = $this;
-                $instance->storage = $value;
-                $this->objects[$offset] = $instance;
+                $instance->storage = &$value;
                 return $instance;
             }
         }
@@ -296,14 +279,12 @@ trait ArrayAccessCommon
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->append($offset, $value);
-        $this->update();
     }
 
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
         unset($this->storage[$offset]);
-        $this->update();
     }
 
     /** {@inheritdoc} */

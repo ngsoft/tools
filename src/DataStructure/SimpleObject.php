@@ -19,6 +19,10 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     use ArrayAccessCommon;
 
     protected string $filename = '';
+    protected ?self $parent = null;
+
+    /** @var static[] */
+    protected array $children = [];
 
     /**
      * Instanciates a new instance using the given json file and syncs it (writes to it when keys are added/removed)
@@ -40,9 +44,10 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
     /**
      * Write to json file when modified
+     * @internal
      * @return void
      */
-    public function update(): void
+    protected function update(): void
     {
         if (!empty($this->filename)) {
             $this->saveToJson($this->filename);
@@ -70,7 +75,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         if (!is_int($offset) && !is_string($offset)) {
             throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', static::class, get_debug_type($offset)));
         }
-        unset($this->storage[$offset]);
+        unset($this->storage[$offset], $this->children[$offset]);
         if ($value instanceof self) $value = $value->storage;
         $this->storage[$offset] = $value;
     }
@@ -86,6 +91,47 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         if ($value instanceof self) $value = $value->storage;
         $offset = array_search($value, $this->storage, true);
         return $offset === false ? null : $offset;
+    }
+
+    /** {@inheritdoc} */
+    public function &offsetGet(mixed $offset): mixed
+    {
+        $value = null;
+        if (null === $offset) {
+            $this->storage[] = [];
+            $offset = array_key_last($this->storage);
+        }
+        if ($this->offsetExists($offset)) {
+            $value = &$this->storage[$offset];
+            if ($this->recursive && is_array($value)) {
+
+                if (isset($this->children[$offset])) {
+                    return $this->children[$offset];
+                }
+
+                $instance = $this->getNewInstance();
+                $instance->parent = $this;
+                $instance->storage = &$value;
+                $this->children[$offset] = $instance;
+                return $instance;
+            }
+        }
+        return $value;
+    }
+
+    /** {@inheritdoc} */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->append($offset, $value);
+        $this->update();
+    }
+
+    /** {@inheritdoc} */
+    public function offsetUnset(mixed $offset): void
+    {
+        unset($this->storage[$offset], $this->children[$offset]);
+
+        $this->update();
     }
 
     /** {@inheritdoc} */
