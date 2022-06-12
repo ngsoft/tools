@@ -165,7 +165,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data)
+    public function __unserialize(array $data): void
     {
         list($this->storage, $this->recursive, $this->filename) = $data;
     }

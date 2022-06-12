@@ -322,7 +322,7 @@ trait ArrayAccessCommon
     }
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data)
+    public function __unserialize(array $data): void
     {
         list($this->storage, $this->recursive) = $data;
     }

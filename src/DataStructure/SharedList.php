@@ -224,7 +224,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         return [$this->values, $this->pairs, $this->offset];
     }
 
-    public function __unserialize(array $data)
+    public function __unserialize(array $data): void
     {
         list($this->values, $this->pairs, $this->offset) = $data;
     }

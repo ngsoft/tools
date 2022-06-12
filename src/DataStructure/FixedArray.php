@@ -171,7 +171,7 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     }
 
     /** {@inheritdoc} */
-    public function __clone()
+    public function __clone(): void
     {
         $storage = [];
         foreach ($this->storage as $key => $value) {

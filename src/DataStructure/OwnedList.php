@@ -175,7 +175,7 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
     }
 
     /** {@inheritdoc} */
-    public function __clone()
+    public function __clone(): void
     {
         throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
