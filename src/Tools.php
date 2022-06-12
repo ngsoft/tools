@@ -24,8 +24,6 @@ use function str_ends_with,
 final class Tools
 {
 
-    use UnionType;
-
     /**
      * Package Version Information
      */
@@ -353,6 +351,22 @@ final class Tools
     }
 
     /**
+     * Uses callback for each elements of the array and returns the value
+     *
+     * @param callable $callback
+     * @param iterable $iterable
+     * @return iterable
+     */
+    public static function each(callable $callback, iterable $iterable): iterable
+    {
+
+        foreach ($iterable as $key => $value) {
+            $result = $callback($value, $key, $iterable);
+            yield $key => $result;
+        }
+    }
+
+    /**
      * Filters elements of an iterable using a callback function
      *
      * @param callable $callback accepts $value, $key, $array
@@ -364,10 +378,7 @@ final class Tools
         $new = [];
 
         foreach ($iterable as $key => $value) {
-
-            self::hintType($key, 'int', 'string');
-
-            if (true !== $callback($value, $key, $iterable)) {
+            if (!$callback($value, $key, $iterable)) {
                 continue;
             }
             if (is_int($key)) {
@@ -389,8 +400,6 @@ final class Tools
     {
         $new = [];
         foreach ($iterable as $key => $value) {
-
-            self::hintType($key, 'int', 'string');
 
             // key can be passed by reference
             $result = $callback($value, $key, $iterable);
