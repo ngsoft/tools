@@ -349,6 +349,31 @@ final class Tools
     }
 
     /**
+     * Filters elements of an iterable using a callback function
+     *
+     * @param callable $callback accepts $value, $key, $array
+     * @param iterable $iterable
+     * @return array
+     */
+    public static function filter(callable $callback, iterable $iterable): array
+    {
+        $new = [];
+
+        foreach ($iterable as $key => $value) {
+
+            if (!$callback($value, $key, $iterable)) {
+                continue;
+            }
+            if (is_int($key)) {
+                $new[] = $value;
+                continue;
+            }
+            $new[$key] = $value;
+        }
+        return $new;
+    }
+
+    /**
      * Same as the original except callback accepts more arguments and works with string keys
      * @param callable $callback accepts $value, $key, $array
      * @param iterable $iterable
@@ -360,6 +385,15 @@ final class Tools
         foreach ($iterable as $key => $value) {
             // key can be passed by reference
             $result = $callback($value, $key, $iterable);
+
+            if ($result === null) {
+                $result = $value;
+            }
+
+            if (is_int($key)) {
+                $new[] = $result;
+                continue;
+            }
             $new[$key] = $result;
         }
         return $new;
@@ -368,14 +402,14 @@ final class Tools
     /**
      * Tests if at least one element in the iterable passes the test implemented by the provided function.
      * @param callable $callback
-     * @param iterable $array
+     * @param iterable $iterable
      * @return bool
      * @throws RuntimeException
      */
-    public static function some(callable $callback, iterable $array): bool
+    public static function some(callable $callback, iterable $iterable): bool
     {
-        foreach ($array as $key => $value) {
-            if (!$callback($value, $key, $array)) {
+        foreach ($iterable as $key => $value) {
+            if (!$callback($value, $key, $iterable)) {
                 continue;
             }
             return true;
@@ -386,14 +420,14 @@ final class Tools
     /**
      * Tests if all elements in the iterable pass the test implemented by the provided function.
      * @param callable $callback
-     * @param iterable $array
+     * @param iterable $iterable
      * @return bool
      * @throws RuntimeException
      */
-    public static function every(callable $callback, iterable $array): bool
+    public static function every(callable $callback, iterable $iterable): bool
     {
-        foreach ($array as $key => $value) {
-            if (!$callback($value, $key, $array)) {
+        foreach ($iterable as $key => $value) {
+            if (!$callback($value, $key, $iterable)) {
                 return false;
             }
         }
