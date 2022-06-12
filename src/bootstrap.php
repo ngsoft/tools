@@ -23,3 +23,4 @@ define('TB', Tools::TB);
 
 define('NAMESPACE_SEPARATOR', '\\');
 
+define('__MICROTIME_START__', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));

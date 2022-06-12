@@ -531,4 +531,36 @@ final class Tools
         return \preg_match('/[^\x20-\x7E]/', $input) === 0;
     }
 
+    /**
+     * Get Human Readable file size
+     *
+     * @link https://gist.github.com/liunian/9338301
+     * @staticvar array $units
+     * @param int|float $size
+     * @param int $precision
+     * @return string
+     */
+    public static function getFilesize($size, int $precision = 2): string
+    {
+        static $units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        if (!is_int($size) && !is_float($size)) throw new InvalidArgumentException('Invalid argument $size, not int|float.');
+        $step = 1024;
+        $i = 0;
+        while (($size / $step) >= 1) {
+            $size = $size / $step;
+            $i++;
+        }
+        return round($size, $precision) . $units[$i];
+    }
+
+    /**
+     * Get script execution time
+     *
+     * @return float|int
+     */
+    public static function getExecutionTime(int $precision = 6): float|int
+    {
+        return round(microtime(true) - __MICROTIME_START__, $precision);
+    }
+
 }
