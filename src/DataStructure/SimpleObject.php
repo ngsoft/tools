@@ -130,7 +130,6 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     public function offsetUnset(mixed $offset): void
     {
         unset($this->storage[$offset], $this->children[$offset]);
-
         $this->update();
     }
 
