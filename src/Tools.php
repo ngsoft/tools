@@ -351,14 +351,16 @@ final class Tools
     /**
      * Same as the original except callback accepts more arguments and works with string keys
      * @param callable $callback accepts $value, $key, $array
-     * @param iterable $array
+     * @param iterable $iterable
      * @return array
      */
-    public static function array_map(callable $callback, iterable $array): array
+    public static function map(callable $callback, iterable $iterable): array
     {
         $new = [];
-        foreach ($array as $key => $value) {
-            $new[$key] = $callback($value, $key, $array);
+        foreach ($iterable as $key => $value) {
+            // key can be passed by reference
+            $result = $callback($value, $key, $iterable);
+            $new[$key] = $result;
         }
         return $new;
     }
@@ -370,12 +372,13 @@ final class Tools
      * @return bool
      * @throws RuntimeException
      */
-    public static function array_some(callable $callback, iterable $array): bool
+    public static function some(callable $callback, iterable $array): bool
     {
         foreach ($array as $key => $value) {
-            $result = $callback($value, $key, $array);
-            if (!is_bool($result)) throw new RuntimeException('Callback callable must return a boolean.');
-            if ($result === true) return true;
+            if (!$callback($value, $key, $array)) {
+                continue;
+            }
+            return true;
         }
         return false;
     }
@@ -387,67 +390,14 @@ final class Tools
      * @return bool
      * @throws RuntimeException
      */
-    public static function array_every(callable $callback, iterable $array): bool
+    public static function every(callable $callback, iterable $array): bool
     {
         foreach ($array as $key => $value) {
-            $result = $callback($value, $key, $array);
-            if (!is_bool($result)) throw new RuntimeException('Callback callable must return a boolean.');
-            if ($result === false) return false;
+            if (!$callback($value, $key, $array)) {
+                return false;
+            }
         }
         return true;
-    }
-
-    /**
-     * Convert iterable to array recursively
-     * @param iterable $obj
-     * @return array
-     */
-    public static function iterable_to_array(iterable $obj): array
-    {
-        $result = [];
-        foreach ($obj as $key => $value) {
-            if (is_iterable($value)) {
-                $result[$key] = self::iterable_to_array($value);
-            } else $result[$key] = $value;
-        }
-        return $result;
-    }
-
-    /**
-     * array_replace_recursive that appends numeric keys instead of replacing them
-     * @param iterable $source
-     * @param iterable $array
-     * @return array
-     */
-    private static function array_merge(iterable $source, iterable $array): array
-    {
-        $result = self::iterable_to_array($source);
-        foreach ($array as $key => $value) {
-            if (is_int($key)) $result[] = $value;
-            elseif (is_iterable($value)) {
-                if (
-                        array_key_exists($key, $result) and
-                        is_array($result[$key])
-                ) $result[$key] = self::array_merge($result[$key], $value);
-                else $result[$key] = self::iterable_to_array($value);
-            } else $result[$key] = $value;
-        }
-        return $result;
-    }
-
-    /**
-     * Merges multiples iterables
-     *
-     * @param iterable ...$iterables one to many iterables
-     * @return array
-     */
-    public static function array_concat(iterable ...$iterables): array
-    {
-        $result = [];
-        foreach ($iterables as $iterable) {
-            $result = self::array_merge($result, $iterable);
-        }
-        return $result;
     }
 
     /**
