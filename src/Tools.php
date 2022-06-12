@@ -361,7 +361,7 @@ final class Tools
 
         foreach ($iterable as $key => $value) {
 
-            if (!$callback($value, $key, $iterable)) {
+            if (true !== $callback($value, $key, $iterable)) {
                 continue;
             }
             if (is_int($key)) {
