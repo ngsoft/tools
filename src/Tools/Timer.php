@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use LogicException,
-    NGSOFT\DataStructure\Map;
+use LogicException;
+use NGSOFT\{
+    DataStructure\Map, Traits\StringableObject
+};
+use Stringable;
 
-class Timer
+final class Timer implements Stringable
 {
+
+    use StringableObject;
 
     public const FORMAT_PRECISE = 'p';
     public const FORMAT_MILLISECONDS = 'ms';
@@ -41,7 +46,7 @@ class Timer
     {
 
         if ($this->started) {
-            $this->elapsed = $this->read();
+            $this->elapsed += (static::getTimestamp() - $this->timestamp);
             $this->started = false;
         }
         return $this->elapsed;
@@ -62,13 +67,18 @@ class Timer
         return $this->started;
     }
 
+    public function __debugInfo(): array
+    {
+        return [];
+    }
+
     protected static function getTimestamp(): int|float
     {
         static $hrtime;
         $hrtime = $hrtime ?? function_exists('hrtime');
 
         if ($hrtime) {
-            return hrtime(true) / 1e+9;
+            return (hrtime(true) / 1e+9);
         }
 
         return microtime(true);
@@ -87,6 +97,7 @@ class Timer
 
     protected static function formatTime(int|float $time, string $format): int|float
     {
+
 
         switch ($format) {
             case self::FORMAT_MILLISECONDS:
@@ -142,16 +153,17 @@ class Timer
      * Stops the timer
      *
      * @param mixed $task
+     * @param string $format
      * @return int|float
      * @throws LogicException
      */
-    public static function stop(mixed $task = self::DEFAULT_TASK): int|float
+    public static function stop(mixed $task = self::DEFAULT_TASK, string $format = self::FORMAT_MILLISECONDS): int|float
     {
 
         if (!self::getMap()->has($task)) {
             throw new LogicException('Stopping timer when task has not been initiated.');
         }
-        return self::getTask($task)->stopTimer();
+        return self::formatTime(self::getTask($task)->stopTimer(), $format);
     }
 
     /**
