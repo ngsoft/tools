@@ -382,7 +382,7 @@ final class Tools
             if (!$callback($value, $key, $iterable)) {
                 continue;
             }
-            if (is_int($key)) {
+            if (is_int($key) || is_null($key)) {
                 $new[] = $value;
                 continue;
             }
@@ -410,7 +410,7 @@ final class Tools
                 $result = $value;
             }
 
-            if (is_int($key)) {
+            if (is_int($key) || is_null($key)) {
                 $new[] = $result;
                 continue;
             }
