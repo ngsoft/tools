@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NGSOFT {
 
-
     const MINUTE = 60;
     const HOUR = 3600;
     const DAY = 86400;
@@ -15,13 +14,17 @@ namespace NGSOFT {
     if (!defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START')) {
         define(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
     }
+}
+
+namespace NGSOFT\Tools {
+
+    use NGSOFT\Tools;
 
     /**
      * Tests if at least one element in the iterable passes the test implemented by the provided function.
      * @param callable $callback
      * @param iterable $iterable
      * @return bool
-     * @throws RuntimeException
      */
     function some(callable $callback, iterable $iterable): bool
     {
@@ -33,7 +36,6 @@ namespace NGSOFT {
      * @param callable $callback
      * @param iterable $iterable
      * @return bool
-     * @throws RuntimeException
      */
     function every(callable $callback, iterable $iterable): bool
     {
@@ -73,6 +75,27 @@ namespace NGSOFT {
     function each(callable $callback, iterable $iterable): iterable
     {
         yield from Tools::each($callback, $iterable);
+    }
+
+    /**
+     * Change the current active directory
+     * And stores the last position, use popd() to return to previous directory
+     * @param string $dir
+     * @return bool
+     */
+    function pushd(string $dir): bool
+    {
+
+        return Tools::pushd($dir);
+    }
+
+    /**
+     * Restore the last active directory changed by pushd
+     * @return string|false current directory
+     */
+    function popd(): string|false
+    {
+        return Tools::popd();
     }
 
 }

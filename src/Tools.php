@@ -120,10 +120,12 @@ final class Tools
 
         $current = getcwd();
         if (
-                is_dir($dir) and
+                is_dir($dir) &&
                 chdir($dir)
         ) {
-            self::$pushd_history[] = $current;
+            if ($current !== false) {
+                self::$pushd_history[] = $current;
+            }
             return true;
         }
         return false;
@@ -131,12 +133,13 @@ final class Tools
 
     /**
      * Restore the last active directory changed by pushd
-     * @return bool
+     * @return string|false current directory
      */
-    public static function popd(): bool
+    public static function popd(): string|false
     {
         $previous = array_pop(self::$pushd_history) ?? getcwd();
-        return is_dir($previous) and chdir($previous);
+        $previous && is_dir($previous) && chdir($previous);
+        return getcwd();
     }
 
     /**
