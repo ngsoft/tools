@@ -7,7 +7,8 @@ namespace NGSOFT\Timer;
 use NGSOFT\{
     Enums\Enum, Tools
 };
-use const NAMESPACE_SEPARATOR;
+use function mb_strlen,
+             str_ends_with;
 
 /**
  * @method static static YEAR()

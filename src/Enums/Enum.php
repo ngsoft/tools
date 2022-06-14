@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Enums;
 
-use BadMethodCallException,
-    InvalidArgumentException,
-    JsonSerializable,
+use JsonSerializable,
     LogicException,
-    NGSOFT\RegExp,
     ReflectionClass,
     ReflectionClassConstant,
     Stringable,
-    Throwable,
     TypeError,
     ValueError;
-use function get_debug_type,
-             NGSOFT\Tools\some;
+use function get_debug_type;
 
 /**
  * Basic Enum Class Support
@@ -25,80 +20,20 @@ use function get_debug_type,
 abstract class Enum implements Stringable, JsonSerializable
 {
 
+    use EnumTrait;
+
     protected const ERROR_ENUM_DUPLICATE_VALUE = 'Duplicate value in enum %s for cases %s and %s';
     protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int';
-    protected const ERROR_ENUM_CASE = 'Enum %s::%s does not exists.';
     protected const ERROR_ENUM_VALUE = '"%s" is not a valid value for enum "%s"';
-    protected const IS_VALID_ENUM_NAME = '^[A-Z](?:[\w+]+[A-Z0-9a-z])?$';
-
-    private static array $instances = [];
-    private static array $indexes = [];
+    protected const IS_VALID_ENUM_NAME = '#^[A-Z](?:[\w+]+[A-Z0-9a-z])?$#';
 
     final protected function __construct(
-            public readonly string $name,
-            public readonly int|string $value
+            string $name,
+            int|string $value
     )
     {
-
-    }
-
-    /**
-     * Checks if current Enum is one of the inputs
-     *
-     * @param self|int|string $input
-     * @return bool
-     */
-    public function is(self|int|string ...$input): bool
-    {
-
-        $compare = function ($input) {
-            if ($input instanceof self) return static::class === $input::class && $input->value === $this->value;
-            return $input === $this->value;
-        };
-
-        return some($compare, $input);
-    }
-
-    /**
-     * Get Enum instance by name
-     *
-     * @param string $name
-     * @return static|null
-     */
-    final public function tryGet(string $name): ?static
-    {
-
-        try {
-            return static::get($name);
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
-    /**
-     * Get Enum instance by name
-     *
-     * @param string $name
-     * @return static
-     * @throws ValueError
-     */
-    final public static function get(string $name): static
-    {
-        static::cases();
-        $index = self::$indexes[static::class][$name] ?? null;
-        if (!is_int($index)) throw new ValueError(sprintf(self::ERROR_ENUM_CASE, static::class, $name));
-        return self::$instances[static::class][$index];
-    }
-
-    /**
-     * Checks if enum is defined
-     *
-     * @param string $name
-     * @return bool
-     */
-    final public static function has(string $name): bool
-    {
-        return is_int(self::$indexes[static::class][$name] ?? null);
+        $this->name = $name;
+        $this->value = $value;
     }
 
     /**
@@ -112,29 +47,24 @@ abstract class Enum implements Stringable, JsonSerializable
      */
     final public static function cases(): array
     {
-        /** @var RegExp $isValidName */
-        static $isValidName;
-        $isValidName = $isValidName ?? RegExp::create(self::IS_VALID_ENUM_NAME);
-        $instances = &self::$instances;
-        $indexes = &self::$indexes;
+        /** @var array<string, static[]> $instances */
+        static $instances = [];
+
         $className = static::class;
         if (!isset($instances[$className])) {
-            $instances[$className] = $indexes[$className] = [];
+
+            $instances[$className] = [];
 
             $inst = &$instances[$className];
-            $ids = &$indexes[$className];
 
             $defined = $values = [];
-            $index = 0;
 
             /** @var ReflectionClass $reflector */
             $reflector = new ReflectionClass($className);
             if ($reflector->isAbstract()) throw new LogicException(sprintf('Cannot initialize abstract Enum %s', $className));
 
-
             do {
-                if ($reflector->getName() === self::class) break;
-
+                if ($reflector->getName() === Enum::class) break;
 
                 $reflClassName = $reflector->getName();
 
@@ -144,7 +74,7 @@ abstract class Enum implements Stringable, JsonSerializable
                     $value = $classConstant->getValue();
 
                     if (isset($defined[$name])) continue;
-                    if (!$isValidName->test($name)) continue;
+                    if (!preg_match(self::IS_VALID_ENUM_NAME, $name)) continue;
 
                     if (!is_string($value) && !is_int($value)) {
                         throw new TypeError(sprintf(self::ERROR_ENUM_TYPE, $reflClassName, $name, get_debug_type($value)));
@@ -153,12 +83,9 @@ abstract class Enum implements Stringable, JsonSerializable
                     if (false !== ($key = array_search($value, $values, true))) {
                         throw new LogicException(sprintf(self::ERROR_ENUM_DUPLICATE_VALUE, $className, $key, $name));
                     }
-
-                    $inst[$index] = new static($name, $value);
-                    $ids[$name] = $index;
+                    $inst[] = new static($name, $value);
                     $defined[$name] = $name;
                     $values[$name] = $value;
-                    $index++;
                 }
             } while (($reflector = $reflector->getParentClass()) instanceof ReflectionClass);
         }
@@ -191,7 +118,7 @@ abstract class Enum implements Stringable, JsonSerializable
      */
     public static function tryFrom(int|string $value): ?static
     {
-        if ($value instanceof static) {
+        if ($value instanceof self) {
             $value = $value->value;
         }
 
@@ -200,17 +127,6 @@ abstract class Enum implements Stringable, JsonSerializable
             if ($instance->value === $value) return $instance;
         }
         return null;
-    }
-
-    /** {@inheritdoc} */
-    public static function __callStatic(string $name, array $arguments): mixed
-    {
-        if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
-        try {
-            return static::get($name);
-        } catch (Throwable) {
-            throw new BadMethodCallException(sprintf('Invalid method %s::%s()', static::class, $name));
-        }
     }
 
     /** {@inheritdoc} */
@@ -223,18 +139,6 @@ abstract class Enum implements Stringable, JsonSerializable
     public function __unserialize(array $data): void
     {
         list($this->name, $this->value) = $data;
-    }
-
-    /** {@inheritdoc} */
-    public function __toString(): string
-    {
-        return (string) $this->value;
-    }
-
-    /** {@inheritdoc} */
-    public function jsonSerialize(): mixed
-    {
-        return $this->value;
     }
 
     /** {@inheritdoc} */

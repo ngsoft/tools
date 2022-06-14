@@ -11,6 +11,7 @@ use DateInterval,
 use const NGSOFT\Tools\{
     DAY, HOUR, MICROSECOND, MILLISECOND, MINUTE, MONTH, SECOND, WEEK, YEAR
 };
+use function NGSOFT\Tools\map;
 
 class StopWatchResult implements Stringable
 {
@@ -63,7 +64,7 @@ class StopWatchResult implements Stringable
 
     public function getDateInterval(): DateInterval
     {
-        return DateInterval::createFromDateString($this->getFormatedTime($this->seconds));
+        return DateInterval::createFromDateString($this->getFormatedTime());
     }
 
     public function getRaw(): int|float
@@ -71,10 +72,59 @@ class StopWatchResult implements Stringable
         return $this->seconds;
     }
 
+    public function getDateFormat(string $format): string
+    {
+        return $this->getDateInterval()->format($format);
+    }
+
+    public function getYears(int $precision = 0): int|float
+    {
+        return $this->getUnitValue(Units::YEAR(), $precision);
+    }
+
+    public function getMonths(int $precision = 0): int|float
+    {
+        return $this->getUnitValue(Units::MONTH(), $precision);
+    }
+
+    public function getWeeks(int $precision = 0): int|float
+    {
+        return $this->getUnitValue(Units::WEEK(), $precision);
+    }
+
+    public function getDays(int $precision = 0): int|float
+    {
+        return $this->getUnitValue(Units::DAY(), $precision);
+    }
+
+    public function getHours(int $precision = 0): int|float
+    {
+        return $this->getUnitValue(Units::HOUR(), $precision);
+    }
+
+    public function getMinutes(int $precision = 0): int|float
+    {
+        return $this->getUnitValue(Units::MINUTE(), $precision);
+    }
+
+    protected function getUnitValue(Units $unit, int $precision, bool $relative = false): int|float
+    {
+        $key = $relative ? 'relative' : 'absolute';
+        $result = $this->infos->get($unit)[$key];
+        if ($relative) {
+            return $result;
+        }
+
+        if ($precision === 0) {
+            return (int) floor($result);
+        }
+        return round($result, $precision);
+    }
+
     public function getSeconds(int $precision = 3): int|float
     {
 
-        $result = round($this->getUnit('sec'), $precision);
+        $result = round($this->seconds, $precision);
         if ($precision === 0) {
             $result = (int) $result;
         }
@@ -83,7 +133,8 @@ class StopWatchResult implements Stringable
 
     public function getMilliseconds(int $precision = 2): int|float
     {
-        $result = round($this->seconds * 1e+3, $precision);
+
+        $result = round($this->seconds / MILLISECOND, $precision);
         if ($precision === 0) {
             $result = (int) $result;
         }
@@ -93,20 +144,18 @@ class StopWatchResult implements Stringable
 
     public function getMicroseconds(bool $asFloat = true): int|float
     {
-        $result = round($this->seconds * 1e+6);
+        $result = round($this->seconds / MICROSECOND);
 
         return $asFloat ? $result : (int) $result;
-    }
-
-    public function format(int $format = self::FORMAT_HUMAN_READABLE): string
-    {
-        return $this->getFormatedTime();
     }
 
     public function toArray(): array
     {
 
-        return $this->formats;
+        return map(function ($value, &$key) {
+            $key = $key->value;
+            return $value['relative'];
+        }, $this->infos);
     }
 
     public function __toString()
@@ -116,23 +165,23 @@ class StopWatchResult implements Stringable
 
     public function __debugInfo(): array
     {
+
+        $infos = [];
+
+        foreach ($this->infos as $enum => $value) {
+
+            $key = sprintf('enum(%s::%s)', $enum::class, $enum->name);
+
+            $infos[$key] = $value;
+        }
+
         return [
             'raw' => $this->getRaw(),
-            'infos' => $this->infos,
+            'infos' => $infos,
             'formated' => $this->__toString(),
             'str' => $this->getFormatedTime(),
             DateInterval::class => $this->getDateInterval(),
         ];
-    }
-
-    protected function getUnit(string|Unit $name, bool $relative = false): int|float
-    {
-
-        if (!is_string($name)) {
-            $name = $name->value;
-        }
-
-        return $relative ? $this->infos[$name] ['relative'] : $this->infos[$name] ['absolute'];
     }
 
     protected function getFormatedTime(): string
@@ -143,7 +192,7 @@ class StopWatchResult implements Stringable
         /** @var Units $unit */
         foreach (Units::cases() as $unit) {
 
-            if ($count = $this->infos[$unit->value]['relative']) {
+            if ($count = $this->infos[$unit]['relative']) {
                 $formated = $count > 1 ? $unit->getPlural() : $unit->getSingular();
                 $steps[] = sprintf("%d %s", $count, $formated);
             }

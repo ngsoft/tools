@@ -111,7 +111,7 @@ class StopWatch
     /**
      * Pauses the clock
      *
-     * @param bool $success True if operation succeeded
+     * @param ?bool $success True if operation succeeded
      * @return StopWatchResult Current time
      */
     public function pause(bool &$success = null): StopWatchResult
@@ -128,7 +128,7 @@ class StopWatch
     /**
      * Stops the clock
      *
-     * @param bool $success True if operation succeeded
+     * @param ?bool $success True if operation succeeded
      * @return StopWatchResult Current time
      */
     public function stop(bool &$success = null): StopWatchResult
@@ -165,7 +165,7 @@ class StopWatch
     }
 
     /**
-     * @return StopWatchResult[]
+     * @return \Generator|StopWatchResult[]
      */
     public function getLaps(): iterable
     {
