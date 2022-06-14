@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Timer;
 
-use Stringable;
+use DateInterval,
+    Stringable;
 use const NGSOFT\{
     DAY, HOUR, MICROSECOND, MILLISECOND, MINUTE, MONTH, SECOND, WEEK, YEAR
 };
@@ -20,6 +21,11 @@ class StopWatchResult implements Stringable
     public function __construct(protected readonly int|float $seconds)
     {
 
+    }
+
+    public function toDateInterval(): DateInterval
+    {
+        return DateInterval::createFromDateString('+' . $this->formatTime($this->seconds));
     }
 
     public function raw(): int|float
@@ -46,9 +52,11 @@ class StopWatchResult implements Stringable
         return $result;
     }
 
-    public function microseconds(): int|float
+    public function microseconds(bool $asFloat = true): int|float
     {
-        return round($this->seconds * 1e+6);
+        $result = round($this->seconds * 1e+6);
+
+        return $asFloat ? $result : (int) $result;
     }
 
     public function toArray(): array
@@ -70,38 +78,37 @@ class StopWatchResult implements Stringable
 
         return [
             'raw' => $this->raw(),
-            'seconds' => $this->seconds(),
-            'milliseconds' => $this->milliseconds(),
-            'microseconds' => $this->microseconds(),
+            'float' => [
+                'seconds' => $this->seconds(),
+                'milliseconds' => $this->milliseconds(),
+                'microseconds' => $this->microseconds(),
+            ],
+            'int' => [
+                'seconds' => $this->seconds(0),
+                'milliseconds' => $this->milliseconds(0),
+                'microseconds' => $this->microseconds(false),
+            ],
             'formated' => $this->__toString(),
             'array' => $this->toArray(),
+            DateInterval::class => $this->toDateInterval(),
         ];
-    }
-
-    function getFilesize(int|float $size, int $precision = 2): string
-    {
-        static $units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-        $step = 1024;
-        $i = 0;
-        while (($size / $step) >= 1) {
-            $size = $size / $step;
-            $i++;
-        }
-        return round($size, $precision) . $units[$i];
     }
 
     protected function formatTime(int|float $input, array &$result = null): string
     {
-
+        /**
+         * @link https://www.php.net/manual/en/datetime.formats.relative.php
+         */
         static $units = [
-            'Y' => [YEAR, '%d year', '%d years'],
-            'M' => [MONTH, '%d month', '%d months'],
-            'W' => [WEEK, '%d week', '%d weeks'],
-            'D' => [DAY, '%d day', '%d days'],
-            'h' => [HOUR, '%d hours', '%d hours'],
-            'm' => [MINUTE, '%d min'],
-            's' => [SECOND, '%d sec'],
-            'ms' => [MILLISECOND, '%d ms']
+            'years' => [YEAR, '%d year', '%d years'],
+            'months' => [MONTH, '%d month', '%d months'],
+            'weeks' => [WEEK, '%d week', '%d weeks'],
+            'days' => [DAY, '%d day', '%d days'],
+            'hours' => [HOUR, '%d hours', '%d hours'],
+            'min' => [MINUTE, '%d min'],
+            'sec' => [SECOND, '%d sec'],
+            'ms' => [MILLISECOND, '%d ms'],
+            'µs' => [MICROSECOND, '%d µs']
         ];
 
         $result = [];
