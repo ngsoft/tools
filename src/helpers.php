@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT {
 
+    if (!defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START')) {
+        define(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
+    }
+}
+
+namespace NGSOFT\Tools {
+
+    use NGSOFT\Tools;
+
     const MICROSECOND = 1e-6;
     const MILLISECOND = 1e-3;
     const SECOND = 1;
@@ -13,15 +22,6 @@ namespace NGSOFT {
     const WEEK = 604800;
     const MONTH = 2628000;
     const YEAR = 31536000;
-
-    if (!defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START')) {
-        define(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
-    }
-}
-
-namespace NGSOFT\Tools {
-
-    use NGSOFT\Tools;
 
     /**
      * Tests if at least one element in the iterable passes the test implemented by the provided function.

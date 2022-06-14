@@ -6,12 +6,35 @@ namespace NGSOFT\Timer;
 
 use DateInterval,
     Stringable;
-use const NGSOFT\{
+use const NGSOFT\Tools\{
     DAY, HOUR, MICROSECOND, MILLISECOND, MINUTE, MONTH, SECOND, WEEK, YEAR
 };
 
 class StopWatchResult implements Stringable
 {
+
+    public const FORMAT_SECONDS = 0;
+    public const FORMAT_MILLISECONDS = 1;
+    public const FORMAT_MICROSECONDS = 2;
+    public const FORMAT_HUMAN_READABLE = 3;
+
+    /**
+     * @link https://www.php.net/manual/en/datetime.formats.relative.php
+     */
+    static protected $units = [
+        Units::YEAR => [YEAR, '%d year', '%d years'],
+        Units::MONTH => [MONTH, '%d month', '%d months'],
+        Units::WEEK => [WEEK, '%d week', '%d weeks'],
+        Units::DAY => [DAY, '%d day', '%d days'],
+        Units::HOUR => [HOUR, '%d hours', '%d hours'],
+        Units::MINUTE => [MINUTE, '%d min'],
+        Units::SECOND => [SECOND, '%d sec'],
+        Units::MILLISECOND => [MILLISECOND, '%d ms'],
+        Units::MICROSECOND => [MICROSECOND, '%d µs']
+    ];
+
+    /** @var array<string, int> */
+    protected array $infos = [];
 
     public static function create(int|float $seconds = 0): static
     {
@@ -23,26 +46,27 @@ class StopWatchResult implements Stringable
 
     }
 
-    public function toDateInterval(): DateInterval
+    public function getDateInterval(): DateInterval
     {
-        return DateInterval::createFromDateString('+' . $this->formatTime($this->seconds));
+        return DateInterval::createFromDateString($this->getFormatedTime($this->seconds));
     }
 
-    public function raw(): int|float
+    public function getRaw(): int|float
     {
         return $this->seconds;
     }
 
-    public function seconds(int $precision = 3): int|float
+    public function getSeconds(int $precision = 3): int|float
     {
-        $result = round($this->seconds, $precision);
+
+        $result = round($this->getUnit('sec'), $precision);
         if ($precision === 0) {
             $result = (int) $result;
         }
         return $result;
     }
 
-    public function milliseconds(int $precision = 2): int|float
+    public function getMilliseconds(int $precision = 2): int|float
     {
         $result = round($this->seconds * 1e+3, $precision);
         if ($precision === 0) {
@@ -52,103 +76,81 @@ class StopWatchResult implements Stringable
         return $result;
     }
 
-    public function microseconds(bool $asFloat = true): int|float
+    public function getMicroseconds(bool $asFloat = true): int|float
     {
         $result = round($this->seconds * 1e+6);
 
         return $asFloat ? $result : (int) $result;
     }
 
-    public function toFormat($format = null): string
+    public function format(int $format = self::FORMAT_HUMAN_READABLE): string
     {
-        return $this->formatTime($this->seconds);
+        return $this->getFormatedTime();
     }
 
     public function toArray(): array
     {
-
-        $this->formatTime($this->seconds, $result);
-        return $result;
+        $this->lazyLoad();
+        return $this->formats;
     }
 
     public function __toString()
     {
-        return sprintf('%s', (string) $this->seconds());
+        return sprintf('%s', (string) $this->getSeconds());
     }
 
     public function __debugInfo(): array
     {
 
-        $format = $this->formatTime($this->seconds, $r);
+
+        $this->lazyLoad();
 
         return [
-            'raw' => $this->raw(),
-            'float' => [
-                'seconds' => $this->seconds(),
-                'milliseconds' => $this->milliseconds(),
-                'microseconds' => $this->microseconds(),
-            ],
-            'int' => [
-                'seconds' => $this->seconds(0),
-                'milliseconds' => $this->milliseconds(0),
-                'microseconds' => $this->microseconds(false),
-            ],
+            'raw' => $this->getRaw(),
+            'infos' => $this->infos,
             'formated' => $this->__toString(),
-            'array' => $this->toArray(),
-            DateInterval::class => $this->toDateInterval(),
+            'str' => $this->getFormatedTime(),
+            DateInterval::class => $this->getDateInterval(),
         ];
     }
 
-    protected function formatTime(int|float $input, array &$result = null): string
+    protected function lazyLoad(): void
     {
-        /**
-         * @link https://www.php.net/manual/en/datetime.formats.relative.php
-         */
-        static $units = [
-            'years' => [YEAR, '%d year', '%d years'],
-            'months' => [MONTH, '%d month', '%d months'],
-            'weeks' => [WEEK, '%d week', '%d weeks'],
-            'days' => [DAY, '%d day', '%d days'],
-            'hours' => [HOUR, '%d hours', '%d hours'],
-            'min' => [MINUTE, '%d min'],
-            'sec' => [SECOND, '%d sec'],
-            'ms' => [MILLISECOND, '%d ms'],
-            'µs' => [MICROSECOND, '%d µs']
-        ];
+        if (empty($this->infos)) {
+            $seconds = $remaining = $this->seconds;
+            foreach (self::$units as $name => list($step)) {
+                $count = (int) floor($remaining / $step);
+                $remaining -= $step * $count;
+                $this->infos[$name] = [
+                    'absolute' => $seconds / $step,
+                    'relative' => $count,
+                ];
+            }
+        }
+    }
+
+    protected function getUnit(string $name, bool $relative = false): int|float
+    {
+        $this->lazyLoad();
+        return $relative ? $this->infos[$name] ['relative'] : $this->infos[$name] ['absolute'];
+    }
+
+    protected function getFormatedTime(): string
+    {
+        $units = &self::$units;
+        $this->lazyLoad();
 
         $result = [];
-
-        $remaining = $input;
-
         $steps = [];
 
-        foreach ($units as $name => list($step, $singular, $plural, $short)) {
+        foreach ($units as $name => list($step, $singular, $plural)) {
 
-            if (!$short) {
-                $short = $plural;
-                $plural = $singular;
-                if (!$short) {
-                    $short = $plural;
-                }
-            }
-
-            $count = floor($remaining / $step);
-
-            if ($count >= 1) {
-                $remaining -= $count * $step;
-
+            if ($count = $this->infos[$name]['relative']) {
+                $plural = $plural ?? $singular;
                 $format = $count > 1 ? $plural : $singular;
-                if ($getshort) {
-                    $format = $short;
-                }
-
-
                 $steps[] = sprintf($format, $count);
-                $result[$name] = (int) $count;
-                continue;
-            } else { $result[$name] = 0; }
+            }
         }
-
 
         $str = trim(implode(' ', $steps));
         if (empty($str)) {
