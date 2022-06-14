@@ -129,9 +129,10 @@ class StopWatchResult implements Stringable
         }
     }
 
-    protected function getUnit(string $name, bool $relative = false): int|float
+    protected function getUnit(string|Unit $name, bool $relative = false): int|float
     {
         $this->lazyLoad();
+
         return $relative ? $this->infos[$name] ['relative'] : $this->infos[$name] ['absolute'];
     }
 

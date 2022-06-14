@@ -210,7 +210,9 @@ class StopWatch
 
     protected function setState(State|int $state): void
     {
-        $this->state = State::from($state);
+        if ($state instanceof State) {
+            $this->state = $state;
+        } else { $this->state = State::from($state); }
     }
 
     protected function timestamp(): int|float

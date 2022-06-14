@@ -26,7 +26,7 @@ abstract class Enum implements Stringable, JsonSerializable
 {
 
     protected const ERROR_ENUM_DUPLICATE_VALUE = 'Duplicate value in enum %s for cases %s and %s';
-    protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int|float';
+    protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int';
     protected const ERROR_ENUM_CASE = 'Enum %s::%s does not exists.';
     protected const ERROR_ENUM_VALUE = '"%s" is not a valid value for enum "%s"';
     protected const IS_VALID_ENUM_NAME = '^[A-Z](?:[\w+]+[A-Z0-9a-z])?$';
@@ -36,7 +36,7 @@ abstract class Enum implements Stringable, JsonSerializable
 
     final protected function __construct(
             public readonly string $name,
-            public readonly int|float|string $value
+            public readonly int|string $value
     )
     {
 
@@ -45,10 +45,10 @@ abstract class Enum implements Stringable, JsonSerializable
     /**
      * Checks if current Enum is one of the inputs
      *
-     * @param self|int|float|string $input
+     * @param self|int|string $input
      * @return bool
      */
-    public function is(self|int|float|string ...$input): bool
+    public function is(self|int|string ...$input): bool
     {
 
         $compare = function ($input) {
@@ -146,7 +146,7 @@ abstract class Enum implements Stringable, JsonSerializable
                     if (isset($defined[$name])) continue;
                     if (!$isValidName->test($name)) continue;
 
-                    if (!is_string($value) && !is_int($value) && !is_float($value)) {
+                    if (!is_string($value) && !is_int($value)) {
                         throw new TypeError(sprintf(self::ERROR_ENUM_TYPE, $reflClassName, $name, get_debug_type($value)));
                     }
 
@@ -168,14 +168,14 @@ abstract class Enum implements Stringable, JsonSerializable
 
     /**
      * Maps a scalar to an enum instance
-     * The from() method translates a float,string or int
+     * The from() method translates a string or int
      * into the corresponding Enum case, if any. If there is no matching case defined, it will throw a ValueError.
      *
-     * @param int|string|float|self $value
+     * @param int|string $value
      * @return static
      * @throws ValueError
      */
-    public static function from(int|string|float|self $value): static
+    public static function from(int|string $value): static
     {
         if ($result = static::tryFrom($value)) return $result;
         throw new ValueError(sprintf(self::ERROR_ENUM_VALUE, (string) $value, static::class));
@@ -183,13 +183,13 @@ abstract class Enum implements Stringable, JsonSerializable
 
     /**
      * Maps a scalar to an enum instance or null
-     * The tryFrom() method translates a float, string or int into the corresponding Enum case,
+     * The tryFrom() method translates a string or int into the corresponding Enum case,
      * if any. If there is no matching case defined, it will return null.
      *
-     * @param int|string|float|self $value
+     * @param int|string $value
      * @return static|null
      */
-    public static function tryFrom(int|string|float|self $value): ?static
+    public static function tryFrom(int|string $value): ?static
     {
         if ($value instanceof static) {
             $value = $value->value;
