@@ -22,15 +22,15 @@ class StopWatchResult implements Stringable
      * @link https://www.php.net/manual/en/datetime.formats.relative.php
      */
     static protected $units = [
-        Units::YEAR => [YEAR, '%d year', '%d years'],
-        Units::MONTH => [MONTH, '%d month', '%d months'],
-        Units::WEEK => [WEEK, '%d week', '%d weeks'],
-        Units::DAY => [DAY, '%d day', '%d days'],
-        Units::HOUR => [HOUR, '%d hours', '%d hours'],
-        Units::MINUTE => [MINUTE, '%d min'],
-        Units::SECOND => [SECOND, '%d sec'],
-        Units::MILLISECOND => [MILLISECOND, '%d ms'],
-        Units::MICROSECOND => [MICROSECOND, '%d µs']
+        'years' => [YEAR, '%d year', '%d years'],
+        'months' => [MONTH, '%d month', '%d months'],
+        'weeks' => [WEEK, '%d week', '%d weeks'],
+        'days' => [DAY, '%d day', '%d days'],
+        'hours' => [HOUR, '%d hours', '%d hours'],
+        'min' => [MINUTE, '%d min'],
+        'sec' => [SECOND, '%d sec'],
+        'ms' => [MILLISECOND, '%d ms'],
+        'µs' => [MICROSECOND, '%d µs']
     ];
 
     /** @var array<string, int> */

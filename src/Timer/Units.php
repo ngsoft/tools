@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Timer;
 
-use NGSOFT\Enums\{
-    Enum, EnumUtils
+use NGSOFT\{
+    Enums\Enum, Tools
 };
+use const NAMESPACE_SEPARATOR;
 
 /**
  * @method static static YEAR()
@@ -31,5 +32,24 @@ class Units extends Enum
     public const SECOND = 'sec';
     public const MILLISECOND = 'ms';
     public const MICROSECOND = 'µs';
+
+    public function getStep(): int|float
+    {
+        return constant(Tools::class . '::' . $this->name);
+    }
+
+    public function getPlural(): string
+    {
+        return $this->value;
+    }
+
+    public function getSingular(): string
+    {
+        if (str_ends_with($this->value, 's') && mb_strlen($this->value) > 2) {
+            return substr($this->value, 0, -1);
+        }
+
+        return $this->value;
+    }
 
 }
