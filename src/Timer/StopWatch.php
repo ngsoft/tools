@@ -14,7 +14,7 @@ class StopWatch
 
     protected State $state;
     protected int|float $startTime = 0;
-    protected int|float $runtime = 0;
+    protected int|float $runTime = 0;
     protected array $laps = [];
 
     /**
@@ -28,6 +28,16 @@ class StopWatch
     {
         $watch = new static($task);
         return $watch->executeTask($arguments);
+    }
+
+    public static function startTaskWithStartTime(mixed $task, int|float $startTime, bool $highResolution = false)
+    {
+
+        $watch = new static($task, $highResolution);
+
+        $watch->start($startTime);
+
+        return $watch;
     }
 
     public function __construct(
@@ -53,34 +63,41 @@ class StopWatch
     /**
      * Starts the clock
      *
+     * @param int|float|null $startTime Set the start time
      * @return bool
      */
-    public function start(): bool
+    public function start(int|float|null $startTime = null): bool
     {
+        if ($this->state->is(State::IDLE, State::PAUSED)) {
+            $this->startTime = $startTime ?? $this->timestamp();
 
-        switch ($this->state) {
-            case State::IDLE():
-            case State::PAUSED():
-                $this->startTime = $this->timestamp();
-                $this->state = State::STARTED();
-                return true;
-            default :
-                return false;
+            $this->setState(State::STARTED());
+
+            return true;
         }
+        return false;
     }
 
     public function resume(): bool
     {
-        if ($this->state !== State::PAUSED()) {
+        if (!$this->state->is(State::PAUSED)) {
             return false;
         }
         return $this->start();
     }
 
+    /**
+     * Resets the clock
+     *
+     * @return bool
+     */
     public function reset(): bool
     {
+        $this->startTime = $this->runTime = 0;
+        $this->laps = [];
+        $this->state = State::IDLE();
 
-        $this->startTime = $this->runtime = 0;
+        return true;
     }
 
     /**
@@ -95,7 +112,7 @@ class StopWatch
         }
 
         $current = $this->timestamp();
-        $this->runtime += ($current - $this->startTime);
+        $this->runTime += ($current - $this->startTime);
         $this->state = State::PAUSED();
     }
 
@@ -127,6 +144,26 @@ class StopWatch
     public function lap(): bool
     {
 
+    }
+
+    public function isStarted(): bool
+    {
+        return $this->state->is(State::STARTED);
+    }
+
+    public function isPaused(): bool
+    {
+        return $this->state->is(State::PAUSED);
+    }
+
+    public function isStopped(): bool
+    {
+        return $this->state->is(State::STOPPED, State::IDLE);
+    }
+
+    protected function setState(State|int $state): void
+    {
+        $this->state = State::from($state);
     }
 
     protected function timestamp(): int|float

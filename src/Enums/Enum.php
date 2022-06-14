@@ -15,12 +15,15 @@ use BadMethodCallException,
     Throwable,
     TypeError,
     ValueError;
+use function get_debug_type,
+             NGSOFT\Tools\some;
 
 /**
  * Basic Enum Class Support
  * Adds the ability to class constants to work as php 8.1 backed enums cases
  */
-abstract class Enum implements Stringable, JsonSerializable {
+abstract class Enum implements Stringable, JsonSerializable
+{
 
     protected const ERROR_ENUM_DUPLICATE_VALUE = 'Duplicate value in enum %s for cases %s and %s';
     protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int|float';
@@ -34,20 +37,26 @@ abstract class Enum implements Stringable, JsonSerializable {
     final protected function __construct(
             public readonly string $name,
             public readonly int|float|string $value
-    ) {
+    )
+    {
 
     }
 
     /**
-     * Checks if current Enum is equals to input
+     * Checks if current Enum is one of the inputs
      *
      * @param self|int|float|string $input
      * @return bool
      */
-    public function is(self|int|float|string $input): bool {
+    public function is(self|int|float|string ...$input): bool
+    {
 
-        if ($input instanceof self) return static::class === $input::class && $input->value === $this->value;
-        return $input === $this->value;
+        $compare = function ($input) {
+            if ($input instanceof self) return static::class === $input::class && $input->value === $this->value;
+            return $input === $this->value;
+        };
+
+        return some($compare, $input);
     }
 
     /**
@@ -56,7 +65,8 @@ abstract class Enum implements Stringable, JsonSerializable {
      * @param string $name
      * @return static|null
      */
-    final public function tryGet(string $name): ?static {
+    final public function tryGet(string $name): ?static
+    {
 
         try {
             return static::get($name);
@@ -72,7 +82,8 @@ abstract class Enum implements Stringable, JsonSerializable {
      * @return static
      * @throws ValueError
      */
-    final public static function get(string $name): static {
+    final public static function get(string $name): static
+    {
         static::cases();
         $index = self::$indexes[static::class][$name] ?? null;
         if (!is_int($index)) throw new ValueError(sprintf(self::ERROR_ENUM_CASE, static::class, $name));
@@ -85,7 +96,8 @@ abstract class Enum implements Stringable, JsonSerializable {
      * @param string $name
      * @return bool
      */
-    final public static function has(string $name): bool {
+    final public static function has(string $name): bool
+    {
         return is_int(self::$indexes[static::class][$name] ?? null);
     }
 
@@ -98,7 +110,8 @@ abstract class Enum implements Stringable, JsonSerializable {
      * @throws TypeError
      * @throws LogicException
      */
-    final public static function cases(): array {
+    final public static function cases(): array
+    {
         /** @var RegExp $isValidName */
         static $isValidName;
         $isValidName = $isValidName ?? RegExp::create(self::IS_VALID_ENUM_NAME);
@@ -158,11 +171,12 @@ abstract class Enum implements Stringable, JsonSerializable {
      * The from() method translates a float,string or int
      * into the corresponding Enum case, if any. If there is no matching case defined, it will throw a ValueError.
      *
-     * @param int|string|float $value
+     * @param int|string|float|self $value
      * @return static
      * @throws ValueError
      */
-    public static function from(int|string|float $value): static {
+    public static function from(int|string|float|self $value): static
+    {
         if ($result = static::tryFrom($value)) return $result;
         throw new ValueError(sprintf(self::ERROR_ENUM_VALUE, (string) $value, static::class));
     }
@@ -172,10 +186,15 @@ abstract class Enum implements Stringable, JsonSerializable {
      * The tryFrom() method translates a float, string or int into the corresponding Enum case,
      * if any. If there is no matching case defined, it will return null.
      *
-     * @param int|string|float $value
+     * @param int|string|float|self $value
      * @return static|null
      */
-    public static function tryFrom(int|string|float $value): ?static {
+    public static function tryFrom(int|string|float|self $value): ?static
+    {
+        if ($value instanceof static) {
+            $value = $value->value;
+        }
+
         /** @var static $instance */
         foreach (self::cases() as $instance) {
             if ($instance->value === $value) return $instance;
@@ -184,7 +203,8 @@ abstract class Enum implements Stringable, JsonSerializable {
     }
 
     /** {@inheritdoc} */
-    public static function __callStatic(string $name, array $arguments): mixed {
+    public static function __callStatic(string $name, array $arguments): mixed
+    {
         if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
         try {
             return static::get($name);
@@ -194,27 +214,32 @@ abstract class Enum implements Stringable, JsonSerializable {
     }
 
     /** {@inheritdoc} */
-    public function __serialize(): array {
+    public function __serialize(): array
+    {
         return [$this->name, $this->value];
     }
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data): void {
+    public function __unserialize(array $data): void
+    {
         list($this->name, $this->value) = $data;
     }
 
     /** {@inheritdoc} */
-    public function __toString(): string {
+    public function __toString(): string
+    {
         return (string) $this->value;
     }
 
     /** {@inheritdoc} */
-    public function jsonSerialize(): mixed {
+    public function jsonSerialize(): mixed
+    {
         return $this->value;
     }
 
     /** {@inheritdoc} */
-    public function __debugInfo(): array {
+    public function __debugInfo(): array
+    {
         return [
             sprintf('enum(%s::%s)', static::class, $this->name)
         ];
