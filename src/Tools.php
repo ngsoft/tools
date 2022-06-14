@@ -37,6 +37,9 @@ final class Tools
     /**
      * Time Constants (in seconds)
      */
+    public const MICROSECOND = 1e-6;
+    public const MILLISECOND = 1e-3;
+    public const SECOND = 1;
     public const MINUTE = 60;
     public const HOUR = 3600;
     public const DAY = 86400;

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT {
 
+    const MICROSECOND = 1e-6;
+    const MILLISECOND = 1e-3;
+    const SECOND = 1;
     const MINUTE = 60;
     const HOUR = 3600;
     const DAY = 86400;
@@ -95,6 +98,22 @@ namespace NGSOFT\Tools {
     function popd(): string|false
     {
         return Tools::popd();
+    }
+
+    /**
+     *  Pauses script execution for a given amount of time
+     *
+     * @param int|float $seconds
+     */
+    function pause(int|float $seconds): void
+    {
+
+        if (is_int($seconds)) {
+            sleep($seconds);
+            return;
+        }
+
+        usleep((int) floor($seconds * 1e+6));
     }
 
 }

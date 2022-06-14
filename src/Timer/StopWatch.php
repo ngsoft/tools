@@ -32,18 +32,21 @@ class StopWatch
 
     public static function startTaskWithStartTime(mixed $task, int|float $startTime, bool $highResolution = false): static
     {
-
         $watch = new static($task, $highResolution);
         $watch->start($startTime);
         return $watch;
     }
 
+    /**
+     * @param mixed|callable $task can be anything
+     * @param bool $highResolution if True use hrtime() if available, else use microtime()
+     */
     public function __construct(
             protected mixed $task = self::DEFAULT_TASK,
             protected bool $highResolution = true
     )
     {
-        $this->state = State::IDLE();
+        $this->state = State::from(State::IDLE);
     }
 
     public function getTask(): mixed
@@ -56,6 +59,12 @@ class StopWatch
         if (!is_callable($this->task)) {
             throw new RuntimeException(sprintf('Task of type %s is not callable.', get_debug_type($this->task)));
         }
+
+        $callable = $this->task;
+        $this->reset();
+        $this->start();
+        $callable(...$arguments);
+        return $this->stop();
     }
 
     /**
@@ -67,14 +76,18 @@ class StopWatch
     public function start(int|float|null $startTime = null): bool
     {
         if ($this->state->is(State::IDLE, State::PAUSED)) {
-            $this->startTime = $startTime ?? $this->timestamp();
+            $this->startTime = ($startTime ?? $this->timestamp());
             $this->setState(State::STARTED);
-
             return true;
         }
         return false;
     }
 
+    /**
+     * Resumes the clock (only if paused)
+     *
+     * @return bool
+     */
     public function resume(): bool
     {
         if (!$this->state->is(State::PAUSED)) {
@@ -98,27 +111,28 @@ class StopWatch
     /**
      * Pauses the clock
      *
+     * @param bool $success True if operation succeeded
      * @return StopWatchResult Current time
      */
-    public function pause(): StopWatchResult
+    public function pause(bool &$success = null): StopWatchResult
     {
-        if ($this->state !== State::STARTED()) {
-            throw new RuntimeException('Cannot pause the clock as it have not yet been started');
+        $success = false;
+        if ($this->isStarted()) {
+            $this->runTime += ($this->timestamp() - $this->startTime);
+            $this->setState(State::PAUSED);
         }
-
-        $this->runTime += ($this->timestamp() - $this->startTime);
-        $this->state = State::PAUSED();
         return $this->read();
     }
 
     /**
      * Stops the clock
      *
-     * @param bool $success
+     * @param bool $success True if operation succeeded
      * @return StopWatchResult Current time
      */
     public function stop(bool &$success = null): StopWatchResult
     {
+        $success = false;
         if ($this->isStarted()) {
             $this->pause();
         }
@@ -126,9 +140,17 @@ class StopWatch
         if ($this->isPaused()) {
             $this->setState(State::STOPPED);
             $success = true;
-        } else { $success === false; }
+        }
 
         return $this->read();
+    }
+
+    protected function readRaw(): int|float
+    {
+        if ($this->isStarted()) {
+            return $this->runTime + ($this->timestamp() - $this->startTime);
+        }
+        return $this->runTime;
     }
 
     /**
@@ -138,12 +160,7 @@ class StopWatch
      */
     public function read(): StopWatchResult
     {
-        $current = 0;
-        if ($this->isStarted()) {
-            $current = $this->timestamp() - $this->startTime;
-        }
-
-        return StopWatchResult::create($this->runTime + $current);
+        return StopWatchResult::create($this->readRaw());
     }
 
     /**
@@ -156,12 +173,7 @@ class StopWatch
         if (!$this->isStarted()) {
             return false;
         }
-
-        if (!count($this->laps)) {
-            $this->laps = [$this->startTime];
-        }
-
-        $this->laps[] = $this->timestamp();
+        $this->laps[] = ($this->timestamp() - $this->startTime);
         return true;
     }
 
@@ -194,6 +206,14 @@ class StopWatch
             return (hrtime(true) / 1e+9);
         }
 
+        return $this->safeMicrotime();
+    }
+
+    protected function safeMicrotime(): int|float
+    {
+        if (2 === sscanf(microtime(), '%f %f', $usec, $sec)) {
+            return ($sec + $usec);
+        }
         return microtime(true);
     }
 
