@@ -59,9 +59,9 @@ class StopWatchResult implements Stringable
         return $asFloat ? $result : (int) $result;
     }
 
-    public function toFormat(): string
+    public function toFormat($format = null): string
     {
-        return $this->__toString();
+        return $this->formatTime($this->seconds);
     }
 
     public function toArray(): array
@@ -73,7 +73,7 @@ class StopWatchResult implements Stringable
 
     public function __toString()
     {
-        return $this->formatTime($this->seconds);
+        return sprintf('%s', (string) $this->seconds());
     }
 
     public function __debugInfo(): array
