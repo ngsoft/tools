@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\Timer;
 
 use DateInterval,
+    HRTime\Unit,
+    NGSOFT\DataStructure\Map,
     Stringable;
 use const NGSOFT\Tools\{
     DAY, HOUR, MICROSECOND, MILLISECOND, MINUTE, MONTH, SECOND, WEEK, YEAR
@@ -33,8 +35,8 @@ class StopWatchResult implements Stringable
         'µs' => [MICROSECOND, '%d µs']
     ];
 
-    /** @var array<string, int> */
-    protected array $infos = [];
+    /** @var Map<State, array> */
+    protected Map $infos;
 
     public static function create(int|float $seconds = 0): static
     {
@@ -44,6 +46,19 @@ class StopWatchResult implements Stringable
     public function __construct(protected readonly int|float $seconds)
     {
 
+        $infos = $this->infos = new Map();
+        $remaining = $seconds;
+        /** @var Units $unit */
+        foreach (Units::cases() as $unit) {
+            $step = $unit->getStep();
+
+            $count = (int) floor($remaining / $step);
+            $remaining -= $step * $count;
+            $infos[$unit] = [
+                'absolute' => $seconds / $step,
+                'relative' => $count,
+            ];
+        }
     }
 
     public function getDateInterval(): DateInterval
@@ -90,7 +105,7 @@ class StopWatchResult implements Stringable
 
     public function toArray(): array
     {
-        $this->lazyLoad();
+
         return $this->formats;
     }
 
@@ -101,10 +116,6 @@ class StopWatchResult implements Stringable
 
     public function __debugInfo(): array
     {
-
-
-        $this->lazyLoad();
-
         return [
             'raw' => $this->getRaw(),
             'infos' => $this->infos,
@@ -114,42 +125,27 @@ class StopWatchResult implements Stringable
         ];
     }
 
-    protected function lazyLoad(): void
-    {
-        if (empty($this->infos)) {
-            $seconds = $remaining = $this->seconds;
-            foreach (self::$units as $name => list($step)) {
-                $count = (int) floor($remaining / $step);
-                $remaining -= $step * $count;
-                $this->infos[$name] = [
-                    'absolute' => $seconds / $step,
-                    'relative' => $count,
-                ];
-            }
-        }
-    }
-
     protected function getUnit(string|Unit $name, bool $relative = false): int|float
     {
-        $this->lazyLoad();
+
+        if (!is_string($name)) {
+            $name = $name->value;
+        }
 
         return $relative ? $this->infos[$name] ['relative'] : $this->infos[$name] ['absolute'];
     }
 
     protected function getFormatedTime(): string
     {
-        $units = &self::$units;
-        $this->lazyLoad();
 
         $result = [];
         $steps = [];
+        /** @var Units $unit */
+        foreach (Units::cases() as $unit) {
 
-        foreach ($units as $name => list($step, $singular, $plural)) {
-
-            if ($count = $this->infos[$name]['relative']) {
-                $plural = $plural ?? $singular;
-                $format = $count > 1 ? $plural : $singular;
-                $steps[] = sprintf($format, $count);
+            if ($count = $this->infos[$unit->value]['relative']) {
+                $formated = $count > 1 ? $unit->getPlural() : $unit->getSingular();
+                $steps[] = sprintf("%d %s", $count, $formated);
             }
         }
 

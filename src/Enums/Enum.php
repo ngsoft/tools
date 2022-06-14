@@ -106,7 +106,7 @@ abstract class Enum implements Stringable, JsonSerializable
      * This method will return a packed array of all cases in an enumeration, in lexical order.
      *
      * @phan-suppress PhanParamTooManyInternal, PhanTypeInstantiateAbstractStatic
-     * @return array An array of all defined cases of this enumeration, in lexical order.
+     * @return static[] An array of all defined cases of this enumeration, in lexical order.
      * @throws TypeError
      * @throws LogicException
      */
