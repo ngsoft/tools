@@ -85,7 +85,6 @@ namespace NGSOFT\Tools {
      */
     function pushd(string $dir): bool
     {
-
         return Tools::pushd($dir);
     }
 

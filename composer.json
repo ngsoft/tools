@@ -1,8 +1,10 @@
 {
     "name": "ngsoft/tools",
     "description": "A set of reusable tools used on my projects.",
-    "keywords": ["arrayaccess", "session", "export", "collection", "list", "map", "set",
-        "psr-11", "enum", "attribute", "reflection", "regexp"],
+    "keywords": [
+        "arrayaccess", "session", "export", "collection", "list", "map", "set",
+        "psr-11", "enum", "attribute", "reflection", "regexp", "timer", "stopwatch"
+    ],
     "license": "MIT",
     "authors": [{
             "name": "Aymeric Anger",
