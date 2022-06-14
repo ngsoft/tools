@@ -92,11 +92,11 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     /**
      * The set() method adds or updates an element with a specified key and a value to a Map object.
      *
-     * @param int|string|float|object $key
+     * @param mixed $key
      * @param mixed $value
      * @return static
      */
-    public function set(int|string|float|object $key, mixed $value): static
+    public function set(mixed $key, mixed $value): static
     {
         $this->delete($key);
         return $this->append($key, $value);

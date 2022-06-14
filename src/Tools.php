@@ -13,7 +13,6 @@ use ErrorException,
     ReflectionClass,
     RuntimeException,
     SplFileInfo;
-use const __MICROTIME_START__;
 use function str_ends_with,
              str_starts_with;
 
@@ -561,7 +560,7 @@ final class Tools
      */
     public static function getExecutionTime(int $precision = 6): float|int
     {
-        return round(microtime(true) - __MICROTIME_START__, $precision);
+        return round(microtime(true) - SCRIPT_START, $precision);
     }
 
 }
