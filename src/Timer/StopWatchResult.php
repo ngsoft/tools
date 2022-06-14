@@ -7,7 +7,7 @@ namespace NGSOFT\Timer;
 class StopWatchResult
 {
 
-    public function create(int|float $seconds = 0): static
+    public static function create(int|float $seconds = 0): static
     {
         return new static($seconds);
     }
