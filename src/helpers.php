@@ -101,7 +101,8 @@ namespace NGSOFT\Tools {
     }
 
     /**
-     *  Pauses script execution for a given amount of time
+     * Pauses script execution for a given amount of time
+     * uses sleep or usleep
      *
      * @param int|float $seconds
      */
@@ -113,7 +114,7 @@ namespace NGSOFT\Tools {
             return;
         }
 
-        usleep((int) floor($seconds * 1e+6));
+        usleep((int) round($seconds * 1e+6));
     }
 
 }

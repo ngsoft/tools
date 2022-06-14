@@ -77,7 +77,6 @@ class StopWatch
     {
         if ($this->state->is(State::IDLE, State::PAUSED)) {
             $this->startTime = ($startTime ?? $this->timestamp());
-            $this->laps = [];
             $this->setState(State::STARTED);
             return true;
         }
@@ -120,7 +119,7 @@ class StopWatch
         $success = false;
         if ($this->isStarted()) {
             $this->runTime += ($this->timestamp() - $this->startTime);
-            $this->lap();
+            $this->laps[] = $this->runTime;
             $this->setState(State::PAUSED);
         }
         return $this->read();
@@ -190,7 +189,7 @@ class StopWatch
         if (!$this->isStarted()) {
             return false;
         }
-        $this->laps[] = ($this->timestamp() - $this->startTime);
+        $this->laps[] = $this->readRaw();
         return true;
     }
 

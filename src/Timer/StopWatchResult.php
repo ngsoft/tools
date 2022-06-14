@@ -59,6 +59,11 @@ class StopWatchResult implements Stringable
         return $asFloat ? $result : (int) $result;
     }
 
+    public function toFormat(): string
+    {
+        return $this->__toString();
+    }
+
     public function toArray(): array
     {
 
