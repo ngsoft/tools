@@ -120,6 +120,7 @@ class StopWatch
         $success = false;
         if ($this->isStarted()) {
             $this->runTime += ($this->timestamp() - $this->startTime);
+            $this->lap();
             $this->setState(State::PAUSED);
         }
         return $this->read();
@@ -165,14 +166,17 @@ class StopWatch
     }
 
     /**
-     * @return iterable<int, StopWatchResult>
+     * @return StopWatchResult[]
      */
     public function getLaps(): iterable
     {
-        $previous = 0;
+        $prev = 0;
         foreach ($this->laps as $index => $time) {
-            yield $index + 1 => StopWatchResult::create($time);
-            $previous = $time;
+
+            $ctime = $time - $prev;
+            $prev = $time;
+
+            yield $index + 1 => StopWatchResult::create($ctime);
         }
     }
 
