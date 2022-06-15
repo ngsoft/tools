@@ -20,6 +20,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
     protected string $filename = '';
     protected ?self $parent = null;
+    protected ?int $mtime = null;
 
     /** @var static[] */
     protected array $children = [];
@@ -35,6 +36,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         try {
             $instance = static::fromJsonFile($filename, $recursive);
+            $instance->mtime = filemtime($filename) ?: 0;
         } catch (Throwable) {
             $instance = static::create([], $recursive);
         }
@@ -49,16 +51,40 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     protected function update(): void
     {
-        if (!empty($this->filename)) {
-            $this->saveToJson($this->filename);
+        if ( ! empty($this->filename)) {
+            if ($this->saveToJson($this->filename)) {
+                $this->mtime = filemtime($this->filename);
+            }
         } else { $this->parent?->update(); }
+    }
+
+    /**
+     * Reloads json file if modified by another process/instance
+     *
+     * @return void
+     */
+    protected function load(): void
+    {
+        if ( ! empty($this->filename)) {
+            $mtime = filemtime($this->filename);
+
+            if ($mtime !== $this->mtime) {
+                if ($string = file_get_contents($this->filename)) {
+                    $array = json_decode($string, true);
+                    if (is_array($array)) {
+                        $this->storage = $array;
+                        $this->mtime = $mtime;
+                    }
+                }
+            }
+        } else { $this->parent?->load(); }
     }
 
     protected function assertValidImport(array $import): void
     {
 
         foreach (array_keys($import) as $offset) {
-            if (!is_int($offset) && !is_string($offset)) {
+            if ( ! is_int($offset) && ! is_string($offset)) {
                 throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int, %s given.', static::class, get_debug_type($offset)));
             }
         }
@@ -72,7 +98,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
             return;
         }
 
-        if (!is_int($offset) && !is_string($offset)) {
+        if ( ! is_int($offset) && ! is_string($offset)) {
             throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', static::class, get_debug_type($offset)));
         }
         unset($this->storage[$offset], $this->children[$offset]);
@@ -94,14 +120,21 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /** {@inheritdoc} */
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->offsetGet($offset) !== null;
+    }
+
+    /** {@inheritdoc} */
     public function &offsetGet(mixed $offset): mixed
     {
+        $this->load();
         $value = null;
         if (null === $offset) {
             $this->storage[] = [];
             $offset = array_key_last($this->storage);
         }
-        if ($this->offsetExists($offset)) {
+        if (array_key_exists($offset, $this->storage)) {
             $value = &$this->storage[$offset];
             if ($this->recursive && is_array($value)) {
 
