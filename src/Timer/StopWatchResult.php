@@ -8,15 +8,15 @@ use DateInterval,
     NGSOFT\DataStructure\Map,
     Stringable;
 use const NGSOFT\Tools\{
-    DAY, HOUR, MICROSECOND, MILLISECOND, MINUTE, MONTH, SECOND, WEEK, YEAR
+    MICROSECOND, MILLISECOND
 };
 use function NGSOFT\Tools\map;
 
 class StopWatchResult implements Stringable
 {
 
-    /** @var Map<State, array> */
-    protected Map $infos;
+    /** @var ?Map<State, array> */
+    protected ?Map $infos = null;
 
     public static function create(int|float $seconds = 0): static
     {
@@ -26,18 +26,6 @@ class StopWatchResult implements Stringable
     public function __construct(protected readonly int|float $seconds)
     {
 
-        $infos = $this->infos = new Map();
-        $remaining = $seconds;
-        /** @var Units $unit */
-        foreach (Units::cases() as $unit) {
-            $step = $unit->getStep();
-            $count = (int) floor($remaining / $step);
-            $remaining -= $step * $count;
-            $infos[$unit] = [
-                'absolute' => $seconds / $step,
-                'relative' => $count,
-            ];
-        }
     }
 
     public function getDateInterval(): DateInterval
@@ -85,8 +73,32 @@ class StopWatchResult implements Stringable
         return $this->getUnitValue(Units::MINUTE(), $precision);
     }
 
+    protected function parseData()
+    {
+
+        if ($this->infos) {
+            return;
+        }
+
+        $infos = $this->infos = new Map();
+        $seconds = $remaining = $this->seconds;
+        /** @var Units $unit */
+        foreach (Units::cases() as $unit) {
+            $step = $unit->getStep();
+            $count = (int) floor($remaining / $step);
+            $remaining -= $step * $count;
+            $infos[$unit] = [
+                'absolute' => $seconds / $step,
+                'relative' => $count,
+            ];
+        }
+    }
+
     protected function getUnitValue(Units $unit, int $precision, bool $relative = false): int|float
     {
+
+        $this->parseData();
+
         $key = $relative ? 'relative' : 'absolute';
         $result = $this->infos->get($unit)[$key];
         if ($relative) {
@@ -130,7 +142,6 @@ class StopWatchResult implements Stringable
     public function getFormatedString(): string
     {
 
-        $result = [];
         $steps = [];
         /** @var Units $unit */
         foreach (Units::cases() as $unit) {
@@ -178,8 +189,7 @@ class StopWatchResult implements Stringable
         return [
             'raw' => $this->getRaw(),
             'infos' => $infos,
-            'formated' => $this->__toString(),
-            'str' => $this->getFormatedTime(),
+            'str' => $this->getFormatedString(),
             DateInterval::class => $this->getDateInterval(),
         ];
     }

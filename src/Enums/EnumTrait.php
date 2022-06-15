@@ -39,7 +39,7 @@ trait EnumTrait
     }
 
     /** {@inheritdoc} */
-    public static function __callStatic(string $name, array $arguments): mixed
+    final public static function __callStatic(string $name, array $arguments): mixed
     {
         if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
         try {
@@ -55,7 +55,7 @@ trait EnumTrait
      * @param Enum|BackedEnum|int|string $input
      * @return bool
      */
-    public function is(self|int|string ...$input): bool
+    final public function is(self|int|string ...$input): bool
     {
 
         $compare = function ($input) {

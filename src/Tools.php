@@ -592,6 +592,7 @@ final class Tools
     /**
      * Get Constants defined in a class
      *
+     * @phan-suppress PhanParamTooManyInternal
      * @param string|object $class
      * @param bool $public if True returns only public visibility constants
      * @return array

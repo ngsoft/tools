@@ -66,6 +66,8 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
 
 namespace NGSOFT\Tools {
 
+    use NGSOFT\Tools;
+
     const MICROSECOND = 1e-6;
     const MILLISECOND = 1e-3;
     const SECOND = 1;

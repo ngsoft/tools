@@ -30,7 +30,9 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
     {
         try {
 
-            while (($reflector = $reflector?->getParentClass() ?? new \ReflectionClass($instance)) !== false) {
+            $reflector = null;
+
+            while (($reflector = is_null($reflector) ? new \ReflectionClass($instance) : $reflector->getParentClass() ) !== false) {
                 yield $reflector;
             }
         } catch (ReflectionException) {
@@ -42,7 +44,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
     {
         static $metadata = [];
         $className = $instance::class;
-        if (!isset($metadata[$className])) {
+        if ( ! isset($metadata[$className])) {
             $meta = new HasProperties();
             /** @var ReflectionClass $reflClass */
             foreach (self::getClassParents($instance) as $reflClass) {
@@ -68,7 +70,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
     {
         /** @var Property $current */
         if ($current = $this->properties[$name] ?? null) {
-            if (!$current->getConfigurable()) throw new RuntimeException(sprintf('Cannot define property "%s": not configurable.', $name));
+            if ( ! $current->getConfigurable()) throw new RuntimeException(sprintf('Cannot define property "%s": not configurable.', $name));
         }
 
         $meta = static::getMetadatas($this);
@@ -76,7 +78,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
         try {
             $this->properties[$name] = new Property($name, $value, configurable: $configurable, enumerable: $enumerable, writable: $writable);
         } catch (Throwable $error) {
-            if (!$meta->silent) throw $error;
+            if ( ! $meta->silent) throw $error;
         }
 
         return $this;
@@ -87,7 +89,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
         try {
             /** @var Property $current */
             if ($current = $this->properties[$name]) {
-                if (!$current->getConfigurable()) {
+                if ( ! $current->getConfigurable()) {
 
                     throw new RuntimeException(sprintf('Cannot remove property "%s": not configurable.', $name));
                 }
@@ -95,7 +97,7 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
                 unset($this->properties[$name]);
             }
         } catch (Throwable $error) {
-            if (!static::getMetadatas($this)->silent) throw $error;
+            if ( ! static::getMetadatas($this)->silent) throw $error;
         }
 
 
@@ -120,10 +122,10 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
                 $current->setValue($value);
                 return;
             }
-            if (!static::getMetadatas($this)->lazy) throw new RuntimeException(sprintf('Cannot create property "%s"', $name));
+            if ( ! static::getMetadatas($this)->lazy) throw new RuntimeException(sprintf('Cannot create property "%s"', $name));
             $this->defineProperty($name, $value, enumerable: true);
         } catch (Throwable $error) {
-            if (!static::getMetadatas($this)->silent) throw $error;
+            if ( ! static::getMetadatas($this)->silent) throw $error;
         }
     }
 
