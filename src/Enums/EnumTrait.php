@@ -12,16 +12,16 @@ use BackedEnum,
 use function NGSOFT\Tools\some;
 
 /**
- * A trait to use with enums
+ * A trait to use with BackedEnum
  *
+ *
+ * @property-read string $name
+ * @property-read int|string $value
  *
  * @phan-file-suppress PhanTypeMismatchReturn,PhanTypeMismatchDeclaredParam,PhanAbstractStaticMethodCallInTrait
  */
 trait EnumTrait
 {
-
-    public readonly string $name;
-    public readonly int|string $value;
 
     /**
      * Generates a list of cases on an enum
@@ -31,12 +31,6 @@ trait EnumTrait
      * @return static[] An array of all defined cases of this enumeration, in lexical order.
      */
     abstract public static function cases(): array;
-
-    /** {@inheritdoc} */
-    public function __toString(): string
-    {
-        return (string) $this->value;
-    }
 
     /** {@inheritdoc} */
     public function jsonSerialize(): mixed

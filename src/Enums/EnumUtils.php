@@ -4,16 +4,33 @@ declare(strict_types=1);
 
 namespace NGSOFT\Enums;
 
-use InvalidArgumentException,
-    NGSOFT\RegExp,
-    ReflectionClass;
+use BackedEnum,
+    InvalidArgumentException;
+use NGSOFT\{
+    RegExp, STDIO\Enums\Color
+};
+use ReflectionClass;
 use const NAMESPACE_SEPARATOR;
+use function NGSOFT\Tools\uses_trait,
+             str_contains;
 
-class EnumUtils {
+class EnumUtils
+{
 
-    protected static function assertValidClassname(string $className) {
-        if (!class_exists($className) || !in_array(Enum::class, class_parents($className))) {
-            throw new InvalidArgumentException(sprintf('Enum Class %s does not exists or does not extends %s', $className, Enum::class));
+    protected static function assertValidClassname(string $className)
+    {
+
+
+        if (
+                !(is_subclass_of($className, BackedEnum::class) || is_subclass_of($className, Enum::class)) ||
+                !uses_trait($className, EnumTrait::class)
+        ) {
+            throw new InvalidArgumentException(sprintf(
+                                    'enum(%s) does not exists, does not implements %s|%s or does not uses %s trait.',
+                                    $className,
+                                    Enum::class, BackedEnum::class,
+                                    EnumTrait::class
+            ));
         }
     }
 
@@ -24,7 +41,8 @@ class EnumUtils {
      * @param string $className
      * @return string
      */
-    public static function generateEnumClassPhpDoc(string $className): string {
+    public static function generateEnumClassPhpDoc(string $className): string
+    {
 
         $contents = '';
         static::assertValidClassname($className);
@@ -48,9 +66,10 @@ class EnumUtils {
      * @param string $className
      * @return bool
      */
-    public static function addPhpDocToEnumClass(string $className): bool {
+    public static function addPhpDocToEnumClass(string $className): bool
+    {
 
-
+        $isEnum = is_subclass_of($className, BackedEnum::class);
 
         $contents = static::generateEnumClassPhpDoc($className);
 
@@ -59,13 +78,15 @@ class EnumUtils {
         $reflector = new ReflectionClass($className);
         $split = explode(NAMESPACE_SEPARATOR, $className);
         $relClassName = array_pop($split);
+        if (!$isEnum) {
+            $matchLine = RegExp::create(sprintf('class .*%s .*extends .*Enum', $relClassName));
+        } else { $matchLine = RegExp::create(sprintf('enum .*%s.*:', $relClassName)); }
 
-        $matchLine = RegExp::create(sprintf('class .*%s .*extends .*Enum', $relClassName));
 
         $docs = $reflector->getDocComment();
         $orig = $docs;
         // empty doc block
-        if ($docs === false) $docs = "/**\n *\n */";
+        if ($docs === false) $docs = "/**\n */";
 
         if (!str_contains($docs, $contents)) {
             $result = [];
@@ -94,6 +115,7 @@ class EnumUtils {
                 } else $newContents = str_replace($orig, $docs, $classContents);
 
                 if (isset($newContents)) {
+
                     return file_put_contents($fName, $newContents) > 0;
                 }
             }

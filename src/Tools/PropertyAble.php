@@ -15,7 +15,8 @@ use ArrayAccess,
     Traversable;
 
 #[HasProperties]
-class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
+class PropertyAble implements ArrayAccess, Countable, IteratorAggregate
+{
 
     /** @var Property[] */
     protected $properties = [];
@@ -25,18 +26,20 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
      * @param object $instance
      * @return \Traversable
      */
-    private static function getClassParents(object $instance): \Traversable {
-        $reflector = new ReflectionClass($instance);
+    private static function getClassParents(object $instance): \Traversable
+    {
         try {
-            do {
+
+            while (($reflector = $reflector?->getParentClass() ?? new \ReflectionClass($instance)) !== false) {
                 yield $reflector;
-            } while (($reflector = $reflector->getParentClass()) !== false);
+            }
         } catch (ReflectionException) {
 
         }
     }
 
-    public static function getMetadatas(object $instance): HasProperties {
+    public static function getMetadatas(object $instance): HasProperties
+    {
         static $metadata = [];
         $className = $instance::class;
         if (!isset($metadata[$className])) {
@@ -61,7 +64,8 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
             bool $enumerable = true,
             bool $configurable = true,
             bool $writable = true
-    ): static {
+    ): static
+    {
         /** @var Property $current */
         if ($current = $this->properties[$name] ?? null) {
             if (!$current->getConfigurable()) throw new RuntimeException(sprintf('Cannot define property "%s": not configurable.', $name));
@@ -78,7 +82,8 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
         return $this;
     }
 
-    protected function removeProperty(string $name): static {
+    protected function removeProperty(string $name): static
+    {
         try {
             /** @var Property $current */
             if ($current = $this->properties[$name]) {
@@ -97,7 +102,8 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
         return $this;
     }
 
-    private function getPropertyValue(string $name): mixed {
+    private function getPropertyValue(string $name): mixed
+    {
         $value = null;
         if ($current = $this->properties[$name] ?? null) {
             $value = $current->getValue();
@@ -106,7 +112,8 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
         return $value;
     }
 
-    private function setPropertyValue(string $name, mixed $value): void {
+    private function setPropertyValue(string $name, mixed $value): void
+    {
 
         try {
             if ($current = $this->properties[$name] ?? null) {
@@ -121,34 +128,40 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     }
 
     /** {@inheritdoc} */
-    public function offsetExists(mixed $offset): bool {
+    public function offsetExists(mixed $offset): bool
+    {
         return isset($this->properties[$offset]);
     }
 
     /** {@inheritdoc} */
-    public function offsetGet(mixed $offset): mixed {
+    public function offsetGet(mixed $offset): mixed
+    {
 
         return $this->getPropertyValue($offset);
     }
 
     /** {@inheritdoc} */
-    public function offsetSet(mixed $offset, mixed $value): void {
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
         $this->setPropertyValue($offset, $value);
     }
 
     /** {@inheritdoc} */
-    public function offsetUnset(mixed $offset): void {
+    public function offsetUnset(mixed $offset): void
+    {
         $this->removeProperty($offset);
     }
 
     /** {@inheritdoc} */
-    public function count(): int {
+    public function count(): int
+    {
 
         return count($this->properties);
     }
 
     /** {@inheritdoc} */
-    public function getIterator(): Traversable {
+    public function getIterator(): Traversable
+    {
         /** @var Property $prop */
         foreach ($this->properties as $prop) {
             if ($prop->getEnumerable()) yield $prop->getName() => $prop->getValue();
@@ -156,29 +169,34 @@ class PropertyAble implements ArrayAccess, Countable, IteratorAggregate {
     }
 
     /** {@inheritdoc} */
-    public function __isset(string $name): bool {
+    public function __isset(string $name): bool
+    {
 
         return $this->offsetExists($name);
     }
 
     /** {@inheritdoc} */
-    public function __get(string $name): mixed {
+    public function __get(string $name): mixed
+    {
 
         return $this->offsetGet($name);
     }
 
     /** {@inheritdoc} */
-    public function __set(string $name, mixed $value): void {
+    public function __set(string $name, mixed $value): void
+    {
         $this->offsetSet($name, $value);
     }
 
     /** {@inheritdoc} */
-    public function __unset(string $name): void {
+    public function __unset(string $name): void
+    {
         $this->offsetUnset($name);
     }
 
     /** {@inheritdoc} */
-    public function __clone(): void {
+    public function __clone(): void
+    {
         $properties = array_keys($this->properties);
         foreach ($properties as $name) {
             $clone = clone $this->properties[$name];

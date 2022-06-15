@@ -17,7 +17,7 @@ use function get_debug_type;
  * Basic Enum Class Support
  * Adds the ability to class constants to work as php 8.1 backed enums cases
  */
-abstract class Enum implements Stringable, JsonSerializable
+abstract class Enum implements JsonSerializable
 {
 
     use EnumTrait;
@@ -26,6 +26,10 @@ abstract class Enum implements Stringable, JsonSerializable
     protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int';
     protected const ERROR_ENUM_VALUE = '"%s" is not a valid value for enum "%s"';
     protected const IS_VALID_ENUM_NAME = '#^[A-Z](?:[\w+]+[A-Z0-9a-z])?$#';
+    protected const NO_TO_STRING = 'Enum may not include __toString';
+
+    public readonly string $name;
+    public readonly int|string $value;
 
     final protected function __construct(
             string $name,
@@ -34,6 +38,9 @@ abstract class Enum implements Stringable, JsonSerializable
     {
         $this->name = $name;
         $this->value = $value;
+        if (method_exists($this, '__toString')) {
+            throw new LogicException(self::NO_TO_STRING);
+        }
     }
 
     /**
@@ -59,11 +66,7 @@ abstract class Enum implements Stringable, JsonSerializable
 
             $defined = $values = [];
 
-            /** @var ReflectionClass $reflector */
-            $reflector = new ReflectionClass($className);
-            if ($reflector->isAbstract()) throw new LogicException(sprintf('Cannot initialize abstract Enum %s', $className));
-
-            do {
+            while (($reflector = $reflector?->getParentClass() ?? new \ReflectionClass($className)) !== false) {
                 if ($reflector->getName() === Enum::class) break;
 
                 $reflClassName = $reflector->getName();
@@ -87,7 +90,7 @@ abstract class Enum implements Stringable, JsonSerializable
                     $defined[$name] = $name;
                     $values[$name] = $value;
                 }
-            } while (($reflector = $reflector->getParentClass()) instanceof ReflectionClass);
+            }
         }
 
         return $instances[$className];

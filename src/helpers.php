@@ -117,5 +117,32 @@ namespace NGSOFT\Tools {
         usleep((int) round($seconds * 1e+6));
     }
 
+    /**
+     * Checks if class uses trait
+     *
+     * @param string|object $className
+     * @param string $traitName
+     * @return bool
+     */
+    function uses_trait(string|object $className, string $traitName): bool
+    {
+
+        if (!trait_exists($traitName)) {
+            return false;
+        }
+
+        try {
+            while (($reflector = $reflector?->getParentClass() ?? new \ReflectionClass($className)) !== false) {
+                $traits = $reflector->getTraitNames() ?? [];
+                if (in_array($traitName, $traits, true)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (\ReflectionException) {
+            return false;
+        }
+    }
+
 }
 
