@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+namespace {
+
+}
+
 namespace NGSOFT {
 
     if (!defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START')) {

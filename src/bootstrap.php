@@ -6,8 +6,22 @@ declare(strict_types=1);
 mb_internal_encoding("UTF-8");
 
 if (!defined('NAMESPACE_SEPARATOR')) {
+
+
+
     define('NAMESPACE_SEPARATOR', '\\');
 }
 
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
+if (!function_exists('class_basename')) {
+    require_once __DIR__ . DIRECTORY_SEPARATOR . 'support.php';
+}
+
+
+
+
+
+if (!defined('NGSOFT\\SCRIPT_START')) {
+    require_once __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
+}
+
