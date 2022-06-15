@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Timer;
 
 use DateInterval,
-    HRTime\Unit,
     NGSOFT\DataStructure\Map,
     Stringable;
 use const NGSOFT\Tools\{
@@ -52,7 +51,6 @@ class StopWatchResult implements Stringable
         /** @var Units $unit */
         foreach (Units::cases() as $unit) {
             $step = $unit->getStep();
-
             $count = (int) floor($remaining / $step);
             $remaining -= $step * $count;
             $infos[$unit] = [
@@ -64,7 +62,7 @@ class StopWatchResult implements Stringable
 
     public function getDateInterval(): DateInterval
     {
-        return DateInterval::createFromDateString($this->getFormatedTime());
+        return DateInterval::createFromDateString($this->getFormatedString());
     }
 
     public function getRaw(): int|float
@@ -149,6 +147,28 @@ class StopWatchResult implements Stringable
         return $asFloat ? $result : (int) $result;
     }
 
+    public function getFormatedString(): string
+    {
+
+        $result = [];
+        $steps = [];
+        /** @var Units $unit */
+        foreach (Units::cases() as $unit) {
+
+            if ($count = $this->infos[$unit]['relative']) {
+                $formated = $count > 1 ? $unit->getPlural() : $unit->getSingular();
+                $steps[] = sprintf("%d %s", $count, $formated);
+            }
+        }
+
+        $str = trim(implode(' ', $steps));
+        if (empty($str)) {
+            return '0 sec';
+        }
+
+        return $str;
+    }
+
     public function toArray(): array
     {
 
@@ -182,28 +202,6 @@ class StopWatchResult implements Stringable
             'str' => $this->getFormatedTime(),
             DateInterval::class => $this->getDateInterval(),
         ];
-    }
-
-    protected function getFormatedTime(): string
-    {
-
-        $result = [];
-        $steps = [];
-        /** @var Units $unit */
-        foreach (Units::cases() as $unit) {
-
-            if ($count = $this->infos[$unit]['relative']) {
-                $formated = $count > 1 ? $unit->getPlural() : $unit->getSingular();
-                $steps[] = sprintf("%d %s", $count, $formated);
-            }
-        }
-
-        $str = trim(implode(' ', $steps));
-        if (empty($str)) {
-            return '0 sec';
-        }
-
-        return $str;
     }
 
 }

@@ -68,7 +68,7 @@ class StopWatch
     }
 
     /**
-     * Starts the clock, also reset the laps
+     * Starts the clock
      *
      * @param int|float|null $startTime Set the start time
      * @return bool
@@ -76,6 +76,11 @@ class StopWatch
     public function start(int|float|null $startTime = null): bool
     {
         if ($this->state->is(State::IDLE, State::PAUSED)) {
+
+            if (!is_null($startTime)) {
+                $this->highResolution = false;
+            }
+
             $this->startTime = ($startTime ?? $this->timestamp());
             $this->setState(State::STARTED);
             return true;
@@ -121,6 +126,7 @@ class StopWatch
             $this->runTime += ($this->timestamp() - $this->startTime);
             $this->laps[] = $this->runTime;
             $this->setState(State::PAUSED);
+            $success = true;
         }
         return $this->read();
     }
@@ -170,12 +176,12 @@ class StopWatch
     public function getLaps(): iterable
     {
         $prev = 0;
-        foreach ($this->laps as $index => $time) {
+        foreach ($this->laps as $time) {
 
             $ctime = $time - $prev;
             $prev = $time;
 
-            yield $index + 1 => StopWatchResult::create($ctime);
+            yield StopWatchResult::create($time) => StopWatchResult::create($ctime);
         }
     }
 
