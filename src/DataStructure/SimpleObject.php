@@ -53,6 +53,8 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         if ( ! empty($this->filename)) {
             if ($this->saveToJson($this->filename)) {
+                touch($this->filename);
+                //var_dump("Save: {$this->filename}");
                 $this->mtime = filemtime($this->filename);
             }
         } else { $this->parent?->update(); }
@@ -65,10 +67,15 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     protected function load(): void
     {
+
+
         if ( ! empty($this->filename)) {
-            $mtime = filemtime($this->filename);
+
+
+            var_dump($mtime = filemtime($this->filename));
 
             if ($mtime !== $this->mtime) {
+                var_dump("Loads: {$this->filename}");
                 if ($string = file_get_contents($this->filename)) {
                     $array = json_decode($string, true);
                     if (is_array($array)) {

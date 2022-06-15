@@ -7,6 +7,7 @@ namespace NGSOFT\DataStructure;
 use Generator,
     InvalidArgumentException,
     NGSOFT\Traits\StringableObject,
+    RuntimeException,
     Traversable;
 
 /**
@@ -120,6 +121,10 @@ trait ArrayAccessCommon
     public function saveToJson(string $file): bool
     {
 
+        if (file_exists($file) && ! is_file($file)) {
+            throw new RuntimeException(sprintf('Cannot save directory "%s" as json file.', $file));
+        }
+
         $dir = dirname($file);
         if (is_dir($dir) || mkdir($dir, 0777, true)) {
             return file_put_contents($file, $this->toJson()) > 0;
@@ -200,7 +205,7 @@ trait ArrayAccessCommon
         $result = $this->getNewInstance();
         foreach ($this->getIterator() as $key => $value) {
             $retval = $callback($value, $key, $this);
-            if (!$retval) continue;
+            if ( ! $retval) continue;
             $result->offsetSet($key, $value);
         }
         return $result;
@@ -217,7 +222,7 @@ trait ArrayAccessCommon
         if ($this->count() === 0) return false;
         foreach ($this->getIterator() as $key => $value) {
             $retval = $callback($value, $key, $this);
-            if (!$retval) continue;
+            if ( ! $retval) continue;
             return true;
         }
         return false;
@@ -234,7 +239,7 @@ trait ArrayAccessCommon
         if ($this->count() === 0) return false;
         foreach ($this->getIterator() as $key => $value) {
             $retval = $callback($value, $key, $this);
-            if (!$retval) return false;
+            if ( ! $retval) return false;
         }
         return true;
     }

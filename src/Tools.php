@@ -416,7 +416,7 @@ final class Tools
                 $result = $value;
             }
 
-            if (is_int($key) || is_null($key)) {
+            if ( ! is_string($key)) {
                 $new[] = $result;
                 continue;
             }
