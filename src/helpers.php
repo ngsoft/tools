@@ -4,18 +4,47 @@ declare(strict_types=1);
 
 namespace {
 
-}
+    if ( ! defined('NAMESPACE_SEPARATOR')) {
+        define('NAMESPACE_SEPARATOR', '\\');
+    }
 
-namespace NGSOFT {
+    if ( ! defined('SCRIPT_START')) {
 
-    if (!defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START')) {
-        define(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
+        define('SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
+    }
+
+    if ( ! function_exists('class_namespace')) {
+
+        function class_namespace(string|object $class): string
+        {
+            $class = is_object($class) ? get_class($class) : $class;
+            if ( ! str_contains($class, NAMESPACE_SEPARATOR)) {
+                return '';
+            }
+            return substr($class, 0, strrpos($class, NAMESPACE_SEPARATOR));
+        }
+
+    }
+
+
+    if ( ! function_exists('uses_trait')) {
+
+        /**
+         * Checks recursively if a class uses a trait
+         *
+         * @param string|object $class
+         * @param string $trait
+         * @return bool
+         */
+        function uses_trait(string|object $class, string $trait): bool
+        {
+            return in_array($trait, class_uses_recursive($class));
+        }
+
     }
 }
 
 namespace NGSOFT\Tools {
-
-    use NGSOFT\Tools;
 
     const MICROSECOND = 1e-6;
     const MILLISECOND = 1e-3;
@@ -119,33 +148,6 @@ namespace NGSOFT\Tools {
         }
 
         usleep((int) round($seconds * 1e+6));
-    }
-
-    /**
-     * Checks if class uses trait
-     *
-     * @param string|object $className
-     * @param string $traitName
-     * @return bool
-     */
-    function uses_trait(string|object $className, string $traitName): bool
-    {
-
-        if (!trait_exists($traitName)) {
-            return false;
-        }
-
-        try {
-            while (($reflector = $reflector?->getParentClass() ?? new \ReflectionClass($className)) !== false) {
-                $traits = $reflector->getTraitNames() ?? [];
-                if (in_array($traitName, $traits, true)) {
-                    return true;
-                }
-            }
-            return false;
-        } catch (\ReflectionException) {
-            return false;
-        }
     }
 
 }
