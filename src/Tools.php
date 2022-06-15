@@ -11,8 +11,11 @@ use ErrorException,
     RecursiveDirectoryIterator,
     RecursiveIteratorIterator,
     ReflectionClass,
+    ReflectionClassConstant,
+    ReflectionException,
     RuntimeException,
     SplFileInfo;
+use const SCRIPT_START;
 use function str_ends_with,
              str_starts_with;
 
@@ -75,7 +78,7 @@ final class Tools
     public static function safe_exec(callable $callback, ...$args)
     {
         static $handler;
-        if (!$handler) {
+        if ( ! $handler) {
             $handler = static function () {
 
             };
@@ -96,7 +99,7 @@ final class Tools
     {
 
         return set_error_handler(function ($type, $msg, $file, $line) {
-            if (!(error_reporting() & $type)) return false;
+            if ( ! (error_reporting() & $type)) return false;
             throw new ErrorException($msg, 0, $type, $file, $line);
         });
     }
@@ -169,10 +172,10 @@ final class Tools
                 if ($path = realpath($dir . DIRECTORY_SEPARATOR . $file)) {
 
                     if (is_dir($path)) {
-                        if (!$recursive) continue;
+                        if ( ! $recursive) continue;
                         $result = array_merge($result, self::listFiles($path, $recursive, ...$extensions));
                     } elseif (is_file($path)) {
-                        if (!$hasExtensions || self::fileHasExtension($path, ...$extensions)) $result[] = $path;
+                        if ( ! $hasExtensions || self::fileHasExtension($path, ...$extensions)) $result[] = $path;
                     }
                 }
             }
@@ -189,7 +192,7 @@ final class Tools
     private static function getDirectoryIterator(string $dir): Generator
     {
 
-        if (!is_dir($dir)) throw new InvalidArgumentException(sprintf('%s is not a directory.', $dir));
+        if ( ! is_dir($dir)) throw new InvalidArgumentException(sprintf('%s is not a directory.', $dir));
         yield from (new RecursiveIteratorIterator(
                         new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
                         RecursiveIteratorIterator::CHILD_FIRST
@@ -212,7 +215,7 @@ final class Tools
 
             if ($fileInfo->isDir()) continue;
 
-            if (!$findExtensions || self::fileHasExtension($fileName, ...$extensions)) {
+            if ( ! $findExtensions || self::fileHasExtension($fileName, ...$extensions)) {
                 yield $fileName => $fileInfo;
             }
         }
@@ -251,7 +254,7 @@ final class Tools
     public static function include(string $filename, bool $once = true, array $data = []): mixed
     {
         static $callback;
-        if (!$callback) {
+        if ( ! $callback) {
 
             $callback = static function (array $data) {
                 extract($data);
@@ -308,9 +311,9 @@ final class Tools
         $classcount = $classcount ?? 0;
 
         if (
-                !class_exists($parentClass) and
-                !interface_exists($parentClass) and
-                !trait_exists($parentClass)
+                ! class_exists($parentClass) and
+                ! interface_exists($parentClass) and
+                ! trait_exists($parentClass)
         ) throw new InvalidArgumentException(sprintf('Invalid class name "%s"', $parentClass));
 
 
@@ -382,7 +385,7 @@ final class Tools
         $new = [];
 
         foreach ($iterable as $key => $value) {
-            if (!$callback($value, $key, $iterable)) {
+            if ( ! $callback($value, $key, $iterable)) {
                 continue;
             }
             if (is_int($key) || is_null($key)) {
@@ -432,7 +435,7 @@ final class Tools
     public static function some(callable $callback, iterable $iterable): bool
     {
         foreach ($iterable as $key => $value) {
-            if (!$callback($value, $key, $iterable)) {
+            if ( ! $callback($value, $key, $iterable)) {
                 continue;
             }
             return true;
@@ -450,7 +453,7 @@ final class Tools
     public static function every(callable $callback, iterable $iterable): bool
     {
         foreach ($iterable as $key => $value) {
-            if (!$callback($value, $key, $iterable)) {
+            if ( ! $callback($value, $key, $iterable)) {
                 return false;
             }
         }
@@ -554,7 +557,7 @@ final class Tools
         $i = 0;
         while (($size / $step) >= 1) {
             $size = $size / $step;
-            $i++;
+            $i ++;
         }
         return round($size, $precision) . $units[$i];
     }
@@ -567,6 +570,69 @@ final class Tools
     public static function getExecutionTime(int $precision = 6): float|int
     {
         return round(microtime(true) - SCRIPT_START, $precision);
+    }
+
+    /**
+     * Pauses script execution for a given amount of time
+     * uses sleep or usleep
+     *
+     * @param int|float $seconds
+     */
+    public static function pause(int|float $seconds): void
+    {
+
+        if (is_int($seconds)) {
+            sleep($seconds);
+            return;
+        }
+
+        usleep((int) round($seconds * 1e+6));
+    }
+
+    /**
+     * Get Constants defined in a class
+     *
+     * @param string|object $class
+     * @param bool $public if True returns only public visibility constants
+     * @return array
+     */
+    public static function getClassConstants(string|object $class, bool $public = true): array
+    {
+        static $parsed = [
+            [], []
+        ];
+
+        if ( ! class_exists($class) && ! interface_exists($class)) {
+            return [];
+        }
+
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $cache = &$parsed[(int) $public];
+
+        if ( ! isset($cache[$class])) {
+
+            try {
+                $result = [];
+                $filter = $public ? ReflectionClassConstant::IS_PUBLIC : null;
+                foreach (array_reverse(class_parents($class) ?: []) + [$class => $class] as $className) {
+                    $reflector = new ReflectionClass($className);
+                    foreach ($reflector->getConstants($filter) as $constant => $value) {
+                        if (array_key_exists($constant, $result)) {
+                            continue;
+                        }
+                        $result[$constant] = $value;
+                    }
+                }
+
+                $cache[$class] = $result;
+            } catch (ReflectionException) {
+                return $cache[$class] = [];
+            }
+        }
+        return $cache[$class];
     }
 
 }

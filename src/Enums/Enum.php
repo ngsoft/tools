@@ -58,13 +58,15 @@ abstract class Enum implements JsonSerializable
         static $instances = [];
 
         $className = static::class;
-        if (!isset($instances[$className])) {
+        if ( ! isset($instances[$className])) {
 
             $instances[$className] = [];
 
             $inst = &$instances[$className];
 
             $defined = $values = [];
+
+            $reflector = null;
 
             while (($reflector = $reflector?->getParentClass() ?? new \ReflectionClass($className)) !== false) {
                 if ($reflector->getName() === Enum::class) break;
@@ -77,9 +79,9 @@ abstract class Enum implements JsonSerializable
                     $value = $classConstant->getValue();
 
                     if (isset($defined[$name])) continue;
-                    if (!preg_match(self::IS_VALID_ENUM_NAME, $name)) continue;
+                    if ( ! preg_match(self::IS_VALID_ENUM_NAME, $name)) continue;
 
-                    if (!is_string($value) && !is_int($value)) {
+                    if ( ! is_string($value) && ! is_int($value)) {
                         throw new TypeError(sprintf(self::ERROR_ENUM_TYPE, $reflClassName, $name, get_debug_type($value)));
                     }
 

@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace NGSOFT\Enums;
 
 use BackedEnum,
-    InvalidArgumentException;
-use NGSOFT\{
-    RegExp, STDIO\Enums\Color
-};
-use ReflectionClass;
+    InvalidArgumentException,
+    NGSOFT\RegExp,
+    ReflectionClass;
 use const NAMESPACE_SEPARATOR;
-use function NGSOFT\Tools\uses_trait,
-             str_contains;
+use function str_contains,
+             uses_trait;
 
 class EnumUtils
 {
@@ -22,8 +20,8 @@ class EnumUtils
 
 
         if (
-                !(is_subclass_of($className, BackedEnum::class) || is_subclass_of($className, Enum::class)) ||
-                !uses_trait($className, EnumTrait::class)
+                ! (is_subclass_of($className, BackedEnum::class) || is_subclass_of($className, Enum::class)) ||
+                ! uses_trait($className, EnumTrait::class)
         ) {
             throw new InvalidArgumentException(sprintf(
                                     'enum(%s) does not exists, does not implements %s|%s or does not uses %s trait.',
@@ -54,7 +52,7 @@ class EnumUtils
         foreach ($className::cases() as $enum) {
             $newLine = sprintf(" * @method static static %s()", $enum->name);
 
-            if (!str_contains($currentDocs, $newLine)) $contents .= "$newLine\n";
+            if ( ! str_contains($currentDocs, $newLine)) $contents .= "$newLine\n";
         }
 
         return $contents;
@@ -78,7 +76,7 @@ class EnumUtils
         $reflector = new ReflectionClass($className);
         $split = explode(NAMESPACE_SEPARATOR, $className);
         $relClassName = array_pop($split);
-        if (!$isEnum) {
+        if ( ! $isEnum) {
             $matchLine = RegExp::create(sprintf('class .*%s .*extends .*Enum', $relClassName));
         } else { $matchLine = RegExp::create(sprintf('enum .*%s.*:', $relClassName)); }
 
@@ -88,7 +86,7 @@ class EnumUtils
         // empty doc block
         if ($docs === false) $docs = "/**\n */";
 
-        if (!str_contains($docs, $contents)) {
+        if ( ! str_contains($docs, $contents)) {
             $result = [];
             $lines = explode("\n", $docs);
             foreach ($lines as $line) {

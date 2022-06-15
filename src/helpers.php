@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace {
 
-    if ( ! defined('NAMESPACE_SEPARATOR')) {
+    use NGSOFT\Tools;
+
+if ( ! defined('NAMESPACE_SEPARATOR')) {
         define('NAMESPACE_SEPARATOR', '\\');
     }
 
@@ -39,6 +41,24 @@ namespace {
         function uses_trait(string|object $class, string $trait): bool
         {
             return in_array($trait, class_uses_recursive($class));
+        }
+
+    }
+
+
+    if ( ! function_exists('get_class_constants')) {
+
+
+        /**
+         * Get Constants defined in a class
+         *
+         * @param string|object $class
+         * @param bool $public if True returns only public visibility constants
+         * @return array
+         */
+        function get_class_constants(string|object $class, bool $public = true): array
+        {
+            return Tools::getClassConstants($class, $public);
         }
 
     }
@@ -142,12 +162,7 @@ namespace NGSOFT\Tools {
     function pause(int|float $seconds): void
     {
 
-        if (is_int($seconds)) {
-            sleep($seconds);
-            return;
-        }
-
-        usleep((int) round($seconds * 1e+6));
+        Tools::pause($seconds);
     }
 
 }
