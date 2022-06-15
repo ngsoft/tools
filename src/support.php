@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /*
  * These functions are from illuminate/support, illuminate/collections
- * Modified to conform to accepts types
+ * Modified to accepts types
  *
  * @link https://github.com/illuminate/support
  */
