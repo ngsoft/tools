@@ -85,7 +85,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
         $offset = $this->indexOf($value);
         if ($offset < 0) {
-            $offset = ++$this->offset;
+            $offset = ++ $this->offset;
             $this->values[$offset] = $value;
         }
         return $offset;
@@ -116,7 +116,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         if ($value === $sharedValue) {
             throw new InvalidArgumentException('Cannot add many-to-many relationship between 2 identical values.');
         }
-        if (!$this->has($value, $sharedValue)) {
+        if ( ! $this->has($value, $sharedValue)) {
             $offset = $this->addValue($value);
             $sharedOffset = $this->addValue($sharedValue);
             $this->pairs[] = [$offset, $sharedOffset];
@@ -158,10 +158,10 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
         unset($this->pairs[$this->indexOfPair($value, $sharedValue)]);
 
-        if (!$this->valueHasPair($value)) {
+        if ( ! $this->valueHasPair($value)) {
             $this->deleteValue($value);
         }
-        if (!$this->valueHasPair($sharedValue)) {
+        if ( ! $this->valueHasPair($sharedValue)) {
             $this->deleteValue($sharedValue);
         }
 
@@ -180,7 +180,6 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
         $result = new Set();
         if (($index = $this->indexOf($value)) > -1) {
 
-            $index = $this->indexOf($value);
             foreach ($this->pairs as list($offset, $sharedOffset)) {
                 if ($offset === $index) {
                     $result->add($this->values[$sharedOffset]);
@@ -199,7 +198,7 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
      */
     public function entries(): Generator
     {
-        foreach ($this->values as $offset => $value) {
+        foreach ($this->values as $value) {
             yield $value => $this->get($value);
         }
     }

@@ -71,6 +71,7 @@ return [
         'PhanUnusedPublicFinalMethodParameter',
         'PhanAccessOverridesFinalMethodInTrait',
         'PhanUnreferencedUseNormal',
+        'PhanUnusedVariableValueOfForeachWithKey',
     //'PhanAbstractStaticMethodCallInTrait'
     ],
     // If enabled, check all methods that override a

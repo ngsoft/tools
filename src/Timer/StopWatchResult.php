@@ -142,6 +142,8 @@ class StopWatchResult implements Stringable
     public function getFormatedString(): string
     {
 
+        $this->parseData();
+
         $steps = [];
         /** @var Units $unit */
         foreach (Units::cases() as $unit) {

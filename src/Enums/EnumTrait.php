@@ -12,7 +12,7 @@ use BackedEnum,
 use function NGSOFT\Tools\some;
 
 /**
- * A trait to use with BackedEnum
+ * A trait to use with Enum/BackedEnum
  *
  *
  * @property-read string $name
@@ -22,15 +22,6 @@ use function NGSOFT\Tools\some;
  */
 trait EnumTrait
 {
-
-    /**
-     * Generates a list of cases on an enum
-     * This method will return a packed array of all cases in an enumeration, in lexical order.
-     *
-     * @phan-suppress PhanParamTooManyInternal, PhanTypeInstantiateAbstractStatic
-     * @return static[] An array of all defined cases of this enumeration, in lexical order.
-     */
-    abstract public static function cases(): array;
 
     /** {@inheritdoc} */
     public function jsonSerialize(): mixed
@@ -101,14 +92,19 @@ trait EnumTrait
     }
 
     /**
-     * Checks if enum is defined
+     * Compatibility layer between real BackedEnum and polyfilled one
+     * usage: MyEnum::fromEnum(MyEnum::MY_CASE)
      *
-     * @param string $name
-     * @return bool
+     * @param self|int|string $enum
+     * @return static
      */
-    final public static function has(string $name): bool
+    final public static function fromEnum(self|int|string $enum): static
     {
-        return static::tryGet($name) !== null;
+        if ($enum instanceof self) {
+            return $enum;
+        }
+
+        return self::from($enum);
     }
 
 }

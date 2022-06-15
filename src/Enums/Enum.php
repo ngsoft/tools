@@ -22,11 +22,11 @@ abstract class Enum implements JsonSerializable
     use EnumTrait;
 
     protected const ERROR_ENUM_DUPLICATE_VALUE = 'Duplicate value %s in enum %s for cases %s and %s';
-    protected const ERROR_ENUM_TYPE = 'Enum %s::%s case type %s does not match enum type string|int';
+    protected const ERROR_ENUM_TYPE = 'enum(%s::%s) case type %s does not match enum type string|int';
     protected const ERROR_ENUM_VALUE = '"%s" is not a valid value for enum "%s"';
-    protected const ERROR_ENUM_MULTITYPE = 'Enum case type %s does not match enum backing type %s';
+    protected const ERROR_ENUM_MULTITYPE = 'enum(%s::%s) case type %s does not match enum backing type %s';
     protected const IS_VALID_ENUM_NAME = '#^[A-Z](?:[\w+]+[A-Z0-9a-z])?$#';
-    protected const NO_MAGIC = 'Enum may not include %s';
+    protected const NO_MAGIC = 'enum %s may not include %s';
 
     private function __construct(
             public readonly string $name,
@@ -47,7 +47,7 @@ abstract class Enum implements JsonSerializable
         if ( ! isset($tested[static::class])) {
             foreach ($diallowed as $method) {
                 if (method_exists($this, $method)) {
-                    throw new LogicException(sprintf(self::NO_MAGIC, $method));
+                    throw new LogicException(sprintf(self::NO_MAGIC, static::class, $method));
                 }
             }
 
@@ -97,7 +97,7 @@ abstract class Enum implements JsonSerializable
                 }
 
                 if (get_debug_type($value) !== $previous) {
-                    throw new TypeError(sprintf(self::ERROR_ENUM_MULTITYPE, get_debug_type($value), $previous));
+                    throw new TypeError(sprintf(self::ERROR_ENUM_MULTITYPE, $className, $name, get_debug_type($value), $previous));
                 }
 
                 if ($key = array_search($value, $values, true)) {
@@ -166,9 +166,7 @@ abstract class Enum implements JsonSerializable
     final public function __debugInfo(): array
     {
         return [
-            'enum' => sprintf('enum(%s::%s)', static::class, $this->name),
-            'name' => $this->name,
-            'value' => $this->value,
+            sprintf('enum(%s::%s)', static::class, $this->name) => $this->value
         ];
     }
 

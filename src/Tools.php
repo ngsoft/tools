@@ -256,8 +256,8 @@ final class Tools
         static $callback;
         if ( ! $callback) {
 
-            $callback = static function (array $data) {
-                extract($data);
+            $callback = static function (array $___data) {
+                extract($___data);
                 return func_get_arg(2) ?
                 include_once func_get_arg(1) :
                 include func_get_arg(1);
@@ -603,12 +603,12 @@ final class Tools
             [], []
         ];
 
-        if ( ! class_exists($class) && ! interface_exists($class)) {
-            return [];
-        }
-
         if (is_object($class)) {
             $class = get_class($class);
+        }
+
+        if ( ! class_exists($class) && ! interface_exists($class)) {
+            return [];
         }
 
         $cache = &$parsed[(int) $public];

@@ -9,7 +9,8 @@ use Attribute,
     ReflectionClass,
     ReflectionException;
 
-trait AttributeTrait {
+trait AttributeTrait
+{
 
     public string $name = '';
     public ?int $attributeTargetType = null;
@@ -19,11 +20,12 @@ trait AttributeTrait {
      * @param string|object $className
      * @return Property[]
      */
-    public static function getPropertyAttributes(string|object $className): array {
+    public static function getPropertyAttributes(string|object $className): array
+    {
 
         static $cache = [];
 
-        $key = is_string($className) ?? $className::class;
+        $key = is_string($className) ? $className : $className::class;
         if (isset($cache[$key])) return $cache[$key];
 
         try {
