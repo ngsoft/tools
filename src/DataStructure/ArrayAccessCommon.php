@@ -127,6 +127,7 @@ trait ArrayAccessCommon
 
         $dir = dirname($file);
         if (is_dir($dir) || mkdir($dir, 0777, true)) {
+
             return file_put_contents($file, $this->toJson()) > 0;
         }
         return false;

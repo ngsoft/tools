@@ -20,6 +20,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
     protected string $filename = '';
     protected ?self $parent = null;
+    protected $hash = null;
     protected ?int $mtime = null;
 
     /** @var static[] */
@@ -36,7 +37,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         try {
             $instance = static::fromJsonFile($filename, $recursive);
-            $instance->mtime = filemtime($filename) ?: 0;
+            $instance->hash = hash_file('crc32', $this->filename);
         } catch (Throwable) {
             $instance = static::create([], $recursive);
         }
@@ -53,9 +54,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         if ( ! empty($this->filename)) {
             if ($this->saveToJson($this->filename)) {
-                touch($this->filename);
-                //var_dump("Save: {$this->filename}");
-                $this->mtime = filemtime($this->filename);
+                $this->hash = hash_file('crc32', $this->filename);
             }
         } else { $this->parent?->update(); }
     }
@@ -71,16 +70,16 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
         if ( ! empty($this->filename)) {
 
+            // clearstatcache(true, $this->filename);
+            $hash = hash_file('crc32', $this->filename);
 
-            var_dump($mtime = filemtime($this->filename));
-
-            if ($mtime !== $this->mtime) {
+            if ($hash !== $this->hash) {
                 var_dump("Loads: {$this->filename}");
                 if ($string = file_get_contents($this->filename)) {
                     $array = json_decode($string, true);
                     if (is_array($array)) {
                         $this->storage = $array;
-                        $this->mtime = $mtime;
+                        $this->hash = $hash;
                     }
                 }
             }

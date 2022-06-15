@@ -581,6 +581,7 @@ final class Tools
     public static function pause(int|float $seconds): void
     {
 
+        var_dump($seconds);
         if (is_int($seconds)) {
             sleep($seconds);
             return;
