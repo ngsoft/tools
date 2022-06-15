@@ -15,26 +15,6 @@ use function NGSOFT\Tools\map;
 class StopWatchResult implements Stringable
 {
 
-    public const FORMAT_SECONDS = 0;
-    public const FORMAT_MILLISECONDS = 1;
-    public const FORMAT_MICROSECONDS = 2;
-    public const FORMAT_HUMAN_READABLE = 3;
-
-    /**
-     * @link https://www.php.net/manual/en/datetime.formats.relative.php
-     */
-    static protected $units = [
-        'years' => [YEAR, '%d year', '%d years'],
-        'months' => [MONTH, '%d month', '%d months'],
-        'weeks' => [WEEK, '%d week', '%d weeks'],
-        'days' => [DAY, '%d day', '%d days'],
-        'hours' => [HOUR, '%d hours', '%d hours'],
-        'min' => [MINUTE, '%d min'],
-        'sec' => [SECOND, '%d sec'],
-        'ms' => [MILLISECOND, '%d ms'],
-        'µs' => [MICROSECOND, '%d µs']
-    ];
-
     /** @var Map<State, array> */
     protected Map $infos;
 

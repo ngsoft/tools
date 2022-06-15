@@ -47,7 +47,7 @@ class Units extends Enum
     public function getSingular(): string
     {
         if (str_ends_with($this->value, 's') && mb_strlen($this->value) > 2) {
-            return substr($this->value, 0, -1);
+            return mb_substr($this->value, 0, -1);
         }
 
         return $this->value;
