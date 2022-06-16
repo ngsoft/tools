@@ -11,7 +11,8 @@ use ArrayAccess,
     OutOfBoundsException,
     Stringable,
     Throwable;
-use function get_debug_type;
+use function get_debug_type,
+             NGSOFT\Tools\pause;
 
 class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
 {
@@ -21,10 +22,17 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     protected string $filename = '';
     protected ?self $parent = null;
     protected ?string $hash = null;
-    protected ?int $mtime = null;
+    protected ?string $lock = null;
 
     /** @var static[] */
     protected array $children = [];
+
+    public function __destruct()
+    {
+        if ($this->lock) {
+            unlink($this->lock);
+        }
+    }
 
     /**
      * Instanciates a new instance using the given json file and syncs it (writes to it when keys are added/removed)
@@ -43,20 +51,23 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
             $instance = static::create([], $recursive);
             $instance->filename = $filename;
         }
+
+
         return $instance;
     }
 
-    protected function getLock(int|float $timeout = 2): bool
+    protected function getLock(int|float $timeout = 10): bool
     {
         $lock = "{$this->filename}.lock";
 
         $start = microtime(true);
 
         while (file_exists($lock)) {
-            if (microtime(true) > $start) {
+            if (microtime(true) > ($timeout + $start)) {
+                var_dump('timeout');
                 return false;
             }
-            usleep(10);
+            pause(.01);
         }
 
         return true;
@@ -67,8 +78,12 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         $lock = "{$this->filename}.lock";
 
         if ($this->getLock() && touch($lock)) {
+            $this->lock = $lock;
             $process();
-            return unlink($lock);
+            if (unlink($lock)) {
+                $this->lock = null;
+                return true;
+            }
         }
 
         return false;
@@ -109,7 +124,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
                         $array = json_decode($string, true);
                         if (is_array($array)) {
                             $this->storage = $array;
-                            $this->hash = $hash;
+                            $this->hash = $this->getHash();
                         }
                     }
                 });
