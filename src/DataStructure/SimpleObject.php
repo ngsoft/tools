@@ -37,13 +37,41 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         try {
             $instance = static::fromJsonFile($filename, $recursive);
+            $instance->filename = $filename;
             $instance->hash = $instance->getHash();
         } catch (Throwable) {
             $instance = static::create([], $recursive);
+            $instance->filename = $filename;
         }
-        $instance->filename = $filename;
-
         return $instance;
+    }
+
+    protected function getLock(int|float $timeout = 2): bool
+    {
+        $lock = "{$this->filename}.lock";
+
+        $start = microtime(true);
+
+        while (file_exists($lock)) {
+            if (microtime(true) > $start) {
+                return false;
+            }
+            usleep(10);
+        }
+
+        return true;
+    }
+
+    protected function lock(callable $process): bool
+    {
+        $lock = "{$this->filename}.lock";
+
+        if ($this->getLock() && touch($lock)) {
+            $process();
+            return unlink($lock);
+        }
+
+        return false;
     }
 
     /**
@@ -54,9 +82,12 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     protected function update(): void
     {
         if ( ! empty($this->filename)) {
-            if ($this->saveToJson($this->filename)) {
-                $this->hash = $this->getHash();
-            }
+
+            $this->lock(function () {
+                if ($this->saveToJson($this->filename)) {
+                    $this->hash = $this->getHash();
+                }
+            });
         } else { $this->parent?->update(); }
     }
 
@@ -67,30 +98,36 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     protected function load(): void
     {
-
-
         if ( ! empty($this->filename)) {
             // can check concurrent modifications
             $hash = $this->getHash();
 
             //file does not exists: null === null, no need to load
             if ($hash !== $this->hash) {
-
-                var_dump($hash, $this->hash);
-                var_dump("Loads: {$this->filename}");
-                if ($string = file_get_contents($this->filename)) {
-                    $array = json_decode($string, true);
-                    if (is_array($array)) {
-                        $this->storage = $array;
-                        $this->hash = $hash;
+                $this->lock(function () use ($hash) {
+                    if ($string = file_get_contents($this->filename)) {
+                        $array = json_decode($string, true);
+                        if (is_array($array)) {
+                            $this->storage = $array;
+                            $this->hash = $hash;
+                        }
                     }
-                }
+                });
             }
         } else { $this->parent?->load(); }
     }
 
     protected function getHash(): ?string
     {
+        if ( ! is_file($this->filename)) {
+            return null;
+        }
+
+        while (($hash = hash_file('crc32', $this->filename) ) === false) {
+
+        }
+        return $hash;
+
         return hash_file('crc32', $this->filename) ?: null;
     }
 
