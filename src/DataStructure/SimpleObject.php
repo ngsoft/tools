@@ -20,7 +20,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
     protected string $filename = '';
     protected ?self $parent = null;
-    protected $hash = null;
+    protected ?string $hash = null;
     protected ?int $mtime = null;
 
     /** @var static[] */
@@ -37,11 +37,12 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         try {
             $instance = static::fromJsonFile($filename, $recursive);
-            $instance->hash = hash_file('crc32', $this->filename);
+            $instance->hash = $instance->getHash();
         } catch (Throwable) {
             $instance = static::create([], $recursive);
         }
         $instance->filename = $filename;
+
         return $instance;
     }
 
@@ -54,7 +55,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         if ( ! empty($this->filename)) {
             if ($this->saveToJson($this->filename)) {
-                $this->hash = hash_file('crc32', $this->filename);
+                $this->hash = $this->getHash();
             }
         } else { $this->parent?->update(); }
     }
@@ -69,11 +70,13 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
 
         if ( ! empty($this->filename)) {
+            // can check concurrent modifications
+            $hash = $this->getHash();
 
-            // clearstatcache(true, $this->filename);
-            $hash = hash_file('crc32', $this->filename);
-
+            //file does not exists: null === null, no need to load
             if ($hash !== $this->hash) {
+
+                var_dump($hash, $this->hash);
                 var_dump("Loads: {$this->filename}");
                 if ($string = file_get_contents($this->filename)) {
                     $array = json_decode($string, true);
@@ -84,6 +87,11 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
                 }
             }
         } else { $this->parent?->load(); }
+    }
+
+    protected function getHash(): ?string
+    {
+        return hash_file('crc32', $this->filename) ?: null;
     }
 
     protected function assertValidImport(array $import): void
