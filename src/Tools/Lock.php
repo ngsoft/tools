@@ -14,6 +14,8 @@ class Lock
     protected string $name;
     protected int $pid;
     protected ?LockStore $store;
+    protected int $owner;
+    protected float|int $until;
 
     public function __construct(
             string $name,
