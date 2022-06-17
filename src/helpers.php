@@ -177,5 +177,16 @@ namespace NGSOFT\Tools {
         Tools::msleep($milliseconds);
     }
 
+    /**
+     * Generate a more truly "random" alpha-numeric string.
+     *
+     * @param  int  $length
+     * @return string
+     */
+    function random_string(int $length = 16): string
+    {
+        return Tools::randomString($length);
+    }
+
 }
 
