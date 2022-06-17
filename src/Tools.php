@@ -589,16 +589,28 @@ final class Tools
             return;
         }
 
-        $intSeconds = intval(floor($seconds));
-        $seconds -= $intSeconds;
+        $iseconds = intval(floor($seconds));
+        $seconds -= $iseconds;
+        $microseconds = (int) floor($seconds / static::MICROSECOND);
 
-        if ($intSeconds > 1) {
-            sleep($intSeconds);
+        if ($iseconds > 0) {
+            sleep($iseconds);
         }
 
-        if ($seconds > 0) {
+        if ($microseconds > 0) {
             usleep((int) round($seconds / static::MICROSECOND));
         }
+    }
+
+    /**
+     * Pauses script execution for a given amount of milliseconds
+     *
+     * @param int $milliseconds
+     * @return void
+     */
+    public static function msleep(int $milliseconds): void
+    {
+        static::pause($milliseconds * static::MILLISECOND);
     }
 
     /**

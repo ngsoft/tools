@@ -166,5 +166,16 @@ namespace NGSOFT\Tools {
         Tools::pause($seconds);
     }
 
+    /**
+     * Pauses script execution for a given amount of milliseconds
+     *
+     * @param int $milliseconds
+     * @return void
+     */
+    function msleep(int $milliseconds): void
+    {
+        Tools::msleep($milliseconds);
+    }
+
 }
 
