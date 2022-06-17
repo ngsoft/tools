@@ -99,7 +99,7 @@ final class Tools
     {
 
         return set_error_handler(function ($type, $msg, $file, $line) {
-            if ( ! (error_reporting() & $type)) return false;
+            if ( ! (error_reporting() & $type)) { return false; }
             throw new ErrorException($msg, 0, $type, $file, $line);
         });
     }
@@ -124,16 +124,19 @@ final class Tools
     public static function pushd(string $dir): bool
     {
 
-        $current = getcwd();
-        if (
-                is_dir($dir) &&
-                chdir($dir)
-        ) {
-            if ($current !== false) {
-                self::$pushd_history[] = $current;
+        try {
+
+            self::errors_as_exceptions();
+            $current = getcwd();
+            if (chdir($dir)) {
+                if ($current) {
+                    self::$pushd_history[] = $current;
+                }
+                return true;
             }
-            return true;
-        }
+        } catch (\Throwable) {
+
+        } finally { restore_error_handler(); }
         return false;
     }
 
@@ -144,8 +147,7 @@ final class Tools
     public static function popd(): string|false
     {
         $previous = array_pop(self::$pushd_history) ?? getcwd();
-        $previous && is_dir($previous) && chdir($previous);
-        return getcwd();
+        return $previous && is_dir($previous) && chdir($previous) && getcwd();
     }
 
     /**

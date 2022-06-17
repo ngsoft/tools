@@ -10,9 +10,8 @@ interface LockStore
     /**
      * Acquires the lock. If the lock is acquired by someone else, the parameter `blocking` determines whether or not
      * the call should block until the release of the lock.
-     *
-     * @throws LockConflictedException If the lock is acquired by someone else in blocking mode
-     * @throws LockAcquiringException  If the lock cannot be acquired
+     * @param bool $blocking
+     * @return bool
      */
     public function acquire(bool $blocking = false): bool;
 
@@ -24,7 +23,7 @@ interface LockStore
     /**
      * Returns the remaining lifetime in seconds.
      */
-    public function getRemainingLifetime(): float|int|null;
+    public function getRemainingLifetime(): float|int;
 
     /**
      * Attempt to acquire the lock.

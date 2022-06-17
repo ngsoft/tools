@@ -119,7 +119,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
             //file does not exists: null === null, no need to load
             if ($hash !== $this->hash) {
-                $this->lock(function () use ($hash) {
+                $this->lock(function () {
                     if ($string = file_get_contents($this->filename)) {
                         $array = json_decode($string, true);
                         if (is_array($array)) {
@@ -142,8 +142,6 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
         }
         return $hash;
-
-        return hash_file('crc32', $this->filename) ?: null;
     }
 
     protected function assertValidImport(array $import): void
