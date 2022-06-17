@@ -163,7 +163,6 @@ namespace NGSOFT\Tools {
      */
     function pause(int|float $seconds): void
     {
-
         Tools::pause($seconds);
     }
 

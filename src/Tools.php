@@ -574,18 +574,31 @@ final class Tools
 
     /**
      * Pauses script execution for a given amount of time
-     * uses sleep or usleep
+     * combines sleep or usleep
      *
      * @param int|float $seconds
      */
     public static function pause(int|float $seconds): void
     {
-        if (is_int($seconds)) {
-            sleep($seconds);
+        /**
+         * @link https://www.php.net/manual/en/function.usleep.php
+         * Note: Values larger than 1000000 (i.e. sleeping for more than a second) may not be supported by the operating system.
+         * Use sleep() instead.
+         */
+        if ($seconds <= 0) {
             return;
         }
 
-        usleep((int) round($seconds * 1e+6));
+        $intSeconds = intval(floor($seconds));
+        $seconds -= $intSeconds;
+
+        if ($intSeconds > 1) {
+            sleep($intSeconds);
+        }
+
+        if ($seconds > 0) {
+            usleep((int) round($seconds / static::MICROSECOND));
+        }
     }
 
     /**
