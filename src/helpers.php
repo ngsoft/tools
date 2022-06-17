@@ -62,6 +62,21 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
         }
 
     }
+
+    if ( ! function_exists('random_string')) {
+
+        /**
+         * Generate a more truly "random" alpha-numeric string.
+         *
+         * @param  int  $length
+         * @return string
+         */
+        function random_string(int $length = 16): string
+        {
+            return Tools::randomString($length);
+        }
+
+    }
 }
 
 namespace NGSOFT\Tools {
@@ -175,17 +190,6 @@ namespace NGSOFT\Tools {
     function msleep(int $milliseconds): void
     {
         Tools::msleep($milliseconds);
-    }
-
-    /**
-     * Generate a more truly "random" alpha-numeric string.
-     *
-     * @param  int  $length
-     * @return string
-     */
-    function random_string(int $length = 16): string
-    {
-        return Tools::randomString($length);
     }
 
 }
