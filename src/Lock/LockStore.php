@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Interfaces;
+namespace NGSOFT\Lock;
 
 interface LockStore
 {

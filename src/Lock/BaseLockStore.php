@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use InvalidArgumentException,
-    NGSOFT\Interfaces\LockStore;
+use InvalidArgumentException;
 use function random_string;
 
 abstract class BaseLockStore implements LockStore
