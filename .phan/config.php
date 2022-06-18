@@ -1,5 +1,7 @@
 <?php
 
+$stubs = getenv('NBSTUBS') ?: '/mnt/e/shell/usr/lib/netbeans/vendor';
+$stubs .= '/';
 /**
  * This configuration will be read and overlaid on top of the
  * default configuration. Command line arguments will be applied
@@ -21,6 +23,7 @@ return [
     'directory_list' => [
         'src',
         'vendor',
+        $stubs,
     ],
     // A directory list that defines files that will be excluded
     // from static analysis, but whose class and method
@@ -35,6 +38,7 @@ return [
     //       to `exclude_analysis_directory_list`.
     "exclude_analysis_directory_list" => [
         'vendor/',
+        $stubs,
     ],
     // A list of plugin files to execute.
     // See https://github.com/phan/phan/tree/master/.phan/plugins for even more.
@@ -54,6 +58,9 @@ return [
         'PrintfCheckerPlugin',
     ],
     'suppress_issue_types' => [
+        'PhanRedefinedUsedTrait',
+        'PhanRedefinedExtendedClass',
+        'PhanRedefinedClassReference',
         'PhanUnreferencedClosure', // False positives seen with closures in arrays, TODO: move closure checks closer to what is done by unused variable plugin
         'PhanPluginNoCommentOnProtectedMethod',
         'PhanPluginDescriptionlessCommentOnProtectedMethod',
@@ -72,7 +79,6 @@ return [
         'PhanAccessOverridesFinalMethodInTrait',
         'PhanUnreferencedUseNormal',
         'PhanUnusedVariableValueOfForeachWithKey',
-    //'PhanAbstractStaticMethodCallInTrait'
     ],
     // If enabled, check all methods that override a
     // parent method to make sure its signature is
