@@ -7,4 +7,9 @@ namespace NGSOFT\Facades;
 abstract class Facade
 {
 
+    public static function __callStatic(string $name, array $arguments): mixed
+    {
+        
+    }
+
 }
