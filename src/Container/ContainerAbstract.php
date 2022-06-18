@@ -34,8 +34,13 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     /** {@inheritdoc} */
     public function addResolutionHandler(Closure|ContainerResolver $handler): void
     {
+        if (in_array($handler, $this->handlers)) {
+            throw new ContainerResolverException('Cannot add the same resolver twice.');
+        }
         $this->handlers[] = $handler;
     }
+
+    abstract protected function isResolved(string $id): bool;
 
     /**
      * Execute handlers when resolving the entry

@@ -22,6 +22,18 @@ use ReflectionClass,
 class Container extends ContainerAbstract
 {
 
+    protected const RESOLVER_STACK = [
+        Resolvers\ParameterResolver::class,
+    ];
+
+    public function __construct(array $definitions = [])
+    {
+        foreach (self::RESOLVER_STACK as $resolver) {
+            $this->addResolutionHandler(new $resolver);
+        }
+        parent::__construct($definitions);
+    }
+
     /** {@inheritdoc} */
     public function has(string $id): bool
     {

@@ -6,7 +6,7 @@ namespace NGSOFT\Container\Resolvers;
 
 use Closure;
 use NGSOFT\Container\{
-    ContainerResolver, ContainerResolverException, NotFoundException
+    ContainerInterface, ContainerResolver, ContainerResolverException, NotFoundException
 };
 use ReflectionClass,
     ReflectionFunction,
@@ -17,12 +17,18 @@ use ReflectionClass,
     ReflectionUnionType,
     Throwable;
 
+/**
+ * @phan-file-suppress PhanTypeMismatchArgumentSuperType
+ */
 class ParameterResolver implements ContainerResolver
 {
 
-    public function __invoke(\NGSOFT\Container\ContainerInterface $container, string $id, mixed $value): mixed
-    {
+    protected ContainerInterface $container;
 
+    public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
+    {
+        $this->container = $container;
+        return $this->resolve($id, $value);
     }
 
     protected function resolve(string $id, mixed $entry): mixed
@@ -41,6 +47,7 @@ class ParameterResolver implements ContainerResolver
                     } else throw new ContainerResolverException(sprintf('Entry "%s" cannot be instanciated.', $id));
                 }
             } elseif ($entry instanceof Closure) {
+
                 $resolved = call_user_func_array($entry, $this->resolveParameters($id, new ReflectionFunction($entry)));
                 if (is_object($resolved)) {
                     $resolved = $resolved;
@@ -49,9 +56,9 @@ class ParameterResolver implements ContainerResolver
                 }
             } else $resolved = $entry;
         } catch (Throwable $error) {
-            throw new NotFoundException($this, $id, $error);
+            throw new NotFoundException($this->container, $id, $error);
         }
-        if ($resolved === null) throw new NotFoundException($this, $id);
+        if ($resolved === null) throw new NotFoundException($this->container, $id);
         return $resolved;
     }
 
@@ -96,7 +103,7 @@ class ParameterResolver implements ContainerResolver
                 //we try to resolve that class so => infinite loop
                 continue;
             } else {
-                return $this->get($type);
+                return $this->container->get($type);
             }
         }
 
