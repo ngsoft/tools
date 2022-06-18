@@ -67,7 +67,7 @@ abstract class BaseLockStore implements LockStore
      * Write data from the driver
      * and updates $this->until if successful
      */
-    abstract protected function write(): bool;
+    abstract protected function write(int|float $until): bool;
 
     /** {@inheritdoc} */
     public function acquire(): bool
@@ -87,7 +87,21 @@ abstract class BaseLockStore implements LockStore
             }
         } else { $canAcquire = true; }
 
-        return $canAcquire ? $this->write() : false;
+        if ($canAcquire) {
+
+            $retry = 0;
+
+            while ($retry < 3) {
+                $this->wait();
+                if ($this->write($until = $this->timestamp() + $this->seconds)) {
+                    $this->until = $until;
+                    return true;
+                }
+                $retry ++;
+            }
+        }
+
+        return false;
     }
 
     /** {@inheritdoc} */
@@ -96,9 +110,7 @@ abstract class BaseLockStore implements LockStore
 
         $starting = $this->timestamp();
         while ( ! $this->acquire()) {
-
-            $this->waitFor();
-
+            $this->wait();
             if ($this->timestamp() - $seconds >= $starting) {
                 throw new LockTimeout(sprintf('Lock %s timeout.', $this->name));
             }
@@ -145,7 +157,7 @@ abstract class BaseLockStore implements LockStore
         return microtime(true);
     }
 
-    protected function waitFor(int $ms = 0): void
+    protected function wait(int $ms = 0): void
     {
         if ($ms === 0) {
             $ms = 100 + random_int(-10, 10);

@@ -151,11 +151,8 @@ class SQLiteLock extends BaseLockStore
         return false;
     }
 
-    protected function write(): bool
+    protected function write(int|float $until): bool
     {
-
-        $until = $this->seconds + $this->timestamp();
-
         if ($statement = $this->prepare(sprintf(
                         'INSERT OR REPLACE INTO %s (%s) VALUES (?, ?, ?)',
                         $this->table, implode(',', $this->getColumns())

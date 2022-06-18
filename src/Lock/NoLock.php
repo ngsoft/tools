@@ -21,7 +21,12 @@ class NoLock extends BaseLockStore
         return false;
     }
 
-    protected function write(): bool
+    /**
+     * @phan-suppress PhanUnusedProtectedMethodParameter
+     * @param int|float $until
+     * @return bool
+     */
+    protected function write(int|float $until): bool
     {
         return false;
     }

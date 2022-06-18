@@ -63,39 +63,26 @@ class FileLock extends BaseLockStore
         } finally { restore_error_handler(); }
     }
 
-    protected function write(): bool
+    protected function write(int|float $until): bool
     {
-        $retry = 0;
-
         $filename = $this->getFilename();
-
         $dirname = dirname($filename);
+        try {
 
-        while ($retry < 3) {
-            try {
+            Tools::errors_as_exceptions();
+            $contents = sprintf(
+                    "<?php\nreturn [%u => %f, %u => %s];",
+                    static::KEY_UNTIL, $until,
+                    static::KEY_OWNER, var_export($this->getOwner(), true),
+            );
 
-                Tools::errors_as_exceptions();
+            if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
+                return file_put_contents($filename, $contents) !== false;
+            }
+        } catch (Throwable $error) {
 
-                $until = $this->seconds + $this->timestamp();
+        } finally { \restore_error_handler(); }
 
-                $contents = sprintf(
-                        "<?php\nreturn [%u => %f, %u => %s];",
-                        static::KEY_UNTIL, $until,
-                        static::KEY_OWNER, var_export($this->getOwner(), true),
-                );
-
-                if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
-                    if (file_put_contents($filename, $contents) !== false) {
-                        $this->until = $until;
-
-                        return true;
-                    }
-                }
-            } catch (Throwable $error) {
-                $this->waitFor();
-                $retry ++;
-            } finally { \restore_error_handler(); }
-        }
 
         return false;
     }
