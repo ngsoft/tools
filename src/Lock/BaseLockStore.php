@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Lock;
 
 use NGSOFT\Interfaces\LockStore;
+use const NGSOFT\Tools\YEAR;
 use function random_string;
 
 abstract class BaseLockStore implements LockStore
@@ -12,6 +13,7 @@ abstract class BaseLockStore implements LockStore
 
     protected const KEY_UNTIL = 0;
     protected const KEY_OWNER = 1;
+    protected const FOREVER = 5 * YEAR;
 
     protected int|float $until = 0;
 
@@ -90,6 +92,8 @@ abstract class BaseLockStore implements LockStore
         if ($canAcquire) {
 
             $retry = 0;
+
+            $seconds = $this->seconds > 0 ? $this->seconds : self::FOREVER;
 
             while ($retry < 3) {
                 $this->wait();
