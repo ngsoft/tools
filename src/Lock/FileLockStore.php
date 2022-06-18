@@ -9,6 +9,9 @@ use InvalidArgumentException,
     Throwable;
 use function NGSOFT\Tools\safe;
 
+/**
+ * Uses php files to create locks
+ */
 class FileLockStore extends BaseLockStore
 {
 

@@ -64,7 +64,6 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
         while (file_exists($lock)) {
             if (microtime(true) > ($timeout + $start)) {
-                var_dump('timeout');
                 return false;
             }
             pause(.01);

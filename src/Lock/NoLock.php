@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
+/**
+ * NullLock
+ */
 class NoLock extends BaseLockStore
 {
 
