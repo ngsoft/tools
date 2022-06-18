@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemPoolInterface,
+    RuntimeException;
+
+if ( ! interface_exists(CacheItemPoolInterface::class)) {
+    throw new RuntimeException('psr/cache not installed, please install a PSR-6 cache');
+}
 
 /**
  * Use a cache pool to manage your locks

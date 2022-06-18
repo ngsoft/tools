@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\CacheInterface,
+    RuntimeException;
+
+if ( ! interface_exists(CacheInterface::class)) {
+    throw new RuntimeException('psr/simple-cache not installed, please install a PSR-16 cache');
+}
 
 /**
  * Use SimpleCache to manage your locks
