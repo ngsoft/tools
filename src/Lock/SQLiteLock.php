@@ -90,8 +90,6 @@ class SQLiteLock extends BaseLockStore
 
             return $prepared;
         } catch (Throwable $err) {
-
-            error_log($err->getMessage());
             return false;
         } finally { \restore_error_handler(); }
     }
@@ -130,7 +128,6 @@ class SQLiteLock extends BaseLockStore
 
             if ($statement->execute()) {
                 if ($arr = $statement->fetch(PDO::FETCH_ASSOC)) {
-                    var_dump($arr);
                     return [
                         self::KEY_UNTIL => $arr[self::COLUMN_UNTIL],
                         self::KEY_OWNER => $arr[self::COLUMN_OWNER]
@@ -165,8 +162,6 @@ class SQLiteLock extends BaseLockStore
     /** {@inheritdoc} */
     public function forceRelease(): void
     {
-
-
         if (
                 $statement = $this->prepare(sprintf(
                         'DELETE FROM %s WHERE %s = ?',
