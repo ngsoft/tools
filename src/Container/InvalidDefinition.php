@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Exceptions;
+namespace NGSOFT\Container;
 
-use NGSOFT\Container\DIContainer;
 use Psr\Container\{
     ContainerExceptionInterface, ContainerInterface
 };

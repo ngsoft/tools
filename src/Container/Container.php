@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Container;
 
 use Closure;
-use NGSOFT\Exceptions\{
-    ContainerResolverException, NotFoundException
-};
 use ReflectionClass,
     ReflectionFunction,
     ReflectionIntersectionType,
@@ -28,6 +25,10 @@ class Container extends ContainerAbstract
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
+        if ( ! array_key_exists($id, $this->definitions)) {
+            $this->handleServiceProvidersResolution($id);
+        }
+
         if ( ! $this->isResolved($id)) {
             $resolved = $this->resolve($id, $this->definitions[$id] ?? null);
             $this->definitions[$id] = $this->handle($resolved);
@@ -43,6 +44,7 @@ class Container extends ContainerAbstract
 
     protected function isResolved(string $id): bool
     {
+
         if (array_key_exists($id, $this->definitions)) {
             return $this->definitions[$id] instanceof Closure === false;
         } elseif (class_exists($id)) {

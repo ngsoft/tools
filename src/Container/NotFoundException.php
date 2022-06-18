@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Exceptions;
+namespace NGSOFT\Container;
 
 use Psr\Container\{
     ContainerInterface, NotFoundExceptionInterface

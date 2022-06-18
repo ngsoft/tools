@@ -13,8 +13,11 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 
     use StringableObject;
 
-    /** @var Closure[] */
+    /** @var callable[] */
     protected array $handlers = [];
+
+    /** @var ServiceProvider[] */
+    protected array $providers = [];
 
     public function __construct(
             protected array $definitions = []
@@ -43,10 +46,25 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         return $resolved;
     }
 
+    protected function handleServiceProvidersResolution(string $id): void
+    {
+
+        if (isset($this->providers[$id])) {
+            $provider = $this->providers[$id];
+            foreach ($provider->provides() as $service) {
+                unset($this->providers[$service]);
+            }
+
+            $provider->register();
+        }
+    }
+
     /** {@inheritdoc} */
     public function register(ServiceProvider $provider): void
     {
-        $provider->provide($this);
+        foreach ($provider->provides() as $id) {
+            $this->providers[$id] = $provider;
+        }
     }
 
     /** {@inheritdoc} */
@@ -61,6 +79,51 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     public function set(string $id, mixed $entry): void
     {
         $this->definitions[$id] = $entry;
+    }
+
+    /** {@inheritdoc} */
+    public function alias(string $id, string $alias): void
+    {
+        if ( ! $this->has($id)) {
+            throw new NotFoundException($this, $id);
+        }
+
+        $this->set($alias, $this->get($id));
+    }
+
+    /** {@inheritdoc} */
+    public function extend(string $id, Closure $closure): void
+    {
+        if ( ! $this->has($id)) {
+            throw new NotFoundException($this, $id);
+        }
+
+        $current = $this->get($id);
+        $obj = is_object($current);
+        $type = get_debug_type($current);
+
+        $new = $closure($this, $current);
+
+        $newType = get_debug_type($new);
+
+        switch ($obj) {
+            case true:
+                $error = ! is_a($new, $type);
+                break;
+            case false:
+                $error = $new !== $newType;
+                break;
+        }
+
+
+        if ($error) {
+            throw new ContainerResolverException(sprintf(
+                                    '%s::%s() invalid closure return value, %s expected, %s given.',
+                                    static::class, __FUNCTION__,
+                                    $type, $newType)
+            );
+        }
+        $this->definitions[$id] = $new;
     }
 
     /** {@inheritdoc} */

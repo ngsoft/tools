@@ -7,5 +7,18 @@ namespace NGSOFT\Container;
 interface ServiceProvider
 {
 
-    public function provide(Container $container): void;
+    /**
+     * Register the service into the container
+     * 
+     * @param ContainerInterface $container
+     * @return void
+     */
+    public function register(ContainerInterface $container): void;
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return string[]
+     */
+    public function provides(): array;
 }
