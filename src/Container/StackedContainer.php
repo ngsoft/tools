@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use LogicException;
+use LogicException,
+    NGSOFT\Traits\StringableObject;
 use Psr\Container\{
     ContainerExceptionInterface, ContainerInterface
 };
@@ -17,6 +18,8 @@ use Stringable,
  */
 class StackedContainer implements ContainerInterface, Stringable
 {
+
+    use StringableObject;
 
     protected ?ContainerInterface $container = null;
 
@@ -63,7 +66,7 @@ class StackedContainer implements ContainerInterface, Stringable
     public function appendContainer(ContainerInterface $container): void
     {
         $this->assertContainerOnce($container);
-        if (!$this->container) {
+        if ( ! $this->container) {
             $this->container = $container;
             return;
         }
@@ -80,7 +83,7 @@ class StackedContainer implements ContainerInterface, Stringable
     public function prependContainer(ContainerInterface $container): void
     {
         $this->assertContainerOnce($container);
-        if (!$this->container) {
+        if ( ! $this->container) {
             $this->container = $container;
             return;
         }
@@ -138,12 +141,6 @@ class StackedContainer implements ContainerInterface, Stringable
         $result = [$this->__toString()];
         if ($this->next) $result[] = $this->next->__toString();
         return $result;
-    }
-
-    /** {@inheritdoc} */
-    public function __toString()
-    {
-        return sprintf('object(%s)#%d', get_class($this->container), spl_object_id($this->container));
     }
 
 }

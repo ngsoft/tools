@@ -11,13 +11,13 @@ use Closure,
 /**
  * Container with only basic functionality
  */
-final class SimpleContainer extends Container
+final class SimpleContainer extends ContainerAbstract
 {
 
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        if (!$this->isResolved($id)) {
+        if ( ! $this->isResolved($id)) {
             $resolved = call_user_func($this->definitions[$id], $this);
             $this->definitions[$id] = $this->handle($resolved);
         }
@@ -32,7 +32,7 @@ final class SimpleContainer extends Container
 
     private function isResolved(string $key): bool
     {
-        if (!$this->has($key)) {
+        if ( ! $this->has($key)) {
             throw new NotFoundException($this, $key);
         }
 
