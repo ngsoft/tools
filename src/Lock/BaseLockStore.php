@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use NGSOFT\Interfaces\LockStore;
+use InvalidArgumentException,
+    NGSOFT\Interfaces\LockStore;
 use function random_string;
 
 abstract class BaseLockStore implements LockStore
@@ -23,6 +24,11 @@ abstract class BaseLockStore implements LockStore
             protected bool $autoRelease = true
     )
     {
+        if (empty($name)) {
+            throw new InvalidArgumentException('You provided an empty lock name.');
+        }
+
+        $this->seconds = max(0, $seconds);
 
         $this->owner = empty($owner) ?
                 random_string() . getmypid() :
@@ -31,7 +37,7 @@ abstract class BaseLockStore implements LockStore
 
     public function __destruct()
     {
-        if ($this->autoRelease && $this->isAcquired()) {
+        if ($this->autoRelease) {
             $this->release();
         }
     }
@@ -50,6 +56,7 @@ abstract class BaseLockStore implements LockStore
         }
 
         // called release before acquire
+        // forceRelease() set to 1 to prevent a read
         if ($this->until === 0 && $data = $this->read()) {
             // possible with $owner override (shared lock)
             if ($this->getOwner() === $data[self::KEY_OWNER]) {
@@ -59,6 +66,8 @@ abstract class BaseLockStore implements LockStore
                     return true;
                 }
             }
+            // we know we don't have the lock so:
+            $this->until = 1;
         }
 
         return false;
