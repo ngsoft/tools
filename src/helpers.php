@@ -11,12 +11,17 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
     }
 
     if ( ! defined('SCRIPT_START')) {
-
         define('SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
     }
 
     if ( ! function_exists('class_namespace')) {
 
+        /**
+         * Get the namespace from a class
+         *
+         * @param string|object $class
+         * @return string
+         */
         function class_namespace(string|object $class): string
         {
             $class = is_object($class) ? get_class($class) : $class;
@@ -50,7 +55,7 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
 
 
         /**
-         * Get Constants defined in a class
+         * Get Constants defined in a class recursively
          *
          * @param string|object $class
          * @param bool $public if True returns only public visibility constants

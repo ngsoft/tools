@@ -8,12 +8,10 @@ interface LockStore
 {
 
     /**
-     * Acquires the lock. If the lock is acquired by someone else, the parameter `blocking` determines whether or not
-     * the call should block until the release of the lock.
-     * @param bool $blocking
+     * Acquires the lock. 
      * @return bool
      */
-    public function acquire(bool $blocking = false): bool;
+    public function acquire(): bool;
 
     /**
      * Returns whether or not the lock is acquired.

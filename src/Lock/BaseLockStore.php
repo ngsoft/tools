@@ -11,6 +11,9 @@ use function blank,
 abstract class BaseLockStore implements LockStore
 {
 
+    protected const KEY_UNTIL = 0;
+    protected const KEY_OWNER = 1;
+
     protected int $pid;
 
     public function __construct(
