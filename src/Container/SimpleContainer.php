@@ -13,16 +13,6 @@ final class SimpleContainer extends ContainerAbstract
 {
 
     /** {@inheritdoc} */
-    public function get(string $id): mixed
-    {
-        if ( ! $this->isResolved($id)) {
-            $resolved = call_user_func($this->definitions[$id], $this);
-            $this->definitions[$id] = $this->handle($id, $resolved);
-        }
-        return $this->definitions[$id];
-    }
-
-    /** {@inheritdoc} */
     public function has(string $id): bool
     {
         return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers);
@@ -32,11 +22,10 @@ final class SimpleContainer extends ContainerAbstract
     {
         $this->handleServiceProvidersResolution($id);
 
-        if ( ! $this->has($id)) {
-            throw new NotFoundException($this, $id);
+        if ($this->has($id)) {
+            return ($this->definitions[$id] ?? null) instanceof Closure === false;
         }
-
-        return $this->definitions[$id] instanceof Closure === false;
+        throw new NotFoundException($this, $id);
     }
 
 }

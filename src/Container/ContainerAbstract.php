@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure,
-    NGSOFT\Traits\StringableObject,
-    Stringable;
+use Closure;
+use NGSOFT\Traits\{
+    StringableObject, Unserializable
+};
+use Stringable;
+use function get_debug_type;
 
 abstract class ContainerAbstract implements ContainerInterface, Stringable
 {
 
-    use StringableObject;
+    use StringableObject,
+        Unserializable;
 
     /** @var callable[] */
     protected array $handlers = [];
@@ -36,7 +40,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     /**
      * Execute handlers when resolving the entry
      */
-    protected function handle(string $id, mixed $resolved): mixed
+    protected function resolve(string $id, mixed $resolved): mixed
     {
         foreach ($this->handlers as $handler) {
             $resolved = $handler($this, $id, $resolved);
@@ -44,6 +48,9 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         return $resolved;
     }
 
+    /**
+     * Lazy loads services providers
+     */
     protected function handleServiceProvidersResolution(string $id): void
     {
         $this->registering = true;
@@ -57,6 +64,15 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         foreach ($provider->provides() as $id) {
             $this->providers[$id] = $provider;
         }
+    }
+
+    /** {@inheritdoc} */
+    public function get(string $id): mixed
+    {
+        if ( ! $this->isResolved($id)) {
+            $this->definitions[$id] = $this->resolve($id, $this->definitions[$id] ?? null);
+        }
+        return $this->definitions[$id];
     }
 
     /** {@inheritdoc} */
