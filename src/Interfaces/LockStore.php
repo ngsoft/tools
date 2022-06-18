@@ -46,7 +46,7 @@ interface LockStore
     /**
      * Release the lock.
      *
-     * @return bool
+     * @return bool False if lock not already acquired or not owned
      */
     public function release(): bool;
 

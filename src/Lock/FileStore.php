@@ -91,6 +91,7 @@ class FileStore extends BaseLockStore
         return false;
     }
 
+    /** {@inheritdoc} */
     public function acquire(): bool
     {
 
@@ -102,7 +103,7 @@ class FileStore extends BaseLockStore
         if ($lock = $this->read()) {
             if ($this->isExpired($lock[self::KEY_UNTIL])) {
                 $canAcquire = true;
-            } elseif ($this->owner === $lock[self::KEY_OWNER]) {
+            } elseif ($this->getOwner() === $lock[self::KEY_OWNER]) {
                 return true;
             }
         } else { $canAcquire = true; }
@@ -111,11 +112,14 @@ class FileStore extends BaseLockStore
         return $canAcquire ? $this->write() : false;
     }
 
+    /** {@inheritdoc} */
     public function forceRelease(): void
     {
-        safe('unlink', $this->getFilename());
+        $filename = $this->getFilename();
+        is_file($filename) && safe('unlink', $filename);
     }
 
+    /** {@inheritdoc} */
     public function release(): bool
     {
 
