@@ -28,15 +28,15 @@ final class SimpleContainer extends ContainerAbstract
         return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers);
     }
 
-    private function isResolved(string $key): bool
+    protected function isResolved(string $id): bool
     {
         $this->handleServiceProvidersResolution($id);
 
-        if ( ! $this->has($key)) {
-            throw new NotFoundException($this, $key);
+        if ( ! $this->has($id)) {
+            throw new NotFoundException($this, $id);
         }
 
-        return $this->definitions[$key] instanceof Closure === false;
+        return $this->definitions[$id] instanceof Closure === false;
     }
 
 }

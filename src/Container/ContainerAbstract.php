@@ -48,15 +48,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 
     protected function handleServiceProvidersResolution(string $id): void
     {
-
-        if (isset($this->providers[$id])) {
-            $provider = $this->providers[$id];
-            foreach ($provider->provides() as $service) {
-                unset($this->providers[$service]);
-            }
-
-            $provider->register($this);
-        }
+        $this->providers[$id]?->register($this);
     }
 
     /** {@inheritdoc} */
@@ -79,6 +71,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     public function set(string $id, mixed $entry): void
     {
         $this->definitions[$id] = $entry;
+        unset($this->providers[$id]);
     }
 
     /** {@inheritdoc} */
