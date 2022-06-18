@@ -47,6 +47,17 @@ abstract class BaseLockStore implements LockStore
         return ! $this->isExpired($this->until);
     }
 
+    /** {@inheritdoc} */
+    public function release(): bool
+    {
+
+        if ($this->isAcquired()) {
+            $this->forceRelease();
+            return ! $this->read();
+        }
+        return false;
+    }
+
     /**
      * Reads data from the driver
      */

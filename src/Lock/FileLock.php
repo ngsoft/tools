@@ -95,22 +95,9 @@ class FileLock extends BaseLockStore
     public function forceRelease(): void
     {
         $filename = $this->getFilename();
-        is_file($filename) && safe('unlink', $filename);
-    }
-
-    /** {@inheritdoc} */
-    public function release(): bool
-    {
-
-        if (
-                $this->isAcquired() &&
-                safe('unlink', $this->getFilename())
-        ) {
+        if (is_file($filename) && safe('unlink', $filename)) {
             $this->until = 0;
-            return true;
         }
-
-        return false;
     }
 
 }

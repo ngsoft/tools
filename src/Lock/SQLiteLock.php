@@ -8,8 +8,6 @@ use InvalidArgumentException,
     NGSOFT\Tools,
     PDO,
     PDOStatement,
-    SQLite3,
-    SQLite3Stmt,
     Throwable;
 use function str_starts_with;
 
@@ -20,8 +18,7 @@ class SQLiteLock extends BaseLockStore
     protected const COLUMN_OWNER = 'owner';
     protected const COLUMN_UNTIL = 'until';
 
-    protected SQLite3|PDO $driver;
-    protected bool $pdo = false;
+    protected PDO $driver;
 
     public function __construct(
             string $name,
@@ -42,17 +39,16 @@ class SQLiteLock extends BaseLockStore
             $database = new PDO(sprintf('sqlite:%s', $database));
         }
 
+        $type = $database->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        if ($database instanceof PDO) {
-            if ($database->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'sqlite') {
-                throw new InvalidArgumentException(sprintf('Invalid PDO driver, sqlite requested, %s given.', PDO::ATTR_DRIVER_NAME));
-            }
-            $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->pdo = true;
+        if ($type !== 'sqlite') {
+            throw new InvalidArgumentException(sprintf('Invalid PDO driver, sqlite requested, %s given.', $type));
         }
-
+        $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         $this->driver = $database;
+
+        $this->createTable($table);
     }
 
     protected function getColumns(): array
@@ -85,14 +81,17 @@ class SQLiteLock extends BaseLockStore
             Tools::errors_as_exceptions();
             $prepared = $this->driver->prepare($query);
             foreach ($bindings as $index => $value) {
-                if (is_string($index) && ! str_starts_with(':', $index)) {
+                if (is_string($index) && ! str_starts_with($index, ':')) {
                     $index = ":$index";
                 }
+                if (is_int($index)) $index ++;
                 $prepared->bindValue($index, $value);
             }
 
             return $prepared;
-        } catch (Throwable) {
+        } catch (Throwable $err) {
+
+            error_log($err->getMessage());
             return false;
         } finally { \restore_error_handler(); }
     }
@@ -119,6 +118,7 @@ class SQLiteLock extends BaseLockStore
     protected function read(): array|false
     {
 
+        $this->purge();
         if (
                 $statement = $this->prepare(sprintf(
                         'SELECT %s FROM %s WHERE %s = ? LIMIT 1',
@@ -128,12 +128,15 @@ class SQLiteLock extends BaseLockStore
                 ), [$this->getHashedName()])
         ) {
 
-            $arr = $statement->fetch(PDO::FETCH_ASSOC);
-
-            return [
-                self::KEY_UNTIL => $arr[self::COLUMN_UNTIL],
-                self::KEY_OWNER => $arr[self::COLUMN_OWNER]
-            ];
+            if ($result = $statement->execute()) {
+                if ($arr = $statement->fetch(PDO::FETCH_ASSOC)) {
+                    var_dump($arr);
+                    return [
+                        self::KEY_UNTIL => $arr[self::COLUMN_UNTIL],
+                        self::KEY_OWNER => $arr[self::COLUMN_OWNER]
+                    ];
+                }
+            }
         }
 
         return false;
@@ -159,16 +162,20 @@ class SQLiteLock extends BaseLockStore
         return false;
     }
 
+    /** {@inheritdoc} */
     public function forceRelease(): void
     {
 
-    }
 
-    public function release(): bool
-    {
-
-        if ($this->isAcquired()) {
-            $this->forceRelease();
+        if (
+                $statement = $this->prepare(sprintf(
+                        'DELETE FROM %s WHERE %s = ?',
+                        $this->table, self::COLUMN_NAME
+                ), [$this->getHashedName()])
+        ) {
+            if ($statement->execute()) {
+                $this->until = 0;
+            }
         }
     }
 
