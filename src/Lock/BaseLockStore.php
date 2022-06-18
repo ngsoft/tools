@@ -148,4 +148,9 @@ abstract class BaseLockStore implements LockStore
         return $until < $this->timestamp();
     }
 
+    protected function getHashedName(): string
+    {
+        return hash('MD5', $this->name);
+    }
+
 }

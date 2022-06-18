@@ -32,11 +32,13 @@ class NoLock extends BaseLockStore
 
     }
 
+    /** {@inheritdoc} */
     public function isAcquired(): bool
     {
         return true;
     }
 
+    /** {@inheritdoc} */
     public function release(): bool
     {
         return true;

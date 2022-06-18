@@ -12,7 +12,7 @@ use function NGSOFT\Tools\safe;
 /**
  * Uses php files to create locks
  */
-class FileLockStore extends BaseLockStore
+class FileLock extends BaseLockStore
 {
 
     public function __construct(
@@ -40,7 +40,7 @@ class FileLockStore extends BaseLockStore
 
     protected function getFilename(): string
     {
-        return $this->rootpath . DIRECTORY_SEPARATOR . $this->prefix . DIRECTORY_SEPARATOR . hash('MD5', $this->name) . '.lock';
+        return $this->rootpath . DIRECTORY_SEPARATOR . $this->prefix . DIRECTORY_SEPARATOR . $this->getHashedName() . '.lock';
     }
 
     protected function read(): array|false
