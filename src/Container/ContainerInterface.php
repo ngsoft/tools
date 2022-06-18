@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Psr\Container\ContainerInterface as PSRContainerInterface;
+use Closure,
+    Psr\Container\ContainerInterface as PSRContainerInterface;
 
 interface ContainerInterface extends PSRContainerInterface
 {

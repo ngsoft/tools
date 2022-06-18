@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure,
-    NGSOFT\Exceptions\NotFoundException,
-    Psr\Container\ContainerInterface;
+use Closure;
 
 /**
  * Container with only basic functionality
@@ -27,11 +25,13 @@ final class SimpleContainer extends ContainerAbstract
     /** {@inheritdoc} */
     public function has(string $id): bool
     {
-        return array_key_exists($id, $this->definitions);
+        return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers);
     }
 
     private function isResolved(string $key): bool
     {
+        $this->handleServiceProvidersResolution($id);
+
         if ( ! $this->has($key)) {
             throw new NotFoundException($this, $key);
         }

@@ -55,7 +55,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
                 unset($this->providers[$service]);
             }
 
-            $provider->register();
+            $provider->register($this);
         }
     }
 
@@ -105,6 +105,8 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         $new = $closure($this, $current);
 
         $newType = get_debug_type($new);
+
+        $error = false;
 
         switch ($obj) {
             case true:

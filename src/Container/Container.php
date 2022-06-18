@@ -25,9 +25,6 @@ class Container extends ContainerAbstract
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        if ( ! array_key_exists($id, $this->definitions)) {
-            $this->handleServiceProvidersResolution($id);
-        }
 
         if ( ! $this->isResolved($id)) {
             $resolved = $this->resolve($id, $this->definitions[$id] ?? null);
@@ -39,11 +36,12 @@ class Container extends ContainerAbstract
     /** {@inheritdoc} */
     public function has(string $id): bool
     {
-        return array_key_exists($id, $this->definitions) || class_exists($id);
+        return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers) || class_exists($id);
     }
 
     protected function isResolved(string $id): bool
     {
+        $this->handleServiceProvidersResolution($id);
 
         if (array_key_exists($id, $this->definitions)) {
             return $this->definitions[$id] instanceof Closure === false;
