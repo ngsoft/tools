@@ -79,9 +79,7 @@ final class Tools
     {
         static $handler;
         if ( ! $handler) {
-            $handler = static function () {
-
-            };
+            $handler = fn() => null;
         }
         set_error_handler($handler);
         $retval = null;
@@ -124,18 +122,13 @@ final class Tools
     public static function pushd(string $dir): bool
     {
 
-        try {
 
-            self::errors_as_exceptions();
-            $current = getcwd();
-            if (chdir($dir)) {
-                if ($current) {
-                    self::$pushd_history[] = $current;
-                }
+        try {
+            set_error_handler(fn() => null);
+            if (($current = getcwd()) && chdir($dir)) {
+                self::$pushd_history[] = $current;
                 return true;
             }
-        } catch (\Throwable) {
-
         } finally { restore_error_handler(); }
         return false;
     }
@@ -146,8 +139,12 @@ final class Tools
      */
     public static function popd(): string|false
     {
-        $previous = array_pop(self::$pushd_history) ?? getcwd();
-        return $previous && is_dir($previous) && chdir($previous) && getcwd();
+
+        try {
+            set_error_handler(fn() => null);
+            $previous = array_pop(self::$pushd_history) ?? getcwd();
+            return chdir($previous) ? $previous : false;
+        } finally { restore_error_handler(); }
     }
 
     /**
@@ -258,8 +255,8 @@ final class Tools
         static $callback;
         if ( ! $callback) {
 
-            $callback = static function (array $___data) {
-                extract($___data);
+            $callback = static function (array $data) {
+                extract($data);
                 return func_get_arg(2) ?
                 include_once func_get_arg(1) :
                 include func_get_arg(1);
@@ -297,66 +294,63 @@ final class Tools
     }
 
     /**
-     * Find ClassList extending or implementing a parent Class, Interface, or using Trait
-     * Classes to find must be loaded first. Tools::autoload()
-     * @staticvar int $classcount get the last classcount for cache use
-     * @staticvar array $cache keep the last results and returns them if $classcount has not changed
-     * @param string $parentClass
-     * @param bool $onlyInstanciable
+     * Get class implementing given parent class from the loaded classes
+     *
+     * @param string|object $parentClass
+     * @param bool $instanciable
      * @return array
      * @throws InvalidArgumentException
      */
-    public static function getClassesImplementing(string $parentClass, bool $onlyInstanciable = true): array
+    public static function implements_class(string|object $parentClass, bool $instanciable = true): array
     {
+        static $parsed = [
+            'count' => 0,
+            'classes' => []
+        ];
 
-        static $classcount, $cache;
-        $classcount = $classcount ?? 0;
+        $cache = &$parsed['classes'];
+        $count = &$parsed['count'];
 
-        if (
-                ! class_exists($parentClass) and
-                ! interface_exists($parentClass) and
-                ! trait_exists($parentClass)
-        ) throw new InvalidArgumentException(sprintf('Invalid class name "%s"', $parentClass));
+        $instanciable = (int) $instanciable;
 
+        if (is_object($parentClass)) {
+            $parentClass = get_class($parentClass);
+        }
 
-        $reflector = new ReflectionClass($parentClass);
-        $method = 'class_parents';
-        if ($reflector->isInterface()) $method = 'class_implements';
-        elseif ($reflector->isTrait()) $method = 'class_uses';
+        if ( ! class_exists($parentClass) && ! interface_exists($parentClass)) {
+            throw new InvalidArgumentException(sprintf('Invalid class %s', $parentClass));
+        }
 
-        if ($classlist = array_reverse(get_declared_classes())) {
+        $iterator = array_reverse(get_declared_classes());
 
-            if ($classcount != count($classlist)) {
-                $cache = [];
-                $classcount = count($classlist);
+        if (count($iterator) !== $count) {
+            $cache = [];
+            $count = count($iterator);
+        }
+
+        if (isset($cache[$parentClass])) {
+            return $cache[$parentClass][$instanciable];
+        }
+
+        $cache[$parentClass] = [[], []];
+
+        $result = &$cache[$parentClass];
+
+        $method = interface_exists($parentClass) ? 'class_implements' : 'class_parents';
+
+        foreach ($iterator as $class) {
+            if ($class === $parentClass) {
+                continue;
             }
 
-            $key = $onlyInstanciable ? 'instanciable' : 'all';
-
-            if (isset($cache[$parentClass])) return $cache[$parentClass][$key];
-
-
-            $cache[$parentClass] = [
-                'instanciable' => [], 'all' => []
-            ];
-
-            foreach ($classlist as $className) {
-                if ($className == $parentClass) continue;
-
-                if (
-                        in_array($parentClass, $method($className))
-                ) {
-                    $cache[$parentClass]['all'][] = $className;
-                    if ((new ReflectionClass($className))->isInstantiable()) {
-                        $cache[$parentClass]['instanciable'][] = $className;
-                    }
+            if (in_array($parentClass, $method($class))) {
+                $result[0][$class] = $class;
+                if ((new \ReflectionClass($class))->isInstantiable()) {
+                    $result[1][$class] = $class;
                 }
             }
-
-            return $cache[$parentClass][$key];
         }
-        //will probably never happen
-        return [];
+        return $result[$instanciable];
     }
 
     /**

@@ -51,6 +51,24 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
     }
 
 
+    if ( ! function_exists('implements_class')) {
+
+        /**
+         * Get class implementing given parent class from the loaded classes
+         *
+         * @param string|object $parentClass
+         * @param bool $instanciable
+         * @return array
+         * @throws InvalidArgumentException
+         */
+        function implements_class(string|object $parentClass, bool $instanciable = true): array
+        {
+            return Tools::implements_class($parentClass, $instanciable);
+        }
+
+    }
+
+
     if ( ! function_exists('get_class_constants')) {
 
 
