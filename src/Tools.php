@@ -589,7 +589,7 @@ final class Tools
 
         $iseconds = intval(floor($seconds));
         $seconds -= $iseconds;
-        $microseconds = (int) floor($seconds / static::MICROSECOND);
+        $microseconds = (int) round($seconds / static::MICROSECOND);
 
         if ($iseconds > 0) {
             sleep($iseconds);

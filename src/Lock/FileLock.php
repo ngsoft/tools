@@ -92,7 +92,7 @@ class FileLock extends BaseLockStore
     {
         $filename = $this->getFilename();
         if (is_file($filename) && safe('unlink', $filename)) {
-            $this->until = 0;
+            $this->until = 1;
         }
     }
 

@@ -178,7 +178,7 @@ class SQLiteLock extends BaseLockStore
                 ), [$this->getHashedName()])
         ) {
             if ($statement->execute()) {
-                $this->until = 0;
+                $this->until = 1;
             }
         }
     }

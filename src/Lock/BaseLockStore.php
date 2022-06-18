@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Lock;
 
 use NGSOFT\Interfaces\LockStore;
-use const NGSOFT\Tools\YEAR;
 use function random_string;
 
 abstract class BaseLockStore implements LockStore
@@ -46,7 +45,23 @@ abstract class BaseLockStore implements LockStore
     /** {@inheritdoc} */
     public function isAcquired(): bool
     {
-        return ! $this->isExpired($this->until);
+        if ( ! $this->isExpired($this->until)) {
+            return true;
+        }
+
+        // called release before acquire
+        if ($this->until === 0 && $data = $this->read()) {
+            // possible with $owner override (shared lock)
+            if ($this->getOwner() === $data[self::KEY_OWNER]) {
+                $until = $data[self::KEY_UNTIL];
+                if ( ! $this->isExpired($until)) {
+                    $this->until = $until;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /** {@inheritdoc} */
@@ -55,7 +70,7 @@ abstract class BaseLockStore implements LockStore
 
         if ($this->isAcquired()) {
             $this->forceRelease();
-            return ! $this->read();
+            return true;
         }
         return false;
     }
