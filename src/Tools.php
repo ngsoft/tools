@@ -75,11 +75,8 @@ final class Tools
      */
     public static function safe_exec(callable $callback, mixed ...$args): mixed
     {
-        static $handler;
-        $handler = $handler ?? static fn() => null;
-
         try {
-            set_error_handler($handler);
+            self::suppress_errors();
             return $callback(...$args);
         } finally { restore_error_handler(); }
     }

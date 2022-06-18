@@ -215,5 +215,18 @@ namespace NGSOFT\Tools {
         Tools::msleep($milliseconds);
     }
 
+    /**
+     * Execute callable forcing the error handler to suppress errors
+     * Exceptions thrown works as intended
+     *
+     * @param callable $callable
+     * @param mixed $arguments
+     * @return mixed
+     */
+    function safe(callable $callable, mixed ...$arguments): mixed
+    {
+        return Tools::safe_exec($callable, ...$arguments);
+    }
+
 }
 
