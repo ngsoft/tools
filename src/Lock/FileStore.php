@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use NGSOFT\Tools,
+use InvalidArgumentException,
+    NGSOFT\Tools,
     Throwable;
 use function NGSOFT\Tools\safe;
 
@@ -26,10 +27,11 @@ class FileStore extends BaseLockStore
             $rootpath = $this->rootpath = sys_get_temp_dir();
         }
 
-        try {
-
-        } catch (\Throwable) {
-
+        if ( ! safe(fn($root) => ! is_dir($root) && ! mkdir($root), $rootpath)) {
+            throw new InvalidArgumentException(sprintf('%s does not exits and cannot be created.', $rootpath));
+        }
+        if ( ! is_writable($rootpath)) {
+            throw new InvalidArgumentException(sprintf('%s is not writable.', $rootpath));
         }
     }
 
@@ -61,40 +63,32 @@ class FileStore extends BaseLockStore
 
         $dirname = dirname($filename);
 
-        loop:
+        while ($retry < 3) {
+            try {
 
-        if ($retry === 3) {
-            return false;
-        }
-        try {
+                Tools::errors_as_exceptions();
 
-            Tools::errors_as_exceptions();
+                $until = $this->seconds + $this->timestamp();
 
-            $until = $this->seconds + $this->timestamp();
+                $contents = sprintf(
+                        "<?php\nreturn [%u => %f, %u => %s];",
+                        static::KEY_UNTIL, $until,
+                        static::KEY_OWNER, var_export($this->getOwner(), true),
+                );
 
-            $contents = sprintf(
-                    "<?php\nreturn [%u => %f, %u => %s];",
-                    static::KEY_UNTIL, $until,
-                    static::KEY_OWNER, var_export($this->owner(), true),
-            );
-
-            if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
-                if (file_put_contents($filename, $contents) !== false) {
-
-                    $this->acquired = true;
-                    $this->until = $until;
+                if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
+                    if (file_put_contents($filename, $contents) !== false) {
+                        $this->until = $until;
+                        return true;
+                    }
                 }
-            }
-        } catch (Throwable $error) {
-            $this->waitFor();
-            $retry ++;
-            goto loop;
-        } finally { \restore_error_handler(); }
-    }
+            } catch (Throwable $error) {
+                $this->waitFor();
+                $retry ++;
+            } finally { \restore_error_handler(); }
+        }
 
-    protected function isOwner(string $currentOwner): bool
-    {
-        return $this->read()[self::KEY_OWNER] === $currentOwner;
+        return false;
     }
 
     public function acquire(): bool

@@ -89,12 +89,6 @@ abstract class BaseLockStore implements LockStore
         return $result;
     }
 
-    /**
-     * Returns the owner value written into the driver for this lock.
-     *
-     */
-    abstract protected function isOwner(string $currentOwner): bool;
-
     /** {@inheritdoc} */
     public function getOwner(): string
     {
