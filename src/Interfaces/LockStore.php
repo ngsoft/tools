@@ -15,11 +15,14 @@ interface LockStore
 
     /**
      * Returns whether or not the lock is acquired.
+     * @return bool
      */
     public function isAcquired(): bool;
 
     /**
      * Returns the remaining lifetime in seconds.
+     *
+     * @return float|int
      */
     public function getRemainingLifetime(): float|int;
 

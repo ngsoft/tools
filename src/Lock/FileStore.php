@@ -6,6 +6,7 @@ namespace NGSOFT\Lock;
 
 use NGSOFT\Tools,
     Throwable;
+use function NGSOFT\Tools\safe;
 
 class FileStore extends BaseLockStore
 {
@@ -14,8 +15,9 @@ class FileStore extends BaseLockStore
             string $name,
             int|float $seconds,
             string $owner = '',
+            protected bool $autoRelease = true,
             protected string $rootpath = '',
-            protected string $prefix = '@lockstore'
+            protected string $prefix = '@flocks'
     )
     {
         parent::__construct($name, $seconds, $owner);
@@ -36,14 +38,14 @@ class FileStore extends BaseLockStore
         return $this->rootpath . DIRECTORY_SEPARATOR . $this->prefix . hash('MD5', $this->name) . '.lock';
     }
 
-    protected function read(): array
+    protected function read(): array|false
     {
 
         try {
             Tools::errors_as_exceptions();
             return require $this->getFilename();
         } catch (Throwable) {
-            return [0, ''];
+            return false;
         } finally { restore_error_handler(); }
     }
 
@@ -59,62 +61,79 @@ class FileStore extends BaseLockStore
 
         $dirname = dirname($filename);
 
-        $contents = sprintf(
-                "<?php\nreturn [%u => %f, %u => %s];",
-                static::KEY_UNTIL, $this->seconds + $this->timestamp(),
-                static::KEY_OWNER, var_export($this->owner(), true)
-        );
+        loop:
 
-        while ($retry < 3) {
-
-            try {
-
-                Tools::errors_as_exceptions();
-
-                if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
-                    return file_put_contents($filename, $contents) !== false;
-                }
-            } catch (Throwable $error) {
-                usleep((100 + random_int(-10, 10)) * 1000);
-            } finally { \restore_error_handler(); }
-            $retry ++;
+        if ($retry === 3) {
+            return false;
         }
+        try {
 
-        return false;
+            Tools::errors_as_exceptions();
+
+            $until = $this->seconds + $this->timestamp();
+
+            $contents = sprintf(
+                    "<?php\nreturn [%u => %f, %u => %s];",
+                    static::KEY_UNTIL, $until,
+                    static::KEY_OWNER, var_export($this->owner(), true),
+            );
+
+            if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
+                if (file_put_contents($filename, $contents) !== false) {
+
+                    $this->acquired = true;
+                    $this->until = $until;
+                }
+            }
+        } catch (Throwable $error) {
+            $this->waitFor();
+            $retry ++;
+            goto loop;
+        } finally { \restore_error_handler(); }
     }
 
     protected function isOwner(string $currentOwner): bool
     {
-        return $this->read()[1] === $currentOwner;
+        return $this->read()[self::KEY_OWNER] === $currentOwner;
     }
 
-    public function acquire(bool $blocking = false): bool
+    public function acquire(): bool
     {
 
-
-        if ($lock = $this->read()) {
-
+        if ( ! $this->isExpired($this->until)) {
+            return true;
         }
+
+        $canAcquire = false;
+        if ($lock = $this->read()) {
+            if ($this->isExpired($lock[self::KEY_UNTIL])) {
+                $canAcquire = true;
+            } elseif ($this->owner === $lock[self::KEY_OWNER]) {
+                return true;
+            }
+        } else { $canAcquire = true; }
+
+
+        return $canAcquire ? $this->write() : false;
     }
 
     public function forceRelease(): void
     {
-
-    }
-
-    public function getRemainingLifetime(): float|int
-    {
-
-    }
-
-    public function isAcquired(): bool
-    {
-
+        safe('unlink', $this->getFilename());
     }
 
     public function release(): bool
     {
 
+        if (
+                $this->isAcquired() &&
+                safe('unlink', $this->getFilename())
+        ) {
+            $this->until = 0;
+            return true;
+        }
+
+        return false;
     }
 
 }

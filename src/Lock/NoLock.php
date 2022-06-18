@@ -7,6 +7,10 @@ namespace NGSOFT\Lock;
 class NoLock extends BaseLockStore
 {
 
+    /**
+     * {@inheritdoc}
+     * @phan-suppress PhanUnusedProtectedMethodParameter
+     */
     protected function isOwner(string $currentOwner): bool
     {
         return true;
