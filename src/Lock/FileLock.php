@@ -15,6 +15,15 @@ use function NGSOFT\Tools\safe;
 class FileLock extends BaseLockStore
 {
 
+    /**
+     * @param string $name
+     * @param int|float $seconds
+     * @param string $owner
+     * @param bool $autoRelease
+     * @param string $rootpath where to put the locks
+     * @param string $prefix subdirectory to $rootpath
+     * @throws InvalidArgumentException
+     */
     public function __construct(
             string $name,
             int|float $seconds,
