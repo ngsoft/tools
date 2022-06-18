@@ -18,6 +18,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 
     /** @var ServiceProvider[] */
     protected array $providers = [];
+    protected bool $registering = false;
 
     public function __construct(
             protected array $definitions = []
@@ -48,7 +49,9 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 
     protected function handleServiceProvidersResolution(string $id): void
     {
+        $this->registering = true;
         $this->providers[$id]?->register($this);
+        $this->registering = false;
     }
 
     /** {@inheritdoc} */
@@ -71,7 +74,9 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     public function set(string $id, mixed $entry): void
     {
         $this->definitions[$id] = $entry;
-        unset($this->providers[$id]);
+        if ($this->registering) {
+            unset($this->providers[$id]);
+        }
     }
 
     /** {@inheritdoc} */
