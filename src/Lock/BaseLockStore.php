@@ -12,7 +12,6 @@ abstract class BaseLockStore implements LockStore
 
     protected const KEY_UNTIL = 0;
     protected const KEY_OWNER = 1;
-    protected const KEY_PID = 2;
 
     protected int|float $until = 0;
 
@@ -46,6 +45,38 @@ abstract class BaseLockStore implements LockStore
     public function isAcquired(): bool
     {
         return ! $this->isExpired($this->until);
+    }
+
+    /**
+     * Reads data from the driver
+     */
+    abstract protected function read(): array|false;
+
+    /**
+     * Write data from the driver
+     * and updates $this->until if successful
+     */
+    abstract protected function write(): bool;
+
+    /** {@inheritdoc} */
+    public function acquire(): bool
+    {
+
+        if ($this->isAcquired()) {
+            return true;
+        }
+
+        $canAcquire = false;
+        if ($lock = $this->read()) {
+            if ($this->isExpired($lock[self::KEY_UNTIL])) {
+                $canAcquire = true;
+            } elseif ($this->getOwner() === $lock[self::KEY_OWNER]) {
+                $this->until = $lock[self::KEY_UNTIL];
+                return true;
+            }
+        } else { $canAcquire = true; }
+
+        return $canAcquire ? $this->write() : false;
     }
 
     /** {@inheritdoc} */

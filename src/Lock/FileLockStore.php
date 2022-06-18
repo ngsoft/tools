@@ -92,30 +92,6 @@ class FileLockStore extends BaseLockStore
     }
 
     /** {@inheritdoc} */
-    public function acquire(): bool
-    {
-
-        if ( ! $this->isExpired($this->until)) {
-            return true;
-        }
-
-        $canAcquire = false;
-        if ($lock = $this->read()) {
-
-
-            if ($this->isExpired($lock[self::KEY_UNTIL])) {
-
-                $canAcquire = true;
-            } elseif ($this->getOwner() === $lock[self::KEY_OWNER]) {
-                return true;
-            }
-        } else { $canAcquire = true; }
-
-
-        return $canAcquire ? $this->write() : false;
-    }
-
-    /** {@inheritdoc} */
     public function forceRelease(): void
     {
         $filename = $this->getFilename();

@@ -10,19 +10,26 @@ namespace NGSOFT\Lock;
 class NoLock extends BaseLockStore
 {
 
+    /** {@inheritdoc} */
     public function acquire(): bool
     {
         return true;
     }
 
+    protected function read(): array|false
+    {
+        return false;
+    }
+
+    protected function write(): bool
+    {
+        return false;
+    }
+
+    /** {@inheritdoc} */
     public function forceRelease(): void
     {
 
-    }
-
-    public function getRemainingLifetime(): float|int
-    {
-        return 0;
     }
 
     public function isAcquired(): bool
