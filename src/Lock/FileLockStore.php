@@ -9,7 +9,7 @@ use InvalidArgumentException,
     Throwable;
 use function NGSOFT\Tools\safe;
 
-class FileStore extends BaseLockStore
+class FileLockStore extends BaseLockStore
 {
 
     public function __construct(
@@ -21,13 +21,13 @@ class FileStore extends BaseLockStore
             protected string $prefix = '@flocks'
     )
     {
-        parent::__construct($name, $seconds, $owner);
+        parent::__construct($name, $seconds, $owner, $autoRelease);
 
         if (empty($rootpath)) {
             $rootpath = $this->rootpath = sys_get_temp_dir();
         }
 
-        if ( ! safe(fn($root) => ! is_dir($root) && ! mkdir($root), $rootpath)) {
+        if ( ! safe(fn($root) => is_dir($root) || mkdir($root), $rootpath)) {
             throw new InvalidArgumentException(sprintf('%s does not exits and cannot be created.', $rootpath));
         }
         if ( ! is_writable($rootpath)) {
@@ -37,7 +37,7 @@ class FileStore extends BaseLockStore
 
     protected function getFilename(): string
     {
-        return $this->rootpath . DIRECTORY_SEPARATOR . $this->prefix . hash('MD5', $this->name) . '.lock';
+        return $this->rootpath . DIRECTORY_SEPARATOR . $this->prefix . DIRECTORY_SEPARATOR . hash('MD5', $this->name) . '.lock';
     }
 
     protected function read(): array|false
@@ -53,10 +53,6 @@ class FileStore extends BaseLockStore
 
     protected function write(): bool
     {
-        if (is_file($this->getFilename())) {
-            return false;
-        }
-
         $retry = 0;
 
         $filename = $this->getFilename();
@@ -79,6 +75,7 @@ class FileStore extends BaseLockStore
                 if (is_dir($dirname) || mkdir($dirname, 0777, true)) {
                     if (file_put_contents($filename, $contents) !== false) {
                         $this->until = $until;
+
                         return true;
                     }
                 }
@@ -101,7 +98,10 @@ class FileStore extends BaseLockStore
 
         $canAcquire = false;
         if ($lock = $this->read()) {
+
+
             if ($this->isExpired($lock[self::KEY_UNTIL])) {
+
                 $canAcquire = true;
             } elseif ($this->getOwner() === $lock[self::KEY_OWNER]) {
                 return true;
