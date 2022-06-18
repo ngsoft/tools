@@ -13,17 +13,21 @@ abstract class BaseLockStore implements LockStore
 
     protected const KEY_UNTIL = 0;
     protected const KEY_OWNER = 1;
+    protected const KEY_PID = 2;
 
     protected int $pid;
 
     public function __construct(
             public readonly string $name,
             protected int|float $seconds,
-            protected string $owner = ''
+            protected string $owner = '',
+            protected bool $autoRelease = true
     )
     {
         $this->pid = getmypid();
-        $this->owner = blank($owner) ? random_string() : $owner;
+        $this->owner = empty($owner) ?
+                random_string() :
+                $owner;
     }
 
     /** {@inheritdoc} */
@@ -32,7 +36,7 @@ abstract class BaseLockStore implements LockStore
 
         $starting = $this->timestamp();
         while ( ! $this->acquire()) {
-            usleep((100 + random_int(-10, 10)) * 1000);
+            usleep((100 + random_int(-10, 10)) * 1e+3);
 
             if ($this->timestamp() - $seconds >= $starting) {
                 throw new LockTimeout(sprintf('Lock %s timeout.', $this->name));
@@ -73,9 +77,9 @@ abstract class BaseLockStore implements LockStore
     abstract protected function isOwner(string $currentOwner): bool;
 
     /** {@inheritdoc} */
-    public function owner(): string
+    public function getOwner(): string
     {
-        return sprintf('%s#%d', $this->owner, $this->pid);
+        return $this->owner;
     }
 
     protected function timestamp(): int|float

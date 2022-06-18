@@ -8,7 +8,7 @@ interface LockStore
 {
 
     /**
-     * Acquires the lock. 
+     * Acquires the lock.
      * @return bool
      */
     public function acquire(): bool;
@@ -52,7 +52,7 @@ interface LockStore
      *
      * @return string
      */
-    public function owner(): string;
+    public function getOwner(): string;
 
     /**
      * Releases this lock in disregard of ownership.

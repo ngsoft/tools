@@ -12,7 +12,7 @@ class NoLock extends BaseLockStore
         return true;
     }
 
-    public function acquire(bool $blocking = false): bool
+    public function acquire(): bool
     {
         return true;
     }
