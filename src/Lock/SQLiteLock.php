@@ -34,7 +34,7 @@ class SQLiteLock extends BaseLockStore
      */
     public function __construct(
             string $name,
-            int|float $seconds,
+            int|float $seconds = 0,
             string|PDO $database = '',
             string $owner = '',
             bool $autoRelease = true,

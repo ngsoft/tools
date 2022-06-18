@@ -26,7 +26,7 @@ class FileLock extends BaseLockStore
      */
     public function __construct(
             string $name,
-            int|float $seconds,
+            int|float $seconds = 0,
             string $owner = '',
             protected bool $autoRelease = true,
             protected string $rootpath = '',

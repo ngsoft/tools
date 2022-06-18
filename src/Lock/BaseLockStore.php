@@ -13,13 +13,13 @@ abstract class BaseLockStore implements LockStore
 
     protected const KEY_UNTIL = 0;
     protected const KEY_OWNER = 1;
-    protected const FOREVER = 5 * YEAR;
+    protected const FOREVER = 3600;
 
     protected int|float $until = 0;
 
     public function __construct(
             public readonly string $name,
-            protected int|float $seconds,
+            protected int|float $seconds = 0,
             protected string $owner = '',
             protected bool $autoRelease = true
     )
@@ -97,7 +97,7 @@ abstract class BaseLockStore implements LockStore
 
             while ($retry < 3) {
                 $this->wait();
-                if ($this->write($until = $this->timestamp() + $this->seconds)) {
+                if ($this->write($until = $this->timestamp() + $seconds)) {
                     $this->until = $until;
                     return true;
                 }
