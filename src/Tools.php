@@ -69,37 +69,44 @@ final class Tools
      * Execute a callback and hides all php errors that can be thrown
      * Exceptions thrown inside the callback will be preserved
      *
-     * @suppress PhanTypeMismatchArgumentInternal
-     * @staticvar Closure $handler
      * @param callable $callback
-     * @param mixed ...$args args to be passed to the callback
+     * @param mixed $args args to be passed to the callback
      * @return mixed
      */
-    public static function safe_exec(callable $callback, ...$args)
+    public static function safe_exec(callable $callback, mixed ...$args): mixed
     {
         static $handler;
-        if ( ! $handler) {
-            $handler = fn() => null;
-        }
-        set_error_handler($handler);
-        $retval = null;
+        $handler = $handler ?? static fn() => null;
+
         try {
-            $retval = call_user_func_array($callback, $args);
+            set_error_handler($handler);
+            return $callback(...$args);
         } finally { restore_error_handler(); }
-        return $retval;
     }
 
     /**
      * Convenient Function used to convert php errors, warning, ... as Throwable
      * @return callable|null
      */
-    public static function errors_as_exceptions()
+    public static function errors_as_exceptions(): callable|null
     {
-
         return set_error_handler(function ($type, $msg, $file, $line) {
             if ( ! (error_reporting() & $type)) { return false; }
             throw new ErrorException($msg, 0, $type, $file, $line);
         });
+    }
+
+    /**
+     * Set error handler to empty closure (as of php 8.1 @ doesn't works anymore)
+     *
+     * @phan-suppress PhanTypeMismatchArgumentInternal
+     * @return callable|null
+     */
+    public static function suppress_errors(): callable|null
+    {
+        static $handler;
+        $handler = $handler ?? static fn() => null;
+        return set_error_handler($handler);
     }
 
     /**
@@ -121,10 +128,8 @@ final class Tools
      */
     public static function pushd(string $dir): bool
     {
-
-
         try {
-            set_error_handler(fn() => null);
+            self::suppress_errors();
             if (($current = getcwd()) && chdir($dir)) {
                 self::$pushd_history[] = $current;
                 return true;
@@ -141,7 +146,7 @@ final class Tools
     {
 
         try {
-            set_error_handler(fn() => null);
+            self::suppress_errors();
             $previous = array_pop(self::$pushd_history) ?? getcwd();
             return chdir($previous) ? $previous : false;
         } finally { restore_error_handler(); }
