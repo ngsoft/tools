@@ -17,7 +17,7 @@ final class SimpleContainer extends ContainerAbstract
     {
         if ( ! $this->isResolved($id)) {
             $resolved = call_user_func($this->definitions[$id], $this);
-            $this->definitions[$id] = $this->handle($resolved);
+            $this->definitions[$id] = $this->handle($id, $resolved);
         }
         return $this->definitions[$id];
     }

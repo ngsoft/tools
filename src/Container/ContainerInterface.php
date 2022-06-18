@@ -14,10 +14,10 @@ interface ContainerInterface extends PSRContainerInterface
      * Add an handler to manage entry resolution
      * eg: add an handler to autowire LoggerAware ...
      *
-     * @param callable $handler
+     * @param Closure|ContainerResolver $handler
      * @return void
      */
-    public function addResolutionHandler(callable $handler): void;
+    public function addResolutionHandler(Closure|ContainerResolver $handler): void;
 
     /**
      * Register a service

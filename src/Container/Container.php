@@ -28,7 +28,7 @@ class Container extends ContainerAbstract
 
         if ( ! $this->isResolved($id)) {
             $resolved = $this->resolve($id, $this->definitions[$id] ?? null);
-            $this->definitions[$id] = $this->handle($resolved);
+            $this->definitions[$id] = $this->handle($id, $resolved);
         }
         return $this->definitions[$id];
     }

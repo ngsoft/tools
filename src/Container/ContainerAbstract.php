@@ -28,21 +28,18 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     }
 
     /** {@inheritdoc} */
-    public function addResolutionHandler(callable $handler): void
+    public function addResolutionHandler(Closure|ContainerResolver $handler): void
     {
         $this->handlers[] = $handler;
     }
 
     /**
      * Execute handlers when resolving the entry
-     *
-     * @param mixed $resolved
-     * @return mixed
      */
-    protected function handle(mixed $resolved): mixed
+    protected function handle(string $id, mixed $resolved): mixed
     {
         foreach ($this->handlers as $handler) {
-            $resolved = $handler($this, $resoved);
+            $resolved = $handler($this, $id, $resolved);
         }
         return $resolved;
     }
@@ -104,19 +101,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 
         $newType = get_debug_type($new);
 
-        $error = false;
-
-        switch ($obj) {
-            case true:
-                $error = ! is_a($new, $type);
-                break;
-            case false:
-                $error = $new !== $newType;
-                break;
-        }
-
-
-        if ($error) {
+        if ($obj ?  ! is_a($new, $type) : $new !== $newType) {
             throw new ContainerResolverException(sprintf(
                                     '%s::%s() invalid closure return value, %s expected, %s given.',
                                     static::class, __FUNCTION__,
