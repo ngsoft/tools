@@ -128,7 +128,7 @@ class SQLiteLock extends BaseLockStore
                 ), [$this->getHashedName()])
         ) {
 
-            if ($result = $statement->execute()) {
+            if ($statement->execute()) {
                 if ($arr = $statement->fetch(PDO::FETCH_ASSOC)) {
                     var_dump($arr);
                     return [
