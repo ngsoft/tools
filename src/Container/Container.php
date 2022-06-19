@@ -37,6 +37,7 @@ class Container extends ContainerAbstract
     /** {@inheritdoc} */
     public function has(string $id): bool
     {
+        $id = $this->handleAliasResolution($id);
         return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers) || class_exists($id);
     }
 

@@ -20,6 +20,9 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     /** @var callable[] */
     protected array $handlers = [];
 
+    /** @var array<string, string> */
+    protected array $alias = [];
+
     /** @var ServiceProvider[] */
     protected array $providers = [];
     protected bool $registering = false;
@@ -63,6 +66,14 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         $this->registering = false;
     }
 
+    /**
+     * Alias resolution
+     */
+    protected function handleAliasResolution(string $alias): string
+    {
+        return $this->alias[$alias] ?? $alias;
+    }
+
     /** {@inheritdoc} */
     public function register(ServiceProvider $provider): void
     {
@@ -74,6 +85,8 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
+        $id = $this->handleAliasResolution($id);
+
         if ( ! $this->isResolved($id)) {
             $this->definitions[$id] = $this->resolve($id, $this->definitions[$id] ?? null);
         }
@@ -91,6 +104,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     /** {@inheritdoc} */
     public function set(string $id, mixed $entry): void
     {
+        $id = $this->handleAliasResolution($id);
         $this->definitions[$id] = $entry;
         if ($this->registering) {
             unset($this->providers[$id]);
@@ -100,11 +114,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     /** {@inheritdoc} */
     public function alias(string $id, string $alias): void
     {
-        if ( ! $this->has($id)) {
-            throw new NotFoundException($this, $id);
-        }
-
-        $this->set($alias, $this->get($id));
+        $this->alias[$alias] = $id;
     }
 
     /** {@inheritdoc} */
