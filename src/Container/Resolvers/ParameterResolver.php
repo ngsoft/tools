@@ -34,7 +34,7 @@ class ParameterResolver implements ContainerResolver
         return $this->resolve($id, $value);
     }
 
-    protected function resolve(string $id, mixed $entry): mixed
+    public function resolve(string $id, mixed $entry): mixed
     {
         $resolved = null;
         try {
@@ -65,7 +65,7 @@ class ParameterResolver implements ContainerResolver
         return $resolved;
     }
 
-    protected function resolveParameters(string $id, ReflectionMethod|ReflectionFunction $reflectionMethod): array
+    public function resolveParameters(string $id, ReflectionMethod|ReflectionFunction $reflectionMethod): array
     {
         if ($reflectionMethod->getNumberOfParameters() === 0) return [];
 
@@ -88,7 +88,7 @@ class ParameterResolver implements ContainerResolver
         return $result;
     }
 
-    protected function resolveType(string $id, ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $reflectionType, ReflectionParameter $reflectionParameter): mixed
+    public function resolveType(string $id, ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $reflectionType, ReflectionParameter $reflectionParameter): mixed
     {
 
         if ($reflectionType instanceof ReflectionIntersectionType) {
@@ -138,7 +138,7 @@ class ParameterResolver implements ContainerResolver
                         ), 0, $previous);
     }
 
-    protected function resolveClassName(string $className): ?ReflectionClass
+    public function resolveClassName(string $className): ?ReflectionClass
     {
         return class_exists($className) ? new ReflectionClass($className) : null;
     }

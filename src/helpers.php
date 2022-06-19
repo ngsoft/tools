@@ -86,6 +86,22 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
 
     }
 
+
+    if ( ! function_exists('is_instanciable')) {
+
+        function is_instanciable(mixed $class): bool
+        {
+            try {
+                return (new \ReflectionClass($class))->isInstantiable();
+            } catch (\Throwable) {
+
+            }
+
+            return false;
+        }
+
+    }
+
     if ( ! function_exists('random_string')) {
 
         /**

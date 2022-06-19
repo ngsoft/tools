@@ -19,6 +19,11 @@ abstract class Facade
     protected static $resolvedInstance = [];
     protected static $cached = true;
 
+    private function __construct()
+    {
+
+    }
+
     /**
      * Handle dynamic, static calls to the object.
      */
