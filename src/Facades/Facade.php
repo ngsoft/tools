@@ -7,7 +7,7 @@ namespace NGSOFT\Facades;
 use BadMethodCallException,
     Closure;
 use NGSOFT\Container\{
-    Container, ContainerInterface, ServiceProvider
+    Container, ContainerInterface, NullServiceProvider, ServiceProvider
 };
 use RuntimeException;
 use function class_basename;
@@ -50,7 +50,10 @@ abstract class Facade
     /**
      * Get the service provider for the component
      */
-    abstract protected static function getServiceProvider(): ServiceProvider;
+    protected static function getServiceProvider(): ServiceProvider
+    {
+        return new NullServiceProvider;
+    }
 
     /**
      * Run a Closure when the facade has been resolved.

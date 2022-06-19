@@ -37,7 +37,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
             protected array $definitions = []
     )
     {
-        $this->definitions[PsrContainerInterface::class] = $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this;
+        $this->definitions[PsrContainerInterface::class] = $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this->definitions['Container'] = $this;
 
         foreach (self::BASIC_RESOLVERS as $resolver) {
             $this->addResolutionHandler(new $resolver());
@@ -131,9 +131,14 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     }
 
     /** {@inheritdoc} */
-    public function alias(string $alias, string $id): static
+    public function alias(string|iterable $alias, string $id): static
     {
-        $this->alias[$alias] = $id;
+        if ( ! is_iterable($alias)) {
+            $alias = [$alias];
+        }
+        foreach ($alias as $alias) {
+            $this->alias[$alias] = $id;
+        }
         return $this;
     }
 

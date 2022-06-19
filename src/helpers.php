@@ -311,3 +311,8 @@ namespace NGSOFT\Tools {
 
 }
 
+namespace NGSOFT\Facades {
+    /**
+     * Boot the facade
+     */
+}

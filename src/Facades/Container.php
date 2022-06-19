@@ -27,13 +27,4 @@ class Container extends Facade
         return static::getAlias();
     }
 
-    protected static function getServiceProvider(): ServiceProvider
-    {
-
-        return new \NGSOFT\Container\SimpleServiceProvider(static::getAlias(), static function (ContainerInterface $container) {
-                    $container->alias('Container', ContainerInterface::class);
-                }
-        );
-    }
-
 }

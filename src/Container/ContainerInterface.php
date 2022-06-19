@@ -47,11 +47,11 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Alias an entry to a different name
      *
-     * @param string $alias
+     * @param string|iterable $alias
      * @param string $id
      * @return static
      */
-    public function alias(string $alias, string $id): static;
+    public function alias(string|iterable $alias, string $id): static;
 
     /**
      * Extends an entry from the container

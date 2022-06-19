@@ -11,12 +11,6 @@ use NGSOFT\{
 class FileSystem extends Facade
 {
 
-    protected static function getServiceProvider(): ServiceProvider
-    {
-
-        return new NullServiceProvider;
-    }
-
     protected static function getFacadeAccessor(): string
     {
         return FileFactory::class;
