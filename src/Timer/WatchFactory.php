@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Timer;
 
-use NGSOFT\DataStructure\Map;
+use Generator,
+    NGSOFT\DataStructure\Map;
 
 class WatchFactory
 {
@@ -24,11 +25,19 @@ class WatchFactory
     public function getWatch(mixed $task = self::DEFAULT_WATCH): StopWatch
     {
 
-        if ($this->map->has($task)) {
+        if ( ! $this->map->has($task)) {
             $instance = new StopWatch($task, $this->highResolution);
             $this->map->set($task, $instance);
         }
         return $this->map->get($task);
+    }
+
+    /**
+     * Reads the clock
+     */
+    public function read(mixed $task = self::DEFAULT_WATCH): StopWatchResult
+    {
+        return $this->getWatch($task)->read();
     }
 
     /**
@@ -82,9 +91,9 @@ class WatchFactory
     }
 
     /**
-     * @return \Generator|StopWatchResult[]
+     * @return Generator|StopWatchResult[]
      */
-    public function getLaps(): iterable
+    public function getLaps(mixed $task = self::DEFAULT_WATCH): iterable
     {
         yield from $this->getWatch($task)->getLaps();
     }
@@ -92,7 +101,7 @@ class WatchFactory
     /**
      * Adds a lap time
      */
-    public function lap(?string $label = null): bool
+    public function lap(mixed $task = self::DEFAULT_WATCH, ?string $label = null): bool
     {
         return $this->getWatch($task)->lap($label);
     }

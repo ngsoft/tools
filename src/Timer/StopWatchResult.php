@@ -179,6 +179,7 @@ class StopWatchResult implements Stringable
     public function __debugInfo(): array
     {
 
+        $this->parseData();
         $infos = [];
 
         foreach ($this->infos as $enum => $value) {

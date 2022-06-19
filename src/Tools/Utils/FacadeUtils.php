@@ -12,16 +12,24 @@ class FacadeUtils
 
         $class = (string) $class;
 
-        $split = explode('|', $class);
-        foreach ($split as &$class) {
-            if (class_exists($class) || interface_exists($class)) {
-                $class = NAMESPACE_SEPARATOR . $class;
+        $splitStr = ['|', '&'];
+
+        foreach ($splitStr as $char) {
+            $split = explode($char, $class);
+
+            foreach ($split as &$segment) {
+                if (str_starts_with($segment, NAMESPACE_SEPARATOR)) {
+                    continue;
+                }
+
+                if (class_exists($segment) || interface_exists($segment)) {
+                    $segment = NAMESPACE_SEPARATOR . $segment;
+                }
             }
+            $class = implode($char, $split);
         }
 
-
-
-        return implode('|', $split);
+        return $class;
     }
 
     public static function getClassDocBlocks(object $instance): array
