@@ -5,21 +5,22 @@ declare(strict_types=1);
 namespace NGSOFT\Facades;
 
 use NGSOFT\{
-    Container\ContainerInterface, Container\ServiceProvider, Timer\WatchFactory
+    Container\ContainerInterface, Container\ServiceProvider, Container\SimpleServiceProvider, Timer\StopWatch, Timer\StopWatchResult, Timer\WatchFactory
 };
+use const SCRIPT_START;
 
 /**
- * @method static \NGSOFT\Timer\StopWatch getWatch(mixed $task = 'default')
- * @method static \NGSOFT\Timer\StopWatchResult read(mixed $task = 'default')
+ * @method static StopWatch getWatch(mixed $task = 'default')
+ * @method static StopWatchResult read(mixed $task = 'default')
  * @method static bool start(mixed $task = 'default', int|float|null $startTime = NULL)
  * @method static bool resume(mixed $task = 'default')
  * @method static void reset(mixed $task = 'default')
  * @method static void resetAll()
- * @method static \NGSOFT\Timer\StopWatchResult pause(mixed $task = 'default', ?bool $success = NULL)
- * @method static \NGSOFT\Timer\StopWatchResult stop(mixed $task = 'default', ?bool $success = NULL)
+ * @method static StopWatchResult pause(mixed $task = 'default', ?bool $success = NULL)
+ * @method static StopWatchResult stop(mixed $task = 'default', ?bool $success = NULL)
  * @method static iterable getLaps(mixed $task = 'default')
  * @method static bool lap(mixed $task = 'default', ?string $label = NULL)
- * @see \NGSOFT\Timer\WatchFactory
+ * @see WatchFactory
  */
 class Timer extends Facade
 {
@@ -28,18 +29,9 @@ class Timer extends Facade
 
     protected static function getServiceProvider(): ServiceProvider
     {
-        return new class implements ServiceProvider{
+        return new SimpleServiceProvider(self::getAlias(),
+                static function (ContainerInterface $container) {
 
-            public function provides(): array
-            {
-                return ['Timer'];
-            }
-
-            public function register(ContainerInterface $container): void
-            {
-                $container->alias('Timer', WatchFactory::class);
-
-                $container->set(WatchFactory::class, function (ContainerInterface $container) {
 
                     $hrtime = false;
                     if ($container->has('Timer.hrtime')) {
@@ -48,10 +40,10 @@ class Timer extends Facade
 
                     $instance = new WatchFactory($hrtime);
                     $instance->start('global', SCRIPT_START);
-                    return $instance;
-                });
-            }
-        };
+
+                    $container->set('Timer', $instance);
+                }
+        );
     }
 
 }

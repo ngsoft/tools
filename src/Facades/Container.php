@@ -22,25 +22,13 @@ use NGSOFT\Container\{
 class Container extends Facade
 {
 
-    protected static function getFacadeAccessor(): string
-    {
-        return static::getAlias();
-    }
-
     protected static function getServiceProvider(): ServiceProvider
     {
-        return new class implements ServiceProvider{
 
-            public function provides(): array
-            {
-                return ['Container'];
-            }
-
-            public function register(ContainerInterface $container): void
-            {
-                $container->alias('Container', ContainerInterface::class);
-            }
-        };
+        return new \NGSOFT\Container\SimpleServiceProvider(static::getAlias(), static function (ContainerInterface $container) {
+                    $container->alias('Container', ContainerInterface::class);
+                }
+        );
     }
 
 }

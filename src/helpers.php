@@ -89,7 +89,7 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
 
     if ( ! function_exists('is_instanciable')) {
 
-        function is_instanciable(mixed $class): bool
+        function is_instanciable(string $class): bool
         {
             try {
                 return (new \ReflectionClass($class))->isInstantiable();

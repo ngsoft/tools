@@ -17,7 +17,7 @@ class SimpleServiceProvider implements ServiceProvider
     )
     {
         if ( ! is_iterable($provides)) {
-            $provides = [];
+            $provides = [$provides];
         }
 
         foreach ($provides as $id) {
