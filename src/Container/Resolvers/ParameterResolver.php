@@ -25,10 +25,12 @@ class ParameterResolver implements ContainerResolver
 {
 
     protected ContainerInterface $container;
+    protected array $errors = [];
 
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
     {
         $this->container = $container;
+        $this->errors = [];
         return $this->resolve($id, $value);
     }
 
