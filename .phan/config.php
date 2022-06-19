@@ -79,6 +79,7 @@ return [
         'PhanAccessOverridesFinalMethodInTrait',
         'PhanUnreferencedUseNormal',
         'PhanUnusedVariableValueOfForeachWithKey',
+        'PhanAbstractStaticMethodCallInStatic',
     ],
     // If enabled, check all methods that override a
     // parent method to make sure its signature is

@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use NGSOFT\{
+    Container\Container, Facades\Facade
+};
+
 // Set the internal encoding
 mb_internal_encoding("UTF-8");
 
