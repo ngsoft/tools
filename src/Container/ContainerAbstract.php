@@ -53,6 +53,8 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     {
         foreach ($this->handlers as $handler) {
             $resolved = $handler($this, $id, $resolved);
+
+            var_dump($resolved);
         }
         return $resolved;
     }
@@ -62,9 +64,12 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
      */
     protected function handleServiceProvidersResolution(string $id): void
     {
-        $this->registering = true;
-        $this->providers[$id]?->register($this);
-        $this->registering = false;
+
+        if (isset($this->providers[$id])) {
+            $this->registering = true;
+            $this->providers[$id]->register($this);
+            $this->registering = false;
+        }
     }
 
     /**

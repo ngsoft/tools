@@ -29,7 +29,7 @@ class Container extends ContainerAbstract
     public function __construct(array $definitions = [])
     {
         foreach (self::RESOLVER_STACK as $resolver) {
-            $this->addResolutionHandler(new $resolver);
+            $this->addResolutionHandler(new $resolver());
         }
         parent::__construct($definitions);
     }
@@ -45,12 +45,11 @@ class Container extends ContainerAbstract
     {
         $this->handleServiceProvidersResolution($id);
 
-        if ($this->has($id)) {
-
-            return ($this->definitions[$id] ?? null) instanceof Closure === false || class_exists($id);
+        if (array_key_exists($id, $this->definitions)) {
+            return $this->definitions[$id] instanceof Closure === false;
+        } elseif (class_exists($id)) {
+            return false;
         }
-
-
         throw new NotFoundException($this, $id);
     }
 

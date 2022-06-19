@@ -22,8 +22,8 @@ final class SimpleContainer extends ContainerAbstract
     {
         $this->handleServiceProvidersResolution($id);
 
-        if ($this->has($id)) {
-            return ($this->definitions[$id] ?? null) instanceof Closure === false;
+        if (array_key_exists($id, $this->definitions)) {
+            return $this->definitions[$id] instanceof Closure === false;
         }
         throw new NotFoundException($this, $id);
     }
