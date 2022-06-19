@@ -93,6 +93,16 @@ abstract class Filesystem implements Countable, Stringable
         return $this->path;
     }
 
+    /**
+     * Checks if file begins with '.'
+     *
+     * @return bool
+     */
+    public function hidden(): bool
+    {
+        return str_starts_with($this->basename(), '.');
+    }
+
     protected function createDir(string $dirname): void
     {
         if ( ! is_dir($dirname) || ! mkdir($dirname, 0777, true)) {

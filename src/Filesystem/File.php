@@ -44,16 +44,6 @@ class File extends Filesystem implements \IteratorAggregate
     }
 
     /**
-     * Checks if file begins with '.'
-     * 
-     * @return bool
-     */
-    public function hidden(): bool
-    {
-        return str_starts_with($this->basename(), '.');
-    }
-
-    /**
      * Checks if file exists and is regular file
      *
      * @return bool

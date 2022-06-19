@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Filesystem;
 
+use FilesystemIterator,
+    InvalidArgumentException,
+    RecursiveDirectoryIterator;
+use function blank,
+             mb_substr;
+use function NGSOFT\Tools\{
+    map, some
+};
+use function str_starts_with;
+
 class Directory extends Filesystem
 {
 
@@ -42,14 +52,44 @@ class Directory extends Filesystem
         return $this->isEmpty() && $this->rmdir($this->path);
     }
 
-    public function files(string|array $extensions = '', bool $hidden = false): iterable
+    protected function filesIterator(FileList $list, string|array $extensions = [], bool $hidden = false): iterable
     {
 
+        if ( ! is_array($extensions)) {
+            $extensions = empty($extensions) ? [] : [$extensions];
+        }
+
+        $extensions = map(fn($e) => str_starts_with($e, '.') ? mb_substr($e, 1) : $e, $extensions);
+
+        $result = new FileList();
+
+        foreach ($list as $file => $filesystem) {
+
+            if ($filesystem instanceof File) {
+                if ( ! blank($extensions)) {
+                    if ( ! some(function ($ext) use ($filesystem) { return $ext === $filesystem->extension(); }, $extensions)) {
+                        continue;
+                    }
+                }
+                if ( ! $hidden && $filesystem->hidden()) {
+                    continue;
+                }
+
+                $result->append($filesystem);
+            }
+        }
+
+        return $result;
+    }
+
+    public function files(string|array $extensions = [], bool $hidden = false): iterable
+    {
+        yield from $this->filesIterator(self::scanFiles($this->path), $extensions, $hidden);
     }
 
     public function allFiles(string|array $extensions = '', bool $hidden = false): iterable
     {
-
+        yield from $this->filesIterator(self::scanFiles($this->path, true), $extensions, $hidden);
     }
 
     public function directories(bool $hidden = false)

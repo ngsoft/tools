@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Filesystem;
 
-use ArrayIterator,
-    Countable,
+use Countable,
     IteratorAggregate,
     Traversable;
+use function is_stringable;
 
 class FileList implements IteratorAggregate, Countable
 {
@@ -47,13 +47,11 @@ class FileList implements IteratorAggregate, Countable
         if ( ! is_iterable($files)) {
             $files = [$files];
         }
-
+        if ($files instanceof Filesystem) {
+            $this->files[$files->getPath()] = $files;
+            return;
+        }
         foreach ($files as $file) {
-
-            if ($file instanceof Filesystem) {
-                $this->files[$file->getPath()] = $file;
-                continue;
-            }
             if ( ! is_stringable($file)) {
                 continue;
             }
@@ -63,6 +61,23 @@ class FileList implements IteratorAggregate, Countable
                 continue;
             }
             $this->files[$file] = is_dir($file) ? Directory::create($file) : File::create($file);
+        }
+    }
+
+    /**
+     * Filter results using callable
+     *
+     * @param callable $callable
+     * @return iterable
+     */
+    public function filter(callable $callable): iterable
+    {
+
+        foreach ($this as $key => $value) {
+
+            if ($callable($value, $key, $this)) {
+                yield $key => $value;
+            }
         }
     }
 
