@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\Container;
 
 use Closure;
-use NGSOFT\Traits\{
-    StringableObject, Unserializable
+use NGSOFT\{
+    Container\Resolvers\LoggerAwareResolver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Stringable;
@@ -14,6 +14,10 @@ use function get_debug_type;
 
 abstract class ContainerAbstract implements ContainerInterface, Stringable
 {
+
+    protected const BASIC_RESOLVERS = [
+        LoggerAwareResolver::class,
+    ];
 
     use StringableObject,
         Unserializable;
@@ -33,6 +37,10 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     )
     {
         $this->definitions[PsrContainerInterface::class] = $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this;
+
+        foreach (self::BASIC_RESOLVERS as $resolver) {
+            $this->addResolutionHandler(new $resolver());
+        }
     }
 
     /** {@inheritdoc} */
