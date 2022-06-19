@@ -154,29 +154,29 @@ trait ArrayAccessCommon
     }
 
     /**
-     * Returns a new iterator indexed by id
+     * Returns a new iterable indexed by id
      *
-     * @return Generator
+     * @return iterable
      */
-    public function entries(): Generator
+    public function entries(): iterable
     {
         yield from $this->getIterator();
     }
 
     /**
-     * Returns a new iterator with only the values
-     * @return Generator
+     * Returns a new iterable with only the values
+     * @return iterable
      */
-    public function values(): Generator
+    public function values(): iterable
     {
         foreach ($this->getIterator() as $value) { yield $value; }
     }
 
     /**
-     * Returns a new iterator with only the indexes
-     * @return Generator
+     * Returns a new iterable with only the indexes
+     * @return iterable
      */
-    public function keys(): Generator
+    public function keys(): iterable
     {
         foreach (array_keys($this->storage) as $index) { yield $index; }
     }

@@ -115,6 +115,24 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
         foreach ($this->getIndexes() as $offset) { yield $offset => $this->storage[$offset]; }
     }
 
+    /**
+     * Returns a new iterable with only the indexes
+     * @return iterable
+     */
+    public function keys(): iterable
+    {
+        return array_keys($this->storage);
+    }
+
+    /**
+     * Returns a new iterable with only the values
+     * @return iterable
+     */
+    public function values(): iterable
+    {
+        return array_values($this->storage);
+    }
+
     /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
