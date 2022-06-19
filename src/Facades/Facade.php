@@ -120,6 +120,9 @@ abstract class Facade
             return static::$resolvedInstance[$name] = static::getContainer()->get($name);
         }
 
+
+        static::getContainer()->register(static::getServiceProvider());
+
         return static::getContainer()->get($name);
     }
 
