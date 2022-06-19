@@ -22,6 +22,11 @@ use NGSOFT\Container\{
 class Container extends Facade
 {
 
+    protected static function getFacadeAccessor(): string
+    {
+        return static::getAlias();
+    }
+
     protected static function getServiceProvider(): ServiceProvider
     {
 

@@ -45,10 +45,7 @@ abstract class Facade
     /**
      * Get the registered name of the component.
      */
-    protected static function getFacadeAccessor(): string
-    {
-        return static::getAlias();
-    }
+    abstract protected static function getFacadeAccessor(): string;
 
     /**
      * Get the service provider for the component
