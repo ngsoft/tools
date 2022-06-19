@@ -68,17 +68,19 @@ class FileList implements IteratorAggregate, Countable
      * Filter results using callable
      *
      * @param callable $callable
-     * @return iterable
+     * @return static
      */
-    public function filter(callable $callable): iterable
+    public function filter(callable $callable): static
     {
 
+        $result = [];
         foreach ($this as $key => $value) {
 
             if ($callable($value, $key, $this)) {
-                yield $key => $value;
+                $result[$key] = $value;
             }
         }
+        return static::create($result);
     }
 
     public function toArray(): array
@@ -91,6 +93,9 @@ class FileList implements IteratorAggregate, Countable
         return count($this->files);
     }
 
+    /**
+     * @return Traversable<string, File|Directory>
+     */
     public function getIterator(): Traversable
     {
         foreach ($this->files as $file => $obj) {
@@ -98,11 +103,25 @@ class FileList implements IteratorAggregate, Countable
         }
     }
 
+    /**
+     * @return string[]
+     */
+    public function files(): array
+    {
+        return $this->keys();
+    }
+
+    /**
+     * @return string[]
+     */
     public function keys(): iterable
     {
         return array_keys($this->files);
     }
 
+    /**
+     * @return File[]|Directory[]
+     */
     public function values(): iterable
     {
         return array_values($this->files);

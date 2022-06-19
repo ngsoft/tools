@@ -155,7 +155,7 @@ abstract class Filesystem implements Countable, Stringable
      */
     public function chmod(int $permissions): bool
     {
-        return $this->exists() && chmod($filename, $permissions);
+        return $this->exists() && chmod($this->path, $permissions);
     }
 
     /**
