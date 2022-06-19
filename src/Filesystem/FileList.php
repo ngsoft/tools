@@ -85,13 +85,17 @@ class FileList implements IteratorAggregate, Countable
 
     public function keys(): iterable
     {
-
-        yield from new ArrayIterator(array_keys($this->files));
+        return array_keys($this->files);
     }
 
     public function values(): iterable
     {
-        yield from new ArrayIterator(array_values($this->files));
+        return array_values($this->files);
+    }
+
+    public function __debugInfo(): array
+    {
+        return $this->files;
     }
 
 }

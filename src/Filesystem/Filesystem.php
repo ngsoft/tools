@@ -22,19 +22,19 @@ abstract class Filesystem implements Countable, Stringable
      * Scan files in a directory
      * @param string $dirname
      * @param bool $recursive
-     * @return iterable
+     * @return FileList
      */
-    public static function scanFiles(string $dirname, bool $recursive = false): iterable
+    public static function scanFiles(string $dirname, bool $recursive = false): FileList
     {
 
         static $ignore = ['.', '..'];
-        if ( ! is_dir($dirname)) {
-            return;
-        }
 
         $result = new FileList();
 
-        $files = $dirs = [];
+        if ( ! is_dir($dirname)) {
+            return $result;
+        }
+        $dirs = [];
 
         foreach (scandir($dirname) as $file) {
             if (in_array($file, $ignore)) {
@@ -57,13 +57,12 @@ abstract class Filesystem implements Countable, Stringable
             $result->append(static::scanFiles($dir, $recursive));
         }
 
-        yield from $result;
+        return $result;
     }
 
     public static function scanFilesArray(string $dirname, bool $recursive = false): array
     {
-        $result = [];
-        return $result;
+        return self::scanFiles($dirname, $recursive)->keys();
     }
 
     public static function create(string $path): static

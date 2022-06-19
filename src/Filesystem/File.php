@@ -35,12 +35,22 @@ class File extends Filesystem implements \IteratorAggregate
 
     /**
      * Get file directory
-     * 
+     *
      * @return Directory
      */
     public function getDirectory(): Directory
     {
         return Directory::create($this->dirname());
+    }
+
+    /**
+     * Checks if file begins with '.'
+     * 
+     * @return bool
+     */
+    public function hidden(): bool
+    {
+        return str_starts_with($this->basename(), '.');
     }
 
     /**
