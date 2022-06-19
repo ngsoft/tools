@@ -94,8 +94,10 @@ class ParameterResolver implements ContainerResolver
         } elseif ($reflectionType instanceof ReflectionUnionType) $reflectionTypes = $reflectionType->getTypes();
         else $reflectionTypes = [$reflectionType];
 
-        foreach ($reflectionTypes as $reflectionNamedType) {
 
+
+        foreach ($reflectionTypes as $reflectionNamedType) {
+            $previous = null;
             $type = $reflectionNamedType->getName();
 
             if ($reflectionNamedType->isBuiltin()) {
@@ -106,7 +108,14 @@ class ParameterResolver implements ContainerResolver
             } else {
 
                 try {
-                    return $this->container->get($type);
+                    $value = $this->container->get($type);
+
+                    if ( ! is_a($value, $type)) {
+                        $previous = new ContainerResolverException(sprintf(
+                                        'Container returned type %s instead of type %s for entry %s',
+                                        get_debug_type($value), $type, $id
+                        ));
+                    } else { return $value; }
                 } catch (ContainerExceptionInterface) {
 
                 }
@@ -124,7 +133,7 @@ class ParameterResolver implements ContainerResolver
                                 $reflectionParameter->getPosition(),
                                 $reflectionParameter->getName(),
                                 $reflectionType
-        ));
+                        ), 0, $previous);
     }
 
     protected function resolveClassName(string $className): ?ReflectionClass

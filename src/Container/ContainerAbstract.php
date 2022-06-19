@@ -6,7 +6,7 @@ namespace NGSOFT\Container;
 
 use Closure;
 use NGSOFT\{
-    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\ClassStringResolver, Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Stringable;
@@ -16,7 +16,6 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 {
 
     protected const BASIC_RESOLVERS = [
-        //please set to last position (First In Last Out)
         NotFoundResolver::class,
         LoggerAwareResolver::class,
     ];
