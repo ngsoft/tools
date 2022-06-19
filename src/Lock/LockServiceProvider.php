@@ -13,21 +13,21 @@ class LockServiceProvider implements ServiceProvider
 
     public function provides(): array
     {
-        ['locks'];
+        return ['Lock'];
     }
 
     public function register(ContainerInterface $container): void
     {
 
+        $container->alias('Lock', LockFactory::class);
 
         $container->set(LockFactory::class, function (\NGSOFT\Container\Container $container) {
-            $container->alias('locks', LockFactory::class);
             $rootpath = '';
-            if ($container->has('locks.rootpath')) {
+            if ($container->has('Lock.rootpath')) {
                 $rootpath = $container->get(('locks.rootpath'));
             }
             $seconds = 0;
-            if ($container->has('locks.ttl')) {
+            if ($container->has('Lock.ttl')) {
                 $seconds = $container->get(('locks.ttl'));
             }
 

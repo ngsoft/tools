@@ -37,8 +37,6 @@ class Container extends ContainerAbstract
 
     protected function isResolved(string $id): bool
     {
-        $this->handleServiceProvidersResolution($id);
-
         if (array_key_exists($id, $this->definitions)) {
             return $this->definitions[$id] instanceof Closure === false;
         } elseif (class_exists($id)) {

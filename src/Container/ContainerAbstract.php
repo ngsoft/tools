@@ -95,13 +95,14 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         foreach ($provider->provides() as $id) {
             $this->providers[$id] = $provider;
         }
-
         return $this;
     }
 
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
+
+        $this->handleServiceProvidersResolution($id);
         $id = $this->handleAliasResolution($id);
 
         if ( ! $this->isResolved($id)) {
@@ -122,6 +123,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     public function set(string $id, mixed $entry): void
     {
         $id = $this->handleAliasResolution($id);
+
         $this->definitions[$id] = $entry;
         if ($this->registering) {
             unset($this->providers[$id]);

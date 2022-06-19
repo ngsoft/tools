@@ -115,13 +115,11 @@ abstract class Facade
         if (isset(static::$resolvedInstance[$name])) {
             return static::$resolvedInstance[$name];
         }
+        static::getContainer()->register(static::getServiceProvider());
 
         if (static::$cached) {
             return static::$resolvedInstance[$name] = static::getContainer()->get($name);
         }
-
-
-        static::getContainer()->register(static::getServiceProvider());
 
         return static::getContainer()->get($name);
     }
