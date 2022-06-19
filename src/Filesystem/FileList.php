@@ -41,7 +41,7 @@ class FileList implements IteratorAggregate, Countable
         }
     }
 
-    public function append(string|iterable $files): void
+    public function append(string|iterable|Filesystem $files): void
     {
 
         if ( ! is_iterable($files)) {

@@ -114,7 +114,18 @@ final class Tools
      */
     public static function normalize_path(string $path): string
     {
-        return preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $path);
+        if (empty($path)) {
+            return $path;
+        }
+
+        $path = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $path);
+
+        if (in_array($path[-1], ['\\', '/'])) {
+            $path = mb_substr($path, 0, -1);
+        }
+
+
+        return $path;
     }
 
     /**

@@ -105,7 +105,14 @@ abstract class Filesystem implements Countable, Stringable
 
     protected function createDir(string $dirname): void
     {
-        if ( ! is_dir($dirname) || ! mkdir($dirname, 0777, true)) {
+
+        // relative path
+        if ( ! preg_match('#^([a-z]\:|/)#i', $dirname)) {
+            $dirname = getcwd() . DIRECTORY_SEPARATOR . $dirname;
+        }
+
+        //absolute path
+        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true)) {
             throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
         }
     }
