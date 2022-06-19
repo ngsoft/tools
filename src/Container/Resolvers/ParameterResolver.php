@@ -59,7 +59,7 @@ class ParameterResolver implements ContainerResolver
         } catch (Throwable $error) {
             throw new NotFoundException($this->container, $id, $error);
         }
-        if ($resolved === null) throw new NotFoundException($this->container, $id);
+        //if ($resolved === null) throw new NotFoundException($this->container, $id);
         return $resolved;
     }
 

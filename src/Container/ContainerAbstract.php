@@ -6,7 +6,7 @@ namespace NGSOFT\Container;
 
 use Closure;
 use NGSOFT\{
-    Container\Resolvers\LoggerAwareResolver, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Stringable;
@@ -16,6 +16,8 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
 {
 
     protected const BASIC_RESOLVERS = [
+        //please set to last position (First In Last Out)
+        NotFoundResolver::class,
         LoggerAwareResolver::class,
     ];
 
@@ -61,7 +63,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
      */
     protected function resolve(string $id, mixed $resolved): mixed
     {
-        foreach ($this->handlers as $handler) {
+        foreach (array_reverse($this->handlers) as $handler) {
             $resolved = $handler($this, $id, $resolved);
         }
         return $resolved;

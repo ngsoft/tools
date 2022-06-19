@@ -15,16 +15,17 @@ use Closure,
 class Container extends ContainerAbstract
 {
 
-    protected const RESOLVER_STACK = [
-        ParameterResolver::class,
-    ];
+    protected ParameterResolver $paramResolver;
 
     public function __construct(array $definitions = [])
     {
-        foreach (self::RESOLVER_STACK as $resolver) {
-            $this->addResolutionHandler(new $resolver());
-        }
+        $this->paramResolver = new ParameterResolver();
         parent::__construct($definitions);
+    }
+
+    protected function resolve(string $id, mixed $resolved): mixed
+    {
+        return parent::resolve($id, $this->paramResolver->__invoke($this, $id, $resolved));
     }
 
     /** {@inheritdoc} */
