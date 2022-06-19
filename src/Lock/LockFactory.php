@@ -104,7 +104,7 @@ class LockFactory
      * @param string $owner
      * @return SimpleCacheLock
      */
-    public function createSimpleCacheLock(CacheInterface $cache, string $name, int $seconds = 0, string $owner = '')
+    public function createSimpleCacheLock(CacheInterface $cache, string $name, int $seconds = 0, string $owner = ''): SimpleCacheLock
     {
         if ($seconds === 0) {
             $seconds = $this->seconds;

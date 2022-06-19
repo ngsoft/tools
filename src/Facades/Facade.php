@@ -145,4 +145,10 @@ abstract class Facade
         static::$resolvedInstance = [];
     }
 
+    public static function createDocBlock(): string
+    {
+
+        return \NGSOFT\Tools\Utils\FacadeUtils::createDocBlock(static::class);
+    }
+
 }
