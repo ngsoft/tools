@@ -121,7 +121,7 @@ abstract class Facade
             return static::$resolvedInstance[$name];
         }
 
-        if ( ! static::getContainer()->has(static::getFacadeAccessor())) {
+        if ( ! static::getContainer()->hasEntry(static::getFacadeAccessor())) {
             static::getContainer()->register(static::getServiceProvider());
         }
 

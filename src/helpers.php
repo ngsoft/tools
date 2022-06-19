@@ -313,7 +313,7 @@ namespace NGSOFT\Tools {
 
 namespace NGSOFT\Filesystem {
 
-
+    use NGSOFT\Tools;
 
     /**
      * List all files inside a directory
@@ -361,6 +361,14 @@ namespace NGSOFT\Filesystem {
         return $directory->directories($recursive)->files();
     }
 
+    /**
+     * Require file in context isolation
+     *
+     * @param string $file
+     * @param array $data
+     * @param bool $once
+     * @return mixed
+     */
     function require_file(string $file, array $data = [], bool $once = false): mixed
     {
 
@@ -385,16 +393,27 @@ namespace NGSOFT\Filesystem {
         } finally { restore_error_handler(); }
     }
 
+    /**
+     * Require file once in context isolation
+     *
+     * @param string $file
+     * @param array $data
+     * @return mixed
+     */
     function require_file_once(string $file, array $data = []): mixed
     {
         return require_file($file, $data, true);
     }
 
-}
-
-namespace NGSOFT\Facades {
     /**
-     * Boot the facade
+     * Normalize pathnames
+     *
+     * @param string $path
+     * @return string
      */
-    Facade::boot();
+    function normalize_path(string $path): string
+    {
+        return Tools::normalize_path($path);
+    }
+
 }

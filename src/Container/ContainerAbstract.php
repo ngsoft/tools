@@ -100,6 +100,13 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     }
 
     /** {@inheritdoc} */
+    public function hasEntry(string $id): bool
+    {
+        $id = $this->handleAliasResolution($id);
+        return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers);
+    }
+
+    /** {@inheritdoc} */
     public function get(string $id): mixed
     {
 

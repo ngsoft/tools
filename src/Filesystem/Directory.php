@@ -6,9 +6,11 @@ namespace NGSOFT\Filesystem;
 
 use FilesystemIterator,
     InvalidArgumentException,
-    NGSOFT\Tools,
+    IteratorAggregate,
     RecursiveDirectoryIterator,
-    RuntimeException;
+    RuntimeException,
+    Throwable,
+    Traversable;
 use function blank,
              mb_strlen,
              mb_substr;
@@ -21,7 +23,7 @@ use function str_ends_with,
 /**
  * Manages a directory
  */
-class Directory extends Filesystem implements \IteratorAggregate
+class Directory extends Filesystem implements IteratorAggregate
 {
 
     public function __construct(
@@ -42,7 +44,7 @@ class Directory extends Filesystem implements \IteratorAggregate
         }
 
         $directory = realpath($directory);
-        $destination = Tools::normalize_path($destination);
+        $destination = normalize_path($destination);
 
         if ( ! file_exists($destination)) {
             $this->createDir($destination);
@@ -71,7 +73,7 @@ class Directory extends Filesystem implements \IteratorAggregate
                     if ($success === false) {
                         return false;
                     }
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     return false;
                 }
             }
@@ -238,14 +240,14 @@ class Directory extends Filesystem implements \IteratorAggregate
     public function getFile(string $target): File|Directory
     {
 
-        $path = Tools::normalize_path($this->path . DIRECTORY_SEPARATOR . $target);
+        $path = normalize_path($this->path . DIRECTORY_SEPARATOR . $target);
         if (is_dir($path)) {
             return self::create($path);
         }
         return File::create($path);
     }
 
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         yield from self::scanFiles($this->path);
     }

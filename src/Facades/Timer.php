@@ -34,7 +34,7 @@ class Timer extends Facade
 
     protected static function getServiceProvider(): ServiceProvider
     {
-        return new SimpleServiceProvider(self::getAlias(),
+        return new SimpleServiceProvider(self::getFacadeAccessor(),
                 static function (ContainerInterface $container) {
 
 

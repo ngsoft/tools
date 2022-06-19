@@ -11,6 +11,14 @@ interface ContainerInterface extends PsrContainerInterface
 {
 
     /**
+     * Checks if container has the requested entry physically
+     * 
+     * @param string $id
+     * @return bool
+     */
+    public function hasEntry(string $id): bool;
+
+    /**
      * Add an handler to manage entry resolution
      * eg: add an handler to autowire LoggerAware ...
      *

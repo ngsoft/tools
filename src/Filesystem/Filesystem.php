@@ -6,11 +6,11 @@ namespace NGSOFT\Filesystem;
 
 use Countable,
     InvalidArgumentException,
-    NGSOFT\Tools,
     RuntimeException,
     SplFileInfo,
     Stringable;
-use function blank;
+use function blank,
+             str_starts_with;
 
 abstract class Filesystem implements Countable, Stringable
 {
@@ -78,7 +78,7 @@ abstract class Filesystem implements Countable, Stringable
             throw new InvalidArgumentException('Filename is empty.');
         }
 
-        $this->path = Tools::normalize_path($path);
+        $this->path = normalize_path($path);
     }
 
     abstract public function exists(): bool;
