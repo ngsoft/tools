@@ -11,10 +11,17 @@ class FacadeUtils
     {
 
         $class = (string) $class;
-        if (class_exists($class) || interface_exists($class)) {
-            return NAMESPACE_SEPARATOR . $class;
+
+        $split = explode('|', $class);
+        foreach ($split as &$class) {
+            if (class_exists($class) || interface_exists($class)) {
+                $class = NAMESPACE_SEPARATOR . $class;
+            }
         }
-        return $class;
+
+
+
+        return implode('|', $split);
     }
 
     public static function getClassDocBlocks(object $instance): array
@@ -49,14 +56,20 @@ class FacadeUtils
             }
 
 
+            $returntype = $rMethod->hasReturnType() ? $rMethod->getReturnType() : 'mixed';
+
+            if (in_array($returntype, ['self', 'static'])) {
+                $returntype = get_class($instance);
+            }
+
+
             $result[] = sprintf(
                     $model,
-                    self::getFullyQualifiedClassName($rMethod->hasReturnType() ? $rMethod->getReturnType() : 'mixed'),
+                    self::getFullyQualifiedClassName($returntype),
                     $rMethod->getName(),
                     implode(', ', $params)
             );
         }
-
         $result[] = sprintf(' * @see %s', self::getFullyQualifiedClassName(get_class($instance)));
 
         return $result;
