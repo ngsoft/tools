@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Facades;
 
-use Closure,
-    NGSOFT\Container\ContainerInterface,
-    RuntimeException;
+use Closure;
+use NGSOFT\Container\{
+    Container, ContainerInterface, ServiceProvider
+};
+use RuntimeException;
 use function class_basename;
 
 abstract class Facade
@@ -44,6 +46,11 @@ abstract class Facade
     abstract protected static function getFacadeAccessor(): string;
 
     /**
+     * Get the service provider for the component
+     */
+    abstract protected static function getServiceProvider(): ServiceProvider;
+
+    /**
      * Run a Closure when the facade has been resolved.
      *
      * @param  Closure  $callback
@@ -79,7 +86,7 @@ abstract class Facade
 
     protected static function startContainer(): ContainerInterface
     {
-        return new \NGSOFT\Container\Container();
+        return new Container();
     }
 
     public static function setContainer(ContainerInterface $container): void
