@@ -137,6 +137,9 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
     }
 
 
+
+
+
     if ( ! function_exists('until')) {
 
 
@@ -152,7 +155,6 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
         {
 
             while ($times > 0) {
-                $result = $contition();
                 if (filled($contition())) {
                     return true;
                 }
