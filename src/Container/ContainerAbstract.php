@@ -55,8 +55,6 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     {
         foreach ($this->handlers as $handler) {
             $resolved = $handler($this, $id, $resolved);
-
-            var_dump($resolved);
         }
         return $resolved;
     }
