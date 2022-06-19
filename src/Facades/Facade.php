@@ -114,8 +114,6 @@ abstract class Facade
         }
 
         return static::getContainer()->get($name);
-
-        return null;
     }
 
     /**

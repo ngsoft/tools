@@ -97,9 +97,9 @@ class ParameterResolver implements ContainerResolver
         else $reflectionTypes = [$reflectionType];
 
 
-
+        $previous = null;
         foreach ($reflectionTypes as $reflectionNamedType) {
-            $previous = null;
+
             $type = $reflectionNamedType->getName();
 
             if ($reflectionNamedType->isBuiltin()) {
@@ -116,7 +116,7 @@ class ParameterResolver implements ContainerResolver
                         $previous = new ContainerResolverException(sprintf(
                                         'Container returned type %s instead of type %s for entry %s',
                                         get_debug_type($value), $type, $id
-                        ));
+                                ), 0, $previous);
                     } else { return $value; }
                 } catch (ContainerExceptionInterface) {
 
