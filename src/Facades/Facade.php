@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Facades;
 
-use Closure;
+use BadMethodCallException,
+    Closure;
 use NGSOFT\Container\{
     Container, ContainerInterface, ServiceProvider
 };
@@ -20,12 +21,6 @@ abstract class Facade
 
     /**
      * Handle dynamic, static calls to the object.
-     *
-     * @param  string  $method
-     * @param  array  $args
-     * @return mixed
-     *
-     * @throws RuntimeException
      */
     public static function __callStatic(string $method, array $args): mixed
     {
@@ -35,15 +30,20 @@ abstract class Facade
             throw new RuntimeException('A facade root has not been set.');
         }
 
+        if ( ! method_exists($instance, $method)) {
+            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $method));
+        }
+
         return $instance->$method(...$args);
     }
 
     /**
      * Get the registered name of the component.
-     *
-     * @return string
      */
-    abstract protected static function getFacadeAccessor(): string;
+    protected static function getFacadeAccessor(): string
+    {
+        return static::getAlias();
+    }
 
     /**
      * Get the service provider for the component
@@ -56,7 +56,7 @@ abstract class Facade
      * @param  Closure  $callback
      * @return void
      */
-    public static function resolved(Closure $callback)
+    public static function resolved(Closure $callback): void
     {
         $accessor = static::getFacadeAccessor();
 
@@ -99,7 +99,7 @@ abstract class Facade
      *
      * @return mixed
      */
-    public static function getFacadeRoot()
+    public static function getFacadeRoot(): mixed
     {
         return static::resolveFacadeInstance(static::getFacadeAccessor());
     }
@@ -133,7 +133,7 @@ abstract class Facade
      * @param  string  $name
      * @return void
      */
-    public static function clearResolvedInstance($name)
+    public static function clearResolvedInstance(string $name): void
     {
         unset(static::$resolvedInstance[$name]);
     }
@@ -143,15 +143,9 @@ abstract class Facade
      *
      * @return void
      */
-    public static function clearResolvedInstances()
+    public static function clearResolvedInstances(): void
     {
         static::$resolvedInstance = [];
-    }
-
-    public static function createDocBlock(): string
-    {
-
-        return \NGSOFT\Tools\Utils\FacadeUtils::createDocBlock(static::class);
     }
 
 }

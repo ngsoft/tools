@@ -26,11 +26,6 @@ class Timer extends Facade
 
     public const GLOBAL_CLOCK = 'global';
 
-    protected static function getFacadeAccessor(): string
-    {
-        return static::getAlias();
-    }
-
     protected static function getServiceProvider(): ServiceProvider
     {
         return new class implements ServiceProvider{
