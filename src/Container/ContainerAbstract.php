@@ -8,7 +8,8 @@ use Closure;
 use NGSOFT\Traits\{
     StringableObject, Unserializable
 };
-use Stringable;
+use Psr\Container\ContainerInterface as PsrContainerInterface,
+    Stringable;
 use function get_debug_type;
 
 abstract class ContainerAbstract implements ContainerInterface, Stringable
@@ -31,7 +32,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
             protected array $definitions = []
     )
     {
-        $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this;
+        $this->definitions[PsrContainerInterface::class] = $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this;
     }
 
     /** {@inheritdoc} */

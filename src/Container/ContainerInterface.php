@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace NGSOFT\Container;
 
 use Closure,
-    Psr\Container\ContainerInterface as PSRContainerInterface;
+    Psr\Container\ContainerInterface as PsrContainerInterface;
 
-interface ContainerInterface extends PSRContainerInterface
+interface ContainerInterface extends PsrContainerInterface
 {
 
     /**
