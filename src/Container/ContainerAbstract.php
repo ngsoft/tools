@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure;
+use ArrayAccess,
+    Closure;
 use NGSOFT\{
-    Container\Resolvers\ClassStringResolver, Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Stringable;
 use function get_debug_type;
 
-abstract class ContainerAbstract implements ContainerInterface, Stringable
+abstract class ContainerAbstract implements ContainerInterface, Stringable, ArrayAccess
 {
 
     protected const BASIC_RESOLVERS = [
@@ -166,6 +167,26 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
         }
         $this->definitions[$id] = $new;
         return $this;
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->has($offset);
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        $this->set($offset, $value);
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        unset($this->definitions[$offset], $this->alias[$offset], $this->providers[$offset]);
     }
 
     /** {@inheritdoc} */

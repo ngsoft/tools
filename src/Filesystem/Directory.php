@@ -196,7 +196,7 @@ class Directory extends Filesystem implements \IteratorAggregate
      * @param bool $hidden
      * @return FileList
      */
-    public function allFiles(string|array $extensions = '', bool $hidden = false): FileList
+    public function allFiles(string|array $extensions = [], bool $hidden = false): FileList
     {
         return $this->filesIterator(self::scanFiles($this->path, true), $extensions, $hidden);
     }

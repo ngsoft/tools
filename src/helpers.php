@@ -311,8 +311,90 @@ namespace NGSOFT\Tools {
 
 }
 
+namespace NGSOFT\Filesystem {
+
+
+
+    /**
+     * List all files inside a directory
+     *
+     * @param string|Directory $directory
+     * @param string|array $extensions
+     * @param bool $hidden
+     * @param bool $recursive
+     * @return string[]
+     */
+    function list_files(string|Directory $directory, string|array $extensions = [], bool $hidden = false, bool $recursive = false): array
+    {
+        if (is_string($directory)) {
+            $directory = Directory::create($directory);
+        }
+        $iterator = $recursive ? $directory->allFiles($extensions, $hidden) : $directory->files($extensions, $hidden);
+        return $iterator->files();
+    }
+
+    /**
+     * List all files inside a directory recursively
+     *
+     * @param string|Directory $directory
+     * @param string|array $extensions
+     * @param bool $hidden
+     * @return string[]
+     */
+    function list_files_recursive(string|Directory $directory, string|array $extensions = [], bool $hidden = false): array
+    {
+        return list_files($directory, $extensions, $hidden, true);
+    }
+
+    /**
+     * List directories inside a directory
+     *
+     * @param string|Directory $directory
+     * @param bool $recursive
+     * @return string[]
+     */
+    function list_directories(string|Directory $directory, bool $recursive = false): array
+    {
+        if (is_string($directory)) {
+            $directory = Directory::create($directory);
+        }
+        return $directory->directories($recursive)->files();
+    }
+
+    function require_file(string $file, array $data = [], bool $once = false): mixed
+    {
+
+        $closure = static function (array $___data): mixed {
+            extract($___data);
+            unset($__data);
+            return func_get_arg(2) ?
+            require_once func_get_arg(1) :
+            require func_get_arg(1);
+        };
+
+        try {
+            // Warnings will be thrown as ErrorException
+            set_error_handler(function ($type, $msg, $file, $line) {
+                if ( ! (error_reporting() & $type)) { return false; }
+                throw new \ErrorException($msg, 0, $type, $file, $line);
+            });
+
+            return $closure($data, $file, $once);
+        } catch (\ErrorException) {
+            return null;
+        } finally { restore_error_handler(); }
+    }
+
+    function require_file_once(string $file, array $data = []): mixed
+    {
+        return require_file($file, $data, true);
+    }
+
+}
+
 namespace NGSOFT\Facades {
     /**
      * Boot the facade
      */
+    Facade::boot();
 }
