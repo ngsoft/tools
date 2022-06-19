@@ -8,7 +8,8 @@ use Closure;
 use NGSOFT\Container\{
     ContainerInterface, ContainerResolver, ContainerResolverException, NotFoundException
 };
-use ReflectionClass,
+use Psr\Container\ContainerExceptionInterface,
+    ReflectionClass,
     ReflectionFunction,
     ReflectionIntersectionType,
     ReflectionMethod,
@@ -103,7 +104,12 @@ class ParameterResolver implements ContainerResolver
                 //we try to resolve that class so => infinite loop
                 continue;
             } else {
-                return $this->container->get($type);
+
+                try {
+                    return $this->container->get($type);
+                } catch (ContainerExceptionInterface) {
+
+                }
             }
         }
 

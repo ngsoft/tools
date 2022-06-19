@@ -122,7 +122,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     }
 
     /** {@inheritdoc} */
-    public function alias(string $id, string $alias): static
+    public function alias(string $alias, string $id): static
     {
         $this->alias[$alias] = $id;
         return $this;
