@@ -116,6 +116,53 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
         }
 
     }
+
+    if ( ! function_exists('wait_for')) {
+
+        /**
+         * Wait for a given amount of time
+         *
+         * @param int $ms if 0 wait for .9 to 110 ms
+         * @return void
+         */
+        function wait_for(int $ms = 0): void
+        {
+            if ($ms === 0) {
+                $ms = 100 + random_int(-10, 10);
+            }
+
+            usleep($ms * 1000);
+        }
+
+    }
+
+
+    if ( ! function_exists('until')) {
+
+
+        /**
+         * Execute callback until condition is met
+         *
+         * @param callable $contition must returns non blank value for success
+         * @param int $times maximum times the loop can run
+         * @param int $waitForMs time to wait between attempts
+         * @return bool Success or failure
+         */
+        function until(callable $contition, int $times = 1000, int $waitForMs = 10): bool
+        {
+
+            while ($times > 0) {
+                $result = $contition();
+                if (filled($contition())) {
+                    return true;
+                }
+                wait_for($waitForMs);
+                $times --;
+            }
+            return false;
+        }
+
+    }
 }
 
 namespace NGSOFT\Tools {

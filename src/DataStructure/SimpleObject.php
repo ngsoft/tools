@@ -7,8 +7,11 @@ namespace NGSOFT\DataStructure;
 use ArrayAccess,
     Countable,
     IteratorAggregate,
-    JsonSerializable,
-    OutOfBoundsException,
+    JsonSerializable;
+use NGSOFT\{
+    Facades\Lock, Lock\FileLock, Lock\LockStore
+};
+use OutOfBoundsException,
     Stringable,
     Throwable;
 use function get_debug_type,
@@ -22,17 +25,11 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     protected string $filename = '';
     protected ?self $parent = null;
     protected ?string $hash = null;
-    protected ?string $lock = null;
+    protected ?FileLock $lock = null;
+    protected string|int|null $offset;
 
     /** @var static[] */
     protected array $children = [];
-
-    public function __destruct()
-    {
-        if ($this->lock) {
-            unlink($this->lock);
-        }
-    }
 
     /**
      * Instanciates a new instance using the given json file and syncs it (writes to it when keys are added/removed)
@@ -52,40 +49,13 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
             $instance->filename = $filename;
         }
 
-
         return $instance;
     }
 
-    protected function getLock(int|float $timeout = 10): bool
+    protected function getLock(): LockStore
     {
-        $lock = "{$this->filename}.lock";
-
-        $start = microtime(true);
-
-        while (file_exists($lock)) {
-            if (microtime(true) > ($timeout + $start)) {
-                return false;
-            }
-            pause(.01);
-        }
-
-        return true;
-    }
-
-    protected function lock(callable $process): bool
-    {
-        $lock = "{$this->filename}.lock";
-
-        if ($this->getLock() && touch($lock)) {
-            $this->lock = $lock;
-            $process();
-            if (unlink($lock)) {
-                $this->lock = null;
-                return true;
-            }
-        }
-
-        return false;
+        $this->lock = $this->lock ?? Lock::createFileLock($this->filename);
+        return $this->lock;
     }
 
     /**
@@ -96,8 +66,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     protected function update(): void
     {
         if ( ! empty($this->filename)) {
-
-            $this->lock(function () {
+            $this->getLock()->block(20, function () {
                 if ($this->saveToJson($this->filename)) {
                     $this->hash = $this->getHash();
                 }
@@ -116,9 +85,8 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
             // can check concurrent modifications
             $hash = $this->getHash();
 
-            //file does not exists: null === null, no need to load
             if ($hash !== $this->hash) {
-                $this->lock(function () {
+                $this->getLock()->block(20, function () {
                     if ($string = file_get_contents($this->filename)) {
                         $array = json_decode($string, true);
                         if (is_array($array)) {
@@ -138,7 +106,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         }
 
         while (($hash = hash_file('crc32', $this->filename) ) === false) {
-
+            pause(.095);
         }
         return $hash;
     }
@@ -209,6 +177,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
                 $instance->parent = $this;
                 $instance->storage = &$value;
                 $this->children[$offset] = $instance;
+                $this->offset = $offset;
                 return $instance;
             }
         }
@@ -225,7 +194,7 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
-        unset($this->storage[$offset], $this->children[$offset]);
+        unset($this->storage[$offset]);
         $this->update();
     }
 
