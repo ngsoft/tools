@@ -75,7 +75,7 @@ class ParameterResolver implements ContainerResolver
 
             if ($reflectionType === null) {
                 if ($reflectionParameter->isDefaultValueAvailable()) $result[] = $reflectionParameter->getDefaultValue();
-                else $result[] = $index === 0 ? $this : null;
+                else $result[] = $index === 0 ? $this->container : null;
                 continue;
             }
 

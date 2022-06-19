@@ -36,12 +36,14 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     }
 
     /** {@inheritdoc} */
-    public function addResolutionHandler(Closure|ContainerResolver $handler): void
+    public function addResolutionHandler(Closure|ContainerResolver $handler): static
     {
         if (in_array($handler, $this->handlers)) {
             throw new ContainerResolverException('Cannot add the same resolver twice.');
         }
         $this->handlers[] = $handler;
+
+        return $this;
     }
 
     abstract protected function isResolved(string $id): bool;
@@ -81,11 +83,13 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     }
 
     /** {@inheritdoc} */
-    public function register(ServiceProvider $provider): void
+    public function register(ServiceProvider $provider): static
     {
         foreach ($provider->provides() as $id) {
             $this->providers[$id] = $provider;
         }
+
+        return $this;
     }
 
     /** {@inheritdoc} */
@@ -118,13 +122,14 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
     }
 
     /** {@inheritdoc} */
-    public function alias(string $id, string $alias): void
+    public function alias(string $id, string $alias): static
     {
         $this->alias[$alias] = $id;
+        return $this;
     }
 
     /** {@inheritdoc} */
-    public function extend(string $id, Closure $closure): void
+    public function extend(string $id, Closure $closure): static
     {
         if ( ! $this->has($id)) {
             throw new NotFoundException($this, $id);
@@ -146,6 +151,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable
             );
         }
         $this->definitions[$id] = $new;
+        return $this;
     }
 
     /** {@inheritdoc} */

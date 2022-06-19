@@ -15,17 +15,17 @@ interface ContainerInterface extends PsrContainerInterface
      * eg: add an handler to autowire LoggerAware ...
      *
      * @param Closure|ContainerResolver $handler
-     * @return void
+     * @return static
      */
-    public function addResolutionHandler(Closure|ContainerResolver $handler): void;
+    public function addResolutionHandler(Closure|ContainerResolver $handler): static;
 
     /**
      * Register a service
      *
      * @param ServiceProvider $provider
-     * @return void
+     * @return static
      */
-    public function register(ServiceProvider $provider): void;
+    public function register(ServiceProvider $provider): static;
 
     /**
      * Adds multiple definitions
@@ -49,16 +49,16 @@ interface ContainerInterface extends PsrContainerInterface
      *
      * @param string $id
      * @param string $alias
-     * @return void
+     * @return static
      */
-    public function alias(string $id, string $alias): void;
+    public function alias(string $id, string $alias): static;
 
     /**
      * Extends an entry from the container
      *
      * @param string $id
      * @param Closure $closure must return the same type
-     * @return void
+     * @return static
      */
-    public function extend(string $id, Closure $closure): void;
+    public function extend(string $id, Closure $closure): static;
 }

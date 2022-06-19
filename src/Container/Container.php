@@ -4,15 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure;
-use ReflectionClass,
-    ReflectionFunction,
-    ReflectionIntersectionType,
-    ReflectionMethod,
-    ReflectionNamedType,
-    ReflectionParameter,
-    ReflectionUnionType,
-    Throwable;
+use Closure,
+    NGSOFT\Container\Resolvers\ParameterResolver;
 
 /**
  * Container that supports autowiring for dependency injection
@@ -23,7 +16,7 @@ class Container extends ContainerAbstract
 {
 
     protected const RESOLVER_STACK = [
-        Resolvers\ParameterResolver::class,
+        ParameterResolver::class,
     ];
 
     public function __construct(array $definitions = [])
