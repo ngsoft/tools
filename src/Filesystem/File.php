@@ -16,7 +16,7 @@ use function blank,
              get_debug_type;
 
 /**
- * File
+ * Manages a File
  */
 class File extends Filesystem implements \IteratorAggregate
 {

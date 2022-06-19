@@ -18,6 +18,9 @@ use function NGSOFT\Tools\{
 use function str_ends_with,
              str_starts_with;
 
+/**
+ * Manages a directory
+ */
 class Directory extends Filesystem implements \IteratorAggregate
 {
 
@@ -224,6 +227,22 @@ class Directory extends Filesystem implements \IteratorAggregate
             return $result;
         }
         return $list->filter(fn($f) => $f instanceof Directory);
+    }
+
+    /**
+     * Access a file in that directory
+     *
+     * @param string $target
+     * @return File|Directory
+     */
+    public function getFile(string $target): File|Directory
+    {
+
+        $path = Tools::normalize_path($this->path . DIRECTORY_SEPARATOR . $target);
+        if (is_dir($path)) {
+            return self::create($path);
+        }
+        return File::create($path);
     }
 
     public function getIterator(): \Traversable

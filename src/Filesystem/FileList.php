@@ -9,6 +9,9 @@ use Countable,
     Traversable;
 use function is_stringable;
 
+/**
+ * File list Iterator
+ */
 class FileList implements IteratorAggregate, Countable
 {
 
