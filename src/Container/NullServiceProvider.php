@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
+/** @phan-file-suppress PhanUnusedPublicMethodParameter */
 class NullServiceProvider implements ServiceProvider
 {
 

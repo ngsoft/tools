@@ -65,6 +65,7 @@ class FacadeUtils
 
 
             $returntype = $rMethod->hasReturnType() ? $rMethod->getReturnType() : 'mixed';
+            $returntype = (string) $returntype;
 
             if (in_array($returntype, ['self', 'static'])) {
                 $returntype = get_class($instance);

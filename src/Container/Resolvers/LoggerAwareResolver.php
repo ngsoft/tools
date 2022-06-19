@@ -11,6 +11,7 @@ use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
 };
 
+/** @phan-file-suppress PhanUnusedPublicMethodParameter */
 class LoggerAwareResolver implements ContainerResolver
 {
 

@@ -9,6 +9,7 @@ use NGSOFT\Container\{
 };
 use Psr\Container\ContainerExceptionInterface;
 
+/** @phan-file-suppress PhanUnusedPublicMethodParameter */
 class ClassStringResolver implements ContainerResolver
 {
 
