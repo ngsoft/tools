@@ -56,7 +56,7 @@ class StopWatch
 
     public function executeTask(array $arguments = []): StopWatchResult
     {
-        if (!is_callable($this->task)) {
+        if ( ! is_callable($this->task)) {
             throw new RuntimeException(sprintf('Task of type %s is not callable.', get_debug_type($this->task)));
         }
 
@@ -77,7 +77,7 @@ class StopWatch
     {
         if ($this->state->is(State::IDLE, State::PAUSED)) {
 
-            if (!is_null($startTime)) {
+            if ( ! is_null($startTime)) {
                 $this->highResolution = false;
             }
 
@@ -95,7 +95,7 @@ class StopWatch
      */
     public function resume(): bool
     {
-        if (!$this->state->is(State::PAUSED)) {
+        if ( ! $this->state->is(State::PAUSED)) {
             return false;
         }
         return $this->start();
@@ -176,12 +176,12 @@ class StopWatch
     public function getLaps(): iterable
     {
         $prev = 0;
-        foreach ($this->laps as $time) {
+        foreach ($this->laps as $label => $time) {
 
             $ctime = $time - $prev;
             $prev = $time;
 
-            yield StopWatchResult::create($time) => StopWatchResult::create($ctime);
+            yield $label => StopWatchResult::create($ctime);
         }
     }
 
@@ -190,12 +190,14 @@ class StopWatch
      *
      * @return bool
      */
-    public function lap(): bool
+    public function lap(?string $label = null): bool
     {
-        if (!$this->isStarted()) {
+        if ( ! $this->isStarted()) {
             return false;
         }
-        $this->laps[] = $this->readRaw();
+        if ($label) {
+            $this->laps[$label] = $this->readRaw();
+        } else { $this->laps[] = $this->readRaw(); }
         return true;
     }
 
