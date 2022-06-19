@@ -18,6 +18,54 @@ abstract class Filesystem implements Countable, Stringable
     protected ?SplFileInfo $info;
     protected string $path;
 
+    /**
+     * Scan files in a directory
+     * @param string $dirname
+     * @param bool $recursive
+     * @return iterable
+     */
+    public static function scanFiles(string $dirname, bool $recursive = false): iterable
+    {
+
+        static $ignore = ['.', '..'];
+        if ( ! is_dir($dirname)) {
+            return;
+        }
+
+        $result = new FileList();
+
+        $files = $dirs = [];
+
+        foreach (scandir($dirname) as $file) {
+            if (in_array($file, $ignore)) {
+                continue;
+            }
+            $path = $dirname . DIRECTORY_SEPARATOR . $file;
+
+            if ( ! $recursive || ! is_dir($path)) {
+                $result->append($path);
+                continue;
+            }
+
+            if (is_dir($path)) {
+                $dirs[] = $path;
+            }
+        }
+
+
+        foreach ($dirs as $dir) {
+            $result->append(static::scanFiles($dir, $recursive));
+        }
+
+        yield from $result;
+    }
+
+    public static function scanFilesArray(string $dirname, bool $recursive = false): array
+    {
+        $result = [];
+        return $result;
+    }
+
     public static function create(string $path): static
     {
         return new static($path);
@@ -166,6 +214,11 @@ abstract class Filesystem implements Countable, Stringable
     public function __toString(): string
     {
         return $this->path;
+    }
+
+    public function __debugInfo(): array
+    {
+        return [];
     }
 
 }

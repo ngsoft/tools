@@ -34,6 +34,16 @@ class File extends Filesystem implements \IteratorAggregate
     }
 
     /**
+     * Get file directory
+     * 
+     * @return Directory
+     */
+    public function getDirectory(): Directory
+    {
+        return Directory::create($this->dirname());
+    }
+
+    /**
      * Checks if file exists and is regular file
      *
      * @return bool

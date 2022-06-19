@@ -34,6 +34,26 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
     }
 
 
+    if ( ! function_exists('is_stringable')) {
+
+        function is_stringable(mixed $value): bool
+        {
+            if (is_scalar($value) || null === $value) {
+                return true;
+            }
+            if ($value instanceof Stringable) {
+                return true;
+            }
+
+            if (is_object($value) && method_exists($value, '__toString')) {
+                return true;
+            }
+
+            return false;
+        }
+
+    }
+
     if ( ! function_exists('uses_trait')) {
 
         /**
@@ -135,10 +155,6 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
         }
 
     }
-
-
-
-
 
     if ( ! function_exists('until')) {
 

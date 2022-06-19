@@ -42,50 +42,6 @@ class Directory extends Filesystem
         return $this->isEmpty() && $this->rmdir($this->path);
     }
 
-    public static function scanFiles(string $dirname, bool $recursive = false): iterable
-    {
-
-
-
-        static $ignore = ['.', '..'];
-        if ( ! is_dir($dirname)) {
-            return;
-        }
-
-        $files = $dirs = [];
-
-        foreach (scandir($dirname) as $file) {
-            if (in_array($file, $ignore)) {
-                continue;
-            }
-            $path = $dirname . DIRECTORY_SEPARATOR . $file;
-
-            if ( ! $recursive || ! is_dir($path)) {
-
-                yield $path;
-
-                continue;
-            }
-
-            if (is_dir($path)) {
-                $dirs[] = $path;
-            }
-        }
-
-
-        foreach ($dirs as $dir) {
-            yield from static::scanFiles($dir, $recursive);
-        }
-    }
-
-    public static function scanFilesArray(string $dirname, bool $recursive = false): array
-    {
-
-        $result = [];
-
-        return $result;
-    }
-
     public function files(string|array $extensions = '', bool $hidden = false): iterable
     {
 

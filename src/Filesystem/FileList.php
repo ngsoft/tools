@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Filesystem;
 
-use Countable,
+use ArrayIterator,
+    Countable,
     IteratorAggregate,
     Traversable;
 
@@ -13,14 +14,14 @@ class FileList implements IteratorAggregate, Countable
 
     protected array $files = [];
 
-    public static function create(array $files)
+    public static function create(array $files = [])
     {
         $instance = new static();
         $instance->import($files);
         return $instance;
     }
 
-    protected function import(array $files)
+    protected function import(iterable $files)
     {
 
         $this->files = [];
@@ -40,12 +41,29 @@ class FileList implements IteratorAggregate, Countable
         }
     }
 
-    public function append(string $file): void
+    public function append(string|iterable $files): void
     {
-        if ( ! file_exists($file)) {
-            return;
+
+        if ( ! is_iterable($files)) {
+            $files = [$files];
         }
-        $this->files[$file] = is_dir($file) ? Directory::create($file) : File::create($file);
+
+        foreach ($files as $file) {
+
+            if ($file instanceof Filesystem) {
+                $this->files[$file->getPath()] = $file;
+                continue;
+            }
+            if ( ! is_stringable($file)) {
+                continue;
+            }
+            $file = (string) $file;
+
+            if ( ! file_exists($file)) {
+                continue;
+            }
+            $this->files[$file] = is_dir($file) ? Directory::create($file) : File::create($file);
+        }
     }
 
     public function toArray(): array
@@ -63,6 +81,17 @@ class FileList implements IteratorAggregate, Countable
         foreach ($this->files as $file => $obj) {
             yield $file => $obj;
         }
+    }
+
+    public function keys(): iterable
+    {
+
+        yield from new ArrayIterator(array_keys($this->files));
+    }
+
+    public function values(): iterable
+    {
+        yield from new ArrayIterator(array_values($this->files));
     }
 
 }
