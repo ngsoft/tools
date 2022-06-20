@@ -44,13 +44,11 @@ class SimpleServiceProvider implements ServiceProvider
             return;
         }
 
-        if (is_null($this->register)) {
+        if (is_null($closure) || ! count($this->provides())) {
             return;
         }
 
-        foreach ($this->provides as $id) {
-            $container->set($id, $this->register);
-        }
+        $container->setMultiple(array_fill_keys($this->provides(), $closure));
     }
 
 }
