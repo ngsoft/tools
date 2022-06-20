@@ -406,6 +406,55 @@ namespace NGSOFT\Filesystem {
     }
 
     /**
+     * Require multiple files at once
+     *
+     * @param string|iterable $files can be an array of files or directories
+     * @param array $data data to extract to the files
+     * @param bool $once use require_once
+     * @return iterable iterator of file => result
+     * @throws \ValueError
+     */
+    function require_all(string|iterable $files, array $data = [], bool $once = false): iterable
+    {
+        if ( ! is_iterable($files)) {
+            $files = [$files];
+        }
+
+        foreach ($files as $file) {
+
+            if ( ! is_string($file)) {
+                throw new \ValueError(sprintf('Invalid type %s for requested type string.', get_debug_type($file)));
+            }
+            if ( ! file_exists($file)) {
+                yield $file => null;
+                continue;
+            }
+
+            if (is_file($file)) {
+                yield $file => require_file($file, $data, $once);
+                continue;
+            }
+
+            // file exists so directory
+            foreach (list_files_recursive($file, 'php') as $file) {
+                yield $file => require_file($file, $data, $once);
+            }
+        }
+    }
+
+    /**
+     * Require multiple files at once but only once
+     *
+     * @param string|iterable $files
+     * @param array $data
+     * @return iterable
+     */
+    function require_all_once(string|iterable $files, array $data = []): iterable
+    {
+        return require_all($files, $data, true);
+    }
+
+    /**
      * Normalize pathnames
      *
      * @param string $path
