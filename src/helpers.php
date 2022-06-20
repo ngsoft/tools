@@ -317,7 +317,8 @@ namespace NGSOFT\Filesystem {
     use NGSOFT\{
         Facades\Logger, Tools
     };
-    use ValueError;
+    use ValueError,
+        Psr\Log\NullLogger;
     use function get_debug_type;
 
     /**
@@ -368,6 +369,7 @@ namespace NGSOFT\Filesystem {
 
     /**
      * Require file in context isolation
+     * use it in a try/catch block
      *
      * @param string $file
      * @param array $data
@@ -383,7 +385,7 @@ namespace NGSOFT\Filesystem {
 
         $closure = static function (array $___data): mixed {
             extract($___data);
-            unset($__data);
+            unset($___data);
             return func_get_arg(2) ?
             require_once func_get_arg(1) :
             require func_get_arg(1);
@@ -397,9 +399,6 @@ namespace NGSOFT\Filesystem {
             });
 
             return $closure($data, $file, $once);
-        } catch (ErrorException $error) {
-            Logger::warning($error->getMessage());
-            return null;
         } finally { restore_error_handler(); }
     }
 
@@ -445,7 +444,6 @@ namespace NGSOFT\Filesystem {
                 continue;
             }
 
-// file exists so directory
             foreach (list_files_recursive($file, 'php') as $file) {
                 yield $file => require_file($file, $data, $once);
             }
