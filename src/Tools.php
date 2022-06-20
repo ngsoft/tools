@@ -455,7 +455,7 @@ final class Tools
         }
 
         if ($microseconds > 0) {
-            usleep((int) round($seconds / static::MICROSECOND));
+            usleep($microseconds);
         }
     }
 
