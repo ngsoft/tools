@@ -7,7 +7,7 @@ namespace NGSOFT\Container;
 use ArrayAccess,
     Closure;
 use NGSOFT\{
-    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\ClosureResolver, Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Stringable;

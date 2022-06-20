@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-use NGSOFT\Facades\Facade;
+use NGSOFT\{
+    Container\Container, Facades\Facade
+};
 
 // Set the internal encoding
 mb_internal_encoding("UTF-8");
@@ -16,4 +18,4 @@ if ( ! function_exists('NGSOFT\\Tools\\some')) {
 }
 
 // instanciating the container
-Facade::getContainer();
+Facade::setContainer(new NGSOFT\Container\SimpleContainer());

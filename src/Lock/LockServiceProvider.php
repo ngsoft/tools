@@ -21,7 +21,7 @@ class LockServiceProvider implements ServiceProvider
 
         $container->alias('Lock', LockFactory::class);
 
-        $container->set(LockFactory::class, function (\NGSOFT\Container\Container $container) {
+        $container->set(LockFactory::class, function (ContainerInterface $container) {
             $rootpath = '';
             if ($container->has('Lock.rootpath')) {
                 $rootpath = $container->get(('locks.rootpath'));

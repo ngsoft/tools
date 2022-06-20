@@ -14,11 +14,11 @@ class SimpleServiceProvider implements ServiceProvider
     /**
      *
      * @param string|iterable $provides
-     * @param object|Closure $register
+     * @param mixed|Closure $register
      */
     public function __construct(
             string|iterable $provides,
-            protected object $register
+            protected mixed $register
     )
     {
         if ( ! is_iterable($provides)) {

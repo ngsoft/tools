@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure;
+use Closure,
+    NGSOFT\Container\Resolvers\ClosureResolver;
 
 /**
  * Container with only basic functionality
  */
 final class SimpleContainer extends ContainerAbstract
 {
+
+    public function __construct(array $definitions = [])
+    {
+        parent::__construct($definitions);
+
+        $this->addResolutionHandler(new ClosureResolver());
+    }
 
     /** {@inheritdoc} */
     public function has(string $id): bool

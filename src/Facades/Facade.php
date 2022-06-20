@@ -91,7 +91,7 @@ abstract class Facade
 
     final protected static function startContainer(): ContainerInterface
     {
-        return new \NGSOFT\Container\SimpleContainer();
+        return new Container();
     }
 
     final public static function setContainer(ContainerInterface $container): void
