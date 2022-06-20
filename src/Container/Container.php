@@ -15,17 +15,15 @@ use Closure,
 class Container extends ContainerAbstract
 {
 
-    protected ParameterResolver $paramResolver;
-
-    public function __construct(array $definitions = [])
-    {
-        $this->paramResolver = new ParameterResolver();
-        parent::__construct($definitions);
-    }
-
+    /** {@inheritdoc} */
     protected function resolve(string $id, mixed $resolved): mixed
     {
-        return parent::resolve($id, $this->paramResolver->__invoke($this, $id, $resolved));
+        static $resolver;
+        if ( ! $resolver) {
+            $resolver = new ParameterResolver();
+        }
+
+        return parent::resolve($id, $resolver($this, $id, $resolved));
     }
 
     /** {@inheritdoc} */

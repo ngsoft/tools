@@ -226,8 +226,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function __debugInfo(): array
     {
-        $keys = array_keys($this->entries());
-        return array_combine($keys, $keys);
+        return array_keys($this->entries());
     }
 
 }

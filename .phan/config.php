@@ -23,6 +23,7 @@ return [
     'directory_list' => [
         'src',
         'vendor',
+        '.phan/stubs',
         $stubs,
     ],
     // A directory list that defines files that will be excluded
@@ -38,6 +39,7 @@ return [
     //       to `exclude_analysis_directory_list`.
     "exclude_analysis_directory_list" => [
         'vendor/',
+        '.phan/stubs',
         $stubs,
     ],
     // A list of plugin files to execute.

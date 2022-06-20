@@ -17,8 +17,6 @@ abstract class Facade
     protected const DEFAULT_CONTAINER_CLASS = Container::class;
 
     private static ?Facade $innerFacade = null;
-    protected array $resovedInstances = [];
-    protected ?ContainerInterface $container = null;
 
     ////////////////////////////   Overrides   ////////////////////////////
 
@@ -32,7 +30,7 @@ abstract class Facade
      */
     protected static function getServiceProvider(): ServiceProvider
     {
-        return new NullServiceProvider(self::getFacadeAccessor());
+        return new NullServiceProvider(static::getFacadeAccessor());
     }
 
     /**
@@ -61,7 +59,7 @@ abstract class Facade
     final public static function getFacadeRoot(): mixed
     {
 
-        if (static::class === self::class) {
+        if (static::class === __CLASS__) {
             return self::getInnerFacade();
         }
 
@@ -77,8 +75,43 @@ abstract class Facade
     {
         /**
          * we extends the facade as it is abstract
+         * with that we can Facade::setContainer() without static error
          */
         return self::$innerFacade = self::$innerFacade ?? new class extends Facade{
+
+                    protected array $resovedInstances = [];
+                    protected ?ContainerInterface $container = null;
+
+                    final public function registerServiceProvider(ServiceProvider $provider): void
+                    {
+                        $this->getContainer()->register($provider);
+                    }
+
+                    protected function getNewContainer(): ContainerInterface
+                    {
+                        $class = self::DEFAULT_CONTAINER_CLASS;
+                        return new $class();
+                    }
+
+                    final public function getResovedInstance(string $name): mixed
+                    {
+                        return $this->resovedInstances[$name] ?? null;
+                    }
+
+                    final public function setResolvedInstance(string $name, object $instance): void
+                    {
+                        $this->resovedInstances[$name] = $instance;
+                    }
+
+                    final public function getContainer(): ContainerInterface
+                    {
+                        return $this->container = $this->container ?? $this->getNewContainer();
+                    }
+
+                    final public function setContainer(ContainerInterface $container): void
+                    {
+                        $this->container = $container;
+                    }
 
                     protected static function getFacadeAccessor(): string
                     {
@@ -90,11 +123,14 @@ abstract class Facade
     /**
      * Resolve the facade root instance from the container.
      *
+     * @phan-suppress PhanUndeclaredMethod
      * @param  string  $name
      * @return mixed
      */
     final protected static function resolveFacadeInstance(string $name): mixed
     {
+
+        static $providers = [];
 
         $facade = self::getInnerFacade();
 
@@ -104,21 +140,18 @@ abstract class Facade
             return $resolved;
         }
 
-        $container = $facade->getContainer();
 
-        if ( ! $container->hasEntry($name)) {
-            $container->register(static::getServiceProvider());
+        if ( ! isset($providers[$name])) {
+            $provider = $providers[$name] = static::getServiceProvider();
+            $facade->registerServiceProvider($provider);
         }
 
-        if ($resolved = $container->get($name)) {
 
+        if ($resolved = $facade->getContainer()->get($name)) {
+            static::isCached() && $facade->setResolvedInstance($name, $resolved);
         }
 
-        if (static::isCached()) {
-            $facade->setResolvedInstance($name, $resolved);
-        }
-
-        return $result;
+        return $resolved;
     }
 
     /**
@@ -139,43 +172,9 @@ abstract class Facade
         return $instance->$name(...$arguments);
     }
 
-    ////////////////////////////   Implementation   ////////////////////////////
-
-
     protected function __construct()
     {
         // Cannot instanciate except for Facade
-    }
-
-    final public function registerServiceProvider(ServiceProvider $provider): void
-    {
-        $this->getContainer()->register($provider);
-    }
-
-    protected function getNewContainer(): ContainerInterface
-    {
-        $class = self::DEFAULT_CONTAINER_CLASS;
-        return new $class();
-    }
-
-    final public function getResovedInstance(string $name): mixed
-    {
-        return $this->resovedInstances[$name] ?? null;
-    }
-
-    final public function setResolvedInstance(string $name, object $instance): void
-    {
-        $this->resovedInstances[$name] = $instance;
-    }
-
-    final public function getContainer(): ContainerInterface
-    {
-        return $this->container = $this->container ?? $this->getNewContainer();
-    }
-
-    final public function setContainer(ContainerInterface $container): void
-    {
-        $this->container = $container;
     }
 
 }
