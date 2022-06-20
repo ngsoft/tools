@@ -57,7 +57,10 @@ class FacadeUtils
                         $rParam->getName()
                 );
                 if ($rParam->isDefaultValueAvailable()) {
-                    $param .= sprintf(' = %s', var_export($rParam->getDefaultValue(), true));
+
+                    $default = $rParam->getDefaultValue();
+
+                    $param .= sprintf(' = %s', is_array($default) ? '[]' : var_export($default, true));
                 }
 
                 $params[] = $param;

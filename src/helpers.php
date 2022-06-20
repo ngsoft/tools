@@ -313,7 +313,12 @@ namespace NGSOFT\Tools {
 
 namespace NGSOFT\Filesystem {
 
-    use NGSOFT\Tools;
+    use ErrorException;
+    use NGSOFT\{
+        Facades\Logger, Tools
+    };
+    use ValueError;
+    use function get_debug_type;
 
     /**
      * List all files inside a directory
@@ -372,6 +377,10 @@ namespace NGSOFT\Filesystem {
     function require_file(string $file, array $data = [], bool $once = false): mixed
     {
 
+        if ( ! is_file($file)) {
+            return null;
+        }
+
         $closure = static function (array $___data): mixed {
             extract($___data);
             unset($__data);
@@ -384,11 +393,12 @@ namespace NGSOFT\Filesystem {
             // Warnings will be thrown as ErrorException
             set_error_handler(function ($type, $msg, $file, $line) {
                 if ( ! (error_reporting() & $type)) { return false; }
-                throw new \ErrorException($msg, 0, $type, $file, $line);
+                throw new ErrorException($msg, 0, $type, $file, $line);
             });
 
             return $closure($data, $file, $once);
-        } catch (\ErrorException) {
+        } catch (ErrorException $error) {
+            Logger::warning($error->getMessage());
             return null;
         } finally { restore_error_handler(); }
     }
@@ -412,7 +422,7 @@ namespace NGSOFT\Filesystem {
      * @param array $data data to extract to the files
      * @param bool $once use require_once
      * @return iterable iterator of file => result
-     * @throws \ValueError
+     * @throws ValueError
      */
     function require_all(string|iterable $files, array $data = [], bool $once = false): iterable
     {
@@ -423,7 +433,7 @@ namespace NGSOFT\Filesystem {
         foreach ($files as $file) {
 
             if ( ! is_string($file)) {
-                throw new \ValueError(sprintf('Invalid type %s for requested type string.', get_debug_type($file)));
+                throw new ValueError(sprintf('Invalid type %s for requested type string.', get_debug_type($file)));
             }
             if ( ! file_exists($file)) {
                 yield $file => null;
@@ -435,7 +445,7 @@ namespace NGSOFT\Filesystem {
                 continue;
             }
 
-            // file exists so directory
+// file exists so directory
             foreach (list_files_recursive($file, 'php') as $file) {
                 yield $file => require_file($file, $data, $once);
             }
