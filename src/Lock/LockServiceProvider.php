@@ -13,26 +13,21 @@ class LockServiceProvider implements ServiceProvider
 
     public function provides(): array
     {
-        return ['Lock'];
+        return ['Lock', LockFactory::class];
     }
 
     public function register(ContainerInterface $container): void
     {
 
-        $container->alias('Lock', LockFactory::class);
+        $rootpath = '';
+        $seconds = 0;
 
-        $container->set(LockFactory::class, function (ContainerInterface $container) {
-            $rootpath = '';
-            if ($container->has('Lock.rootpath')) {
-                $rootpath = $container->get(('locks.rootpath'));
-            }
-            $seconds = 0;
-            if ($container->has('Lock.ttl')) {
-                $seconds = $container->get(('locks.ttl'));
-            }
+        if ($container->hasEntry('Config')) {
+            $rootpath = $container->get('Config')['lock.rootpath'] ?? $rootpath;
+            $seconds = $container->get('Config')['lock.seconds'] ?? $seconds;
+        }
 
-            return new LockFactory($rootpath, $seconds);
-        });
+        $container->setMultiple(array_fill_keys([], new LockFactory($rootpath, $seconds)));
     }
 
 }
