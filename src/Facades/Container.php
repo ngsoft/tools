@@ -10,6 +10,7 @@ use NGSOFT\Container\{
 
 /**
  * @method static bool has(string $id)
+ * @method static bool hasEntry(string $id)
  * @method static \NGSOFT\Container\Container addResolutionHandler(\Closure|\NGSOFT\Container\ContainerResolver $handler)
  * @method static \NGSOFT\Container\Container register(\NGSOFT\Container\ServiceProvider $provider)
  * @method static mixed get(string $id)

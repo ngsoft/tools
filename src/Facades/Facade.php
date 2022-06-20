@@ -27,7 +27,7 @@ abstract class Facade
     /**
      * Handle dynamic, static calls to the object.
      */
-    final public static function __callStatic(string $method, array $args): mixed
+    final public static function __callStatic(string $name, array $arguments): mixed
     {
         $instance = static::getFacadeRoot();
 
@@ -35,11 +35,11 @@ abstract class Facade
             throw new RuntimeException('A facade root has not been set.');
         }
 
-        if ( ! method_exists($instance, $method)) {
-            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $method));
+        if ( ! method_exists($instance, $name)) {
+            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
         }
 
-        return $instance->$method(...$args);
+        return $instance->$name(...$arguments);
     }
 
     /**
