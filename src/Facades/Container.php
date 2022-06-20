@@ -17,7 +17,6 @@ use NGSOFT\Container\{
  * @method static void setMultiple(array $definitions)
  * @method static void set(string $id, mixed $entry)
  * @method static \NGSOFT\Container\Container alias(string|iterable $alias, string $id)
- * @method static \NGSOFT\Container\Container extend(string $id, \Closure $closure)
  * @see \NGSOFT\Container\Container
  */
 class Container extends Facade

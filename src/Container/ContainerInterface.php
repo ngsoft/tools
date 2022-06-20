@@ -12,7 +12,7 @@ interface ContainerInterface extends PsrContainerInterface
 
     /**
      * Checks if container has the requested entry physically
-     * 
+     *
      * @param string $id
      * @return bool
      */
@@ -60,13 +60,4 @@ interface ContainerInterface extends PsrContainerInterface
      * @return static
      */
     public function alias(string|iterable $alias, string $id): static;
-
-    /**
-     * Extends an entry from the container
-     *
-     * @param string $id
-     * @param Closure $closure must return the same type
-     * @return static
-     */
-    public function extend(string $id, Closure $closure): static;
 }

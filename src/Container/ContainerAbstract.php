@@ -38,7 +38,8 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
             protected array $definitions = []
     )
     {
-        $this->definitions[PsrContainerInterface::class] = $this->definitions[ContainerInterface::class] = $this->definitions[static::class] = $this->definitions['Container'] = $this;
+        $this->set(static::class, $this);
+        $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
 
         foreach (self::BASIC_RESOLVERS as $resolver) {
             $this->addResolutionHandler(new $resolver());
@@ -87,7 +88,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
      */
     protected function handleAliasResolution(string $alias): string
     {
-        return $this->alias[$alias] ?? $alias;
+        return isset($this->alias[$alias]) ? $this->handleAliasResolution($this->alias[$alias]) : $alias;
     }
 
     /** {@inheritdoc} */
@@ -150,30 +151,13 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
         return $this;
     }
 
-    /** {@inheritdoc} */
-    public function extend(string $id, Closure $closure): static
+    protected function entries(): iterable
     {
-        if ( ! $this->has($id)) {
-            throw new NotFoundException($this, $id);
-        }
 
-        $current = $this->get($id);
-        $obj = is_object($current);
-        $type = get_debug_type($current);
-
-        $new = $closure($this, $current);
-
-        $newType = get_debug_type($new);
-
-        if ($obj ?  ! is_a($new, $type) : $new !== $newType) {
-            throw new ContainerResolverException(sprintf(
-                                    '%s::%s() invalid closure return value, %s expected, %s given.',
-                                    static::class, __FUNCTION__,
-                                    $type, $newType)
-            );
-        }
-        $this->definitions[$id] = $new;
-        return $this;
+        $entries = $this->definitions;
+        $entries += $this->alias;
+        $entries += $this->providers;
+        return $entries;
     }
 
     public function offsetExists(mixed $offset): bool
@@ -199,7 +183,8 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function __debugInfo(): array
     {
-        return array_keys($this->definitions);
+        $keys = array_keys($this->entries());
+        return array_combine($keys, $keys);
     }
 
 }

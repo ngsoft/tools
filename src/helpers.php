@@ -314,11 +314,8 @@ namespace NGSOFT\Tools {
 namespace NGSOFT\Filesystem {
 
     use ErrorException;
-    use NGSOFT\{
-        Facades\Logger, Tools
-    };
-    use ValueError,
-        Psr\Log\NullLogger;
+    use NGSOFT\Tools;
+    use ValueError;
     use function get_debug_type;
 
     /**
