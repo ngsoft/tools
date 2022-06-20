@@ -11,9 +11,14 @@ class SimpleServiceProvider implements ServiceProvider
 
     protected array $provides = [];
 
+    /**
+     *
+     * @param string|iterable $provides
+     * @param object|Closure $register
+     */
     public function __construct(
             string|iterable $provides,
-            protected Closure $register
+            protected object $register
     )
     {
         if ( ! is_iterable($provides)) {
@@ -33,7 +38,15 @@ class SimpleServiceProvider implements ServiceProvider
     public function register(ContainerInterface $container): void
     {
         $closure = $this->register;
-        $closure($container);
+
+        if ($closure instanceof Closure) {
+            $closure($container);
+            return;
+        }
+
+        foreach ($this->provides as $id) {
+            $container->set($id, $this->register);
+        }
     }
 
 }
