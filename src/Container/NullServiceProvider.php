@@ -8,6 +8,12 @@ namespace NGSOFT\Container;
 class NullServiceProvider implements ServiceProvider
 {
 
+    public function __construct(protected string|array $provides = [])
+    {
+
+        $this->provides = array_values(is_string($provides) ? [$provides] : $provides);
+    }
+
     public function provides(): array
     {
         return [];

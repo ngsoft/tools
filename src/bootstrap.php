@@ -18,4 +18,4 @@ if ( ! function_exists('NGSOFT\\Tools\\some')) {
 }
 
 // instanciating the container
-Facade::setContainer(new NGSOFT\Container\SimpleContainer());
+//Facade::setContainer(new NGSOFT\Container\SimpleContainer());

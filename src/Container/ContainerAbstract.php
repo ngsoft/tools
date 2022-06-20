@@ -7,11 +7,12 @@ namespace NGSOFT\Container;
 use ArrayAccess,
     Closure;
 use NGSOFT\{
-    Container\Resolvers\ClosureResolver, Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
 };
-use Psr\Container\ContainerInterface as PsrContainerInterface,
-    Stringable;
-use function get_debug_type;
+use Psr\Container\{
+    ContainerExceptionInterface, ContainerInterface as PsrContainerInterface
+};
+use Stringable;
 
 abstract class ContainerAbstract implements ContainerInterface, Stringable, ArrayAccess
 {
@@ -94,10 +95,42 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function register(ServiceProvider $provider): static
     {
-        foreach ($provider->provides() as $id) {
-            $this->providers[$id] = $provider;
+        if ( ! $this->hasServiceProvider($provider)) {
+            foreach ($provider->provides() as $id) {
+                $this->providers[$id] = $provider;
+            }
         }
         return $this;
+    }
+
+    /** {@inheritdoc} */
+    public function hasServiceProvider(ServiceProvider $provider): bool
+    {
+
+        $provides = $provider->provides();
+        if (empty($provides)) {
+            return false;
+        }
+
+
+        /** @var ServiceProvider $registered */
+        foreach ($provides as $id) {
+            if ( ! isset($this->providers[$id])) {
+                return false;
+            }
+
+            $registered = $this->providers[$id];
+            if (get_class($registered) !== get_class($provider)) {
+                return false;
+            }
+
+            if ($registered->provides() !== $provides) {
+                return false;
+            }
+        }
+
+
+        return true;
     }
 
     /** {@inheritdoc} */
@@ -105,6 +138,16 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     {
         $id = $this->handleAliasResolution($id);
         return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers);
+    }
+
+    /** {@inheritdoc} */
+    public function tryGet(string $id): mixed
+    {
+        try {
+            return $this->get($id);
+        } catch (ContainerExceptionInterface) {
+            return null;
+        }
     }
 
     /** {@inheritdoc} */
@@ -151,7 +194,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
         return $this;
     }
 
-    protected function entries(): iterable
+    protected function entries(): array
     {
 
         $entries = $this->definitions;

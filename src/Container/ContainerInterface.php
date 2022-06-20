@@ -11,6 +11,16 @@ interface ContainerInterface extends PsrContainerInterface
 {
 
     /**
+     * Finds an entry of the container by its identifier and returns it.
+     *
+     * @param string $id Identifier of the entry to look for.
+     *
+     *
+     * @return mixed|null Entry.
+     */
+    public function tryGet(string $id): mixed;
+
+    /**
      * Checks if container has the requested entry physically
      *
      * @param string $id
@@ -34,6 +44,14 @@ interface ContainerInterface extends PsrContainerInterface
      * @return static
      */
     public function register(ServiceProvider $provider): static;
+
+    /**
+     * Check if service provider is registered
+     * 
+     * @param ServiceProvider $provider
+     * @return bool
+     */
+    public function hasServiceProvider(ServiceProvider $provider): bool;
 
     /**
      * Adds multiple definitions
