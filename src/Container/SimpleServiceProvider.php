@@ -44,6 +44,10 @@ class SimpleServiceProvider implements ServiceProvider
             return;
         }
 
+        if (is_null($this->register)) {
+            return;
+        }
+
         foreach ($this->provides as $id) {
             $container->set($id, $this->register);
         }
