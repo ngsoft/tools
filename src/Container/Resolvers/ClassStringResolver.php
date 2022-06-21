@@ -13,6 +13,11 @@ use Psr\Container\ContainerExceptionInterface;
 class ClassStringResolver implements ContainerResolver
 {
 
+    public function getDefaultPriority(): int
+    {
+        return ContainerInterface::PRIORITY_HIGH + 1;
+    }
+
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
     {
 

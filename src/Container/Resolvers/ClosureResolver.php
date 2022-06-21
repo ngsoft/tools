@@ -13,6 +13,11 @@ use NGSOFT\Container\{
 class ClosureResolver implements ContainerResolver
 {
 
+    public function getDefaultPriority(): int
+    {
+        return ContainerInterface::PRIORITY_HIGH + 2;
+    }
+
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
     {
         return value($value, $container);

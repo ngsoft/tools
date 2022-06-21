@@ -11,6 +11,11 @@ use NGSOFT\Container\{
 class NotFoundResolver implements ContainerResolver
 {
 
+    public function getDefaultPriority(): int
+    {
+        return 1;
+    }
+
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
     {
 

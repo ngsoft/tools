@@ -7,7 +7,7 @@ namespace NGSOFT\Container;
 use ArrayAccess,
     Closure;
 use NGSOFT\{
-    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\{
     ContainerExceptionInterface, ContainerInterface as PsrContainerInterface
@@ -32,13 +32,15 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     protected array $alias = [];
 
     /** @var ServiceProvider[] */
-    protected array $providers = [];
+    protected PrioritySet $providers;
     protected bool $registering = false;
 
     public function __construct(
             protected array $definitions = []
     )
     {
+        $this->providers = new PrioritySet();
+
         $this->set(static::class, $this);
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
 

@@ -16,4 +16,11 @@ interface ContainerResolver
      * @return mixed
      */
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed;
+
+    /**
+     * Set the default priority
+     * 
+     * @return int
+     */
+    public function getDefaultPriority(): int;
 }

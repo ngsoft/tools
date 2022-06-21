@@ -29,4 +29,9 @@ class LoggerAwareResolver implements ContainerResolver
         return $value;
     }
 
+    public function getDefaultPriority(): int
+    {
+        return ContainerInterface::PRIORITY_LOW;
+    }
+
 }

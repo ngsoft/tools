@@ -10,6 +10,10 @@ use Closure,
 interface ContainerInterface extends PsrContainerInterface
 {
 
+    public const PRIORITY_LOW = 32;
+    public const PRIORITY_MEDIUM = 64;
+    public const PRIORITY_HIGH = 128;
+
     /**
      * Finds an entry of the container by its identifier and returns it.
      *
@@ -35,7 +39,7 @@ interface ContainerInterface extends PsrContainerInterface
      * @param Closure|ContainerResolver $handler
      * @return static
      */
-    public function addResolutionHandler(Closure|ContainerResolver $handler): static;
+    public function addResolutionHandler(Closure|ContainerResolver $handler, int $priority = self::PRIORITY_MEDIUM): static;
 
     /**
      * Register a service
@@ -47,7 +51,7 @@ interface ContainerInterface extends PsrContainerInterface
 
     /**
      * Check if service provider is registered
-     * 
+     *
      * @param ServiceProvider $provider
      * @return bool
      */
