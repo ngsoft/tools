@@ -4,10 +4,26 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools\Utils;
 
+use NGSOFT\Facades\Facade,
+    ReflectionClass,
+    ReflectionException,
+    ReflectionMethod,
+    ReflectionParameter,
+    Stringable;
+use const NAMESPACE_SEPARATOR;
+use function NGSOFT\Filesystem\require_file,
+             str_contains,
+             str_starts_with;
+
 class FacadeUtils
 {
 
-    protected static function getFullyQualifiedClassName(string|\Stringable $class)
+    protected const KEY_SIG = 0;
+    protected const KEY_RET = 1;
+    protected const KEY_PARAMS = 2;
+    protected const KEY_DOC = 3;
+
+    protected static function getFullyQualifiedClassName(string|Stringable $class)
     {
 
         $class = (string) $class;
@@ -32,56 +48,97 @@ class FacadeUtils
         return $class;
     }
 
-    public static function getClassDocBlocks(object $instance): array
+    protected static function var_exporter(mixed $data): string|null
     {
 
-        static $model = " * @method static %s %s(%s)";
+        if (is_array($data)) {
+            $result = '[';
+            foreach ($data as $key => $value) {
+                $tmp = self::var_exporter($value);
+                if ($tmp === null) { return null; }
+                if (is_int($key)) {
+                    $result .= sprintf('%s,', $tmp);
+                } else { $result .= sprintf('%s=>%s,', var_export($key, true), $tmp); }
+            }
+            return trim($result, ',') . ']';
+        } elseif (is_scalar($data) || is_null($data)) {
+            return strtolower(var_export($data, true));
+        }
+        return null;
+    }
+
+    protected static function getClassMethodsSignatures(object $instance): array
+    {
+        static $model = "(%s)", $sig = self::KEY_SIG, $ret = self::KEY_RET, $prm = self::KEY_PARAMS, $doc = self::KEY_DOC;
 
         $result = [];
-        $reflector = new \ReflectionClass($instance);
 
-        /** @var \ReflectionMethod $rMethod */
-        foreach ($reflector->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+        $reflector = new ReflectionClass($instance);
+
+        /** @var ReflectionMethod $rMethod */
+        foreach ($reflector->getMethods(ReflectionMethod::IS_PUBLIC) as $rMethod) {
             if ($rMethod->isStatic() || str_starts_with($rMethod->getName(), '__')) {
                 continue;
             }
 
+            $entry = ['', '', [], ''];
 
-            $params = [];
-            /** @var \ReflectionParameter $rParam */
-            foreach ($rMethod->getParameters() as $rParam) {
-
-                $param = sprintf(
-                        '%s $%s',
-                        self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
-                        $rParam->getName()
-                );
-                if ($rParam->isDefaultValueAvailable()) {
-
-                    $default = $rParam->getDefaultValue();
-
-                    $param .= sprintf(' = %s', is_array($default) ? '[]' : var_export($default, true));
-                }
-
-                $params[] = $param;
+            if ($docs = $rMethod->getDocComment()) {
+                $entry[$doc] = $docs;
             }
 
 
             $returntype = $rMethod->hasReturnType() ? $rMethod->getReturnType() : 'mixed';
             $returntype = (string) $returntype;
-
             if (in_array($returntype, ['self', 'static'])) {
                 $returntype = get_class($instance);
             }
+            $entry[$ret] = self::getFullyQualifiedClassName($returntype);
+
+            $params = [];
+            /** @var ReflectionParameter $rParam */
+            foreach ($rMethod->getParameters() as $rParam) {
 
 
-            $result[] = sprintf(
-                    $model,
-                    self::getFullyQualifiedClassName($returntype),
-                    $rMethod->getName(),
-                    implode(', ', $params)
-            );
+
+                var_dump([$rParam->getName() => $rParam->canBePassedByValue()]);
+                $param = sprintf(
+                        '%s %s$%s',
+                        self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
+                        $rParam->canBePassedByValue() ? '' : '&', // so passed by reference
+                        $rParam->getName()
+                );
+                if ($rParam->isDefaultValueAvailable()) {
+                    $default = $rParam->getDefaultValue();
+                    $param .= sprintf(' = %s', self::var_exporter($default));
+                }
+
+                $params['$' . $rParam->getName()] = $param;
+            }
+
+
+            $entry[$sig] = sprintf($model, implode(', ', $params));
+            $entry[$prm] = array_keys($params);
+
+            $result[$rMethod->getName()] = $entry;
         }
+
+        return $result;
+    }
+
+    public static function getClassDocBlocks(object $instance): array
+    {
+
+        static $model = " * @method static %s %s%s", $sig = self::KEY_SIG, $ret = self::KEY_RET;
+
+        $result = [];
+
+        foreach (self::getClassMethodsSignatures($instance) as $method => $entry) {
+
+            $result[] = sprintf($model, $method, $entry[$ret], $entry[$sig]);
+        }
+
+
         $result[] = sprintf(' * @see %s', self::getFullyQualifiedClassName(get_class($instance)));
 
         return $result;
@@ -93,10 +150,10 @@ class FacadeUtils
 
         try {
 
-            if (is_a($facade, \NGSOFT\Facades\Facade::class, true)) {
+            if (is_a($facade, Facade::class, true)) {
                 $instance = $facade::getFacadeRoot();
 
-                $reflector = new \ReflectionClass($facade);
+                $reflector = new ReflectionClass($facade);
                 $docs = $reflector->getDocComment() ?: "/**\n */";
                 $orig = $docs;
 
@@ -121,7 +178,48 @@ class FacadeUtils
 
                 return $docs;
             }
-        } catch (\ReflectionException) {
+        } catch (ReflectionException) {
+
+        }
+
+        return '';
+    }
+
+    public static function createMethods(string $facade)
+    {
+        static $sig = self::KEY_SIG, $ret = self::KEY_RET, $prm = self::KEY_PARAMS, $doc = self::KEY_DOC; ;
+
+        try {
+            if (is_a($facade, Facade::class, true)) {
+                $instance = $facade::getFacadeRoot();
+
+                $reflector = new ReflectionClass($facade);
+
+                $result = [];
+
+                foreach (self::getClassMethodsSignatures($instance) as $method => $entry) {
+
+                    if (method_exists($facade, $method)) {
+                        continue;
+                    }
+
+
+                    $code = require_file(__DIR__ . '/MethodTemplate.php', [
+                        'method' => $method,
+                        'sig' => $entry[$sig],
+                        'ret' => $entry[$ret],
+                        'params' => $entry[$prm],
+                        'doc' => $entry[$doc],
+                    ]);
+
+                    if ( ! blank($code)) {
+                        $result[] = $code;
+                    }
+                }
+
+                return implode('', $result);
+            }
+        } catch (ReflectionException) {
 
         }
 
