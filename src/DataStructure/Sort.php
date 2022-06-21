@@ -6,12 +6,12 @@ namespace NGSOFT\DataStructure;
 
 use NGSOFT\Enums\EnumTrait;
 
-enum Sort: int
+enum Sort
 {
 
     use EnumTrait;
 
-    case ASC = 0;
-    case DESC = 1;
+    case ASC;
+    case DESC;
 
 }

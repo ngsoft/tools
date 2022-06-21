@@ -45,9 +45,15 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
         return $index !== false ? $index : -1;
     }
 
-    private function getIndexes(): Generator
+    private function getIndexes(Sort $sort = Sort::ASC): Generator
     {
-        foreach (array_keys($this->storage) as $offset) { yield $offset; }
+        $indexes = array_keys($this->storage);
+
+        if ($sort->is(Sort::DESC)) {
+            $indexes = array_reverse($indexes);
+        }
+
+        foreach ($indexes as $offset) { yield $offset; }
     }
 
     /**
@@ -58,7 +64,7 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      */
     public function add(mixed $value): static
     {
-        if ( ! $this->has($value)) $this->storage[] = $value;
+        if ( ! $this->has($value)) { $this->storage[] = $value; }
         return $this;
     }
 
@@ -90,12 +96,10 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
 
     /**
      * The entries() method returns a new Iterator object that contains an array of [value, value] for each element in the Set object, in insertion order.
-     *
-     * @return Generator
      */
-    public function entries(): Generator
+    public function entries(Sort $sort = Sort::ASC): Generator
     {
-        foreach ($this->getIndexes() as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
+        foreach ($this->getIndexes($sort) as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
     }
 
     /**
@@ -135,9 +139,9 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      *
      * @return Generator
      */
-    public function values(): Generator
+    public function values(Sort $sort = Sort::ASC): Generator
     {
-        foreach ($this->entries() as $value) { yield $value; }
+        foreach ($this->entries($sort) as $value) { yield $value; }
     }
 
     /** {@inheritdoc} */

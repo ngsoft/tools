@@ -7,7 +7,9 @@ namespace NGSOFT\Enums;
 use BackedEnum,
     BadMethodCallException,
     InvalidArgumentException,
+    RuntimeException,
     Throwable,
+    UnitEnum,
     ValueError;
 use function NGSOFT\Tools\some;
 
@@ -22,7 +24,7 @@ trait EnumTrait
     /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
-        return $this->value;
+        return $this->getValue();
     }
 
     /** {@inheritdoc} */
@@ -38,29 +40,35 @@ trait EnumTrait
         }
     }
 
-    private function isEnum(): bool
+    protected function isEnum(object $enum): bool
     {
-        return is_subclass_of($this, BackedEnum::class) || is_subclass_of($this, Enum::class);
+        return is_subclass_of($enum, BackedEnum::class) || is_subclass_of($enum, Enum::class) || is_subclass_of($enum, UnitEnum::class);
     }
 
     /**
      * Get Enum Value
-     * @return int|string|null
+     * @return int|string
      */
-    public function getValue(): int|string|null
+    final public function getValue(): int|string
     {
-        if ( ! $this->isEnum()) {
-            return null;
-        }
-        return $this->value;
+        return $this->value ?? $this->getName();
     }
 
     /**
      * Get Enum Name
      * @return string
      */
-    public function getName(): string
+    final public function getName(): string
     {
+        if ( ! $this->isEnum($this)) {
+            throw new RuntimeException(sprintf(
+                                    'Trait %s can only be used in %s',
+                                    EnumTrait::class,
+                                    implode('|', [Enum::class, \BackedEnum::class, \UnitEnum::class]))
+            );
+        }
+
+
         return $this->name;
     }
 
@@ -74,8 +82,10 @@ trait EnumTrait
     {
 
         $compare = function ($input) {
-            if ($input instanceof self) return static::class === $input::class && $input->value === $this->value;
-            return $input === $this->value;
+            if ($input instanceof self) {
+                return static::class === $input::class && $input->getValue() === $this->getValue();
+            }
+            return $input === $this->getValue();
         };
 
         return some($compare, $input);
@@ -108,7 +118,7 @@ trait EnumTrait
     {
         /** @var static $enum */
         foreach (static::cases() as $enum) {
-            if ($enum->name === $name) {
+            if ($enum->getName() === $name) {
                 return $enum;
             }
         }

@@ -69,9 +69,15 @@ class PrioritySet
         return $this->sorted;
     }
 
-    private function getIndexes(): Generator
+    private function getIndexes(Sort $sort = Sort::DESC): Generator
     {
-        foreach ($this->getSorted() as $offsets) {
+
+        $sorted = $this->getSorted();
+        if ($sort->is(Sort::ASC)) {
+            $sorted = array_reverse($sorted);
+        }
+
+        foreach ($sorted as $offsets) {
             yield from $offsets;
         }
     }
@@ -86,7 +92,7 @@ class PrioritySet
     public function add(mixed $value, int|Priority $priority = Priority::MEDIUM): static
     {
 
-        $priority = is_int($priority) ? $priority : $priority->value;
+        $priority = is_int($priority) ? $priority : $priority->getValue();
 
         if ( ! $this->has($value)) {
             $this->storage[] = $value;
@@ -137,12 +143,10 @@ class PrioritySet
 
     /**
      * The entries() method returns a new Iterator object that contains an array of [value, value] for each element in the Set object, in insertion order.
-     *
-     * @return Generator
      */
-    public function entries(): Generator
+    public function entries(Sort $sort = Sort::DESC): Generator
     {
-        foreach ($this->getIndexes() as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
+        foreach ($this->getIndexes($sort) as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
     }
 
     /**
@@ -179,12 +183,10 @@ class PrioritySet
 
     /**
      * The values() method returns a new Iterator object that contains the values for each element in the Set object in insertion order.
-     *
-     * @return Generator
      */
-    public function values(): Generator
+    public function values(Sort $sort = Sort::DESC): Generator
     {
-        foreach ($this->entries() as $value) { yield $value; }
+        foreach ($this->entries($sort) as $value) { yield $value; }
     }
 
     /** {@inheritdoc} */
