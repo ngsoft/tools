@@ -12,14 +12,16 @@ use NGSOFT\{
 };
 use RuntimeException;
 
-class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Storage {
+class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Storage
+{
 
     use ArrayAccessCountable;
 
     /** @var array */
     protected $storage = [];
 
-    public function __construct() {
+    public function __construct()
+    {
         if (empty(session_id())) {
             // firefox > 84 will refuse session cookies if SameSite=None; for non ssl server
             session_set_cookie_params([
@@ -35,7 +37,8 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     ////////////////////////////   Overrides   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function &offsetGet(mixed $offset): mixed {
+    public function &offsetGet(mixed $offset): mixed
+    {
         if (
                 $this->storage === $_SESSION
                 and (is_int($offset) or is_null($offset))
@@ -48,7 +51,7 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
             $this->storage[] = [];
             $offset = array_key_last($this->storage);
         }
-        if (!$this->offsetExists($offset)) return $value;
+        if ( ! $this->offsetExists($offset)) return $value;
         if (is_array($this->storage[$offset])) {
             //link sub arrays
             $value = &$this->storage[$offset];
@@ -60,7 +63,8 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     }
 
     /** {@inheritdoc} */
-    public function offsetSet(mixed $offset, mixed $value): void {
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
         if (
                 $this->storage === $_SESSION
                 and (is_int($offset) or is_null($offset))
@@ -77,7 +81,8 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     ////////////////////////////   Storage   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function clear(): void {
+    public function clear(): void
+    {
 
         foreach (array_keys($this->storage) as $key) {
             unset($this->storage[$key]);
@@ -85,44 +90,52 @@ class SessionStorage implements ArrayAccess, Countable, IteratorAggregate, Stora
     }
 
     /** {@inheritdoc} */
-    public function getItem(string $key): mixed {
+    public function getItem(string $key): mixed
+    {
         return $this->offsetGet($key);
     }
 
     /** {@inheritdoc} */
-    public function removeItem(string $key): void {
+    public function removeItem(string $key): void
+    {
         $this->offsetUnset($key);
     }
 
     /** {@inheritdoc} */
-    public function setItem(string $key, $value): void {
+    public function setItem(string $key, $value): void
+    {
         $this->offsetSet($key, $value);
     }
 
     /** {@inheritdoc} */
-    public function hasItem(string $key): bool {
+    public function hasItem(string $key): bool
+    {
         return $this->offsetExists($key);
     }
 
     ////////////////////////////   Getters/Setters   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function __isset(string $name): bool {
+    public function __isset(string $name): bool
+    {
         return $this->offsetExists($name);
     }
 
     /** {@inheritdoc} */
-    public function __set(string $name, mixed $value): void {
+    public function __set(string $name, mixed $value): void
+    {
         $this->offsetSet($name, $value);
     }
 
     /** {@inheritdoc} */
-    public function __unset(string $name): void {
+    public function __unset(string $name): void
+    {
         $this->offsetUnset($name);
     }
 
     /** {@inheritdoc} */
-    public function &__get(string $name): mixed {
+    public function &__get(string $name): mixed
+    {
         $value = $this->offsetGet($name);
         return $value;
     }

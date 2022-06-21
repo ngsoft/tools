@@ -81,15 +81,17 @@ class FacadeUtils
                 continue;
             }
 
+            try {
+                /**
+                 * Must implements a Spl Interface,
+                 * cannot be made static
+                 */
+                if (($proto = $rMethod->getPrototype()) && empty(class_namespace($proto->class))) {
+                    continue;
+                }
+            } catch (\ReflectionException) {
 
-            /**
-             * Must implements a Spl Interface,
-             * cannot be made static
-             */
-            if (($proto = $rMethod->getPrototype()) && empty(class_namespace($proto->class))) {
-                continue;
             }
-
 
             $entry = ['', '', [], ''];
 
@@ -229,30 +231,35 @@ class FacadeUtils
         return '';
     }
 
-    public static function createFacadeCode(string $name, object $instance, ?string $accessor = null)
+    public static function createFacadeCode(object $instance, ?string $name = null, ?string $accessor = null)
     {
 
+        if ( ! $name) {
+            $name = class_basename(get_class($instance));
+        }
+
         $namespace = class_namespace($name);
-        $class = ucfirst(class_basename($class));
+        $class = ucfirst(class_basename($name));
+        $provides = $class;
 
         if (empty($accessor)) {
             $accessor = $class;
         }
 
+
         if (empty($namespace)) {
             $namespace = 'NGSOFT\\Facades';
         }
 
-                $code = require_file(__DIR__ . '/FacadeTemplate.php', [
-                    'class' => $class,
-                    'namespace' => $namespace,
-                    'accessor'=> $accessor,
-                    'instance' => $instance
-                ]);
+        $code = require_file(__DIR__ . '/FacadeTemplate.php', [
+            'class' => $class,
+            'namespace' => $namespace,
+            'accessor' => $accessor,
+            'instance' => $instance,
+            'provides' => $provides,
+        ]);
 
-
-
-
+        return "<?php\n{$code}";
     }
 
 }
