@@ -20,7 +20,7 @@ use ArrayAccess,
  * SplFixedArray only works with int offsets (not null or strings)
  *
  */
-final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
+class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
 {
 
     use StringableObject;

@@ -9,6 +9,10 @@ use NGSOFT\Tools;
 use ValueError;
 use function get_debug_type;
 
+if (function_exists(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'list_files')) {
+    return;
+}
+
 /**
  * List all files inside a directory
  *
