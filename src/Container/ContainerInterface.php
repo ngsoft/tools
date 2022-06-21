@@ -37,6 +37,7 @@ interface ContainerInterface extends PsrContainerInterface
      * eg: add an handler to autowire LoggerAware ...
      *
      * @param Closure|ContainerResolver $handler
+     * @param int $priority
      * @return static
      */
     public function addResolutionHandler(Closure|ContainerResolver $handler, int $priority = self::PRIORITY_MEDIUM): static;

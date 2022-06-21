@@ -50,7 +50,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     }
 
     /** {@inheritdoc} */
-    public function addResolutionHandler(Closure|ContainerResolver $handler): static
+    public function addResolutionHandlerOld(Closure|ContainerResolver $handler): static
     {
         if (in_array($handler, $this->handlers)) {
             throw new ContainerResolverException('Cannot add the same resolver twice.');
