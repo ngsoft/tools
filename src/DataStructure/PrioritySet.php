@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
+use Generator,
+    NGSOFT\Traits\StringableObject,
+    RuntimeException,
+    Traversable;
+
+/**
+ * A Priority Set is a set that sorts entries by priority
+ */
 class PrioritySet
 {
 
@@ -14,7 +22,10 @@ class PrioritySet
     public const PRIORITY_LOW = 32;
 
     private array $priorities = [];
-    private Set $storage;
+    private array $storage = [];
+
+    /** @var array[] */
+    private array $sorted = [];
 
     /**
      * Create a new Set
@@ -26,19 +37,6 @@ class PrioritySet
         return new static();
     }
 
-    public function __construct()
-    {
-        $this->clear();
-    }
-
-    private function bindAndExec(Closure $closure, mixed ...$arguments): mixed
-    {
-
-        $bound = \Closure::bind($closure, $this->storage, $this->storage);
-
-        return $bound(...$arguments);
-    }
-
     /**
      * Get Index of value inside the set
      *
@@ -47,30 +45,67 @@ class PrioritySet
      */
     private function indexOf(mixed $value): int
     {
-
-        $closure = function (mixed $value): int {
-
-        };
-
         $index = array_search($value, $this->storage, true);
         return $index !== false ? $index : -1;
     }
 
+    /** @return array[] */
+    private function getSorted(): array
+    {
+        if (empty($this->storage)) {
+            return [];
+        } elseif (empty($this->sorted)) {
+            $sorted = &$this->sorted;
+
+            foreach ($this->priorities as $offset => $priority) {
+
+                $sorted[$priority] = $sorted[$priority] ?? [];
+                $sorted[$priority] [] = $offset;
+            }
+
+            krsort($sorted);
+        }
+
+        return $this->sorted;
+    }
+
     private function getIndexes(): Generator
     {
-        foreach (array_keys($this->storage) as $offset) { yield $offset; }
+        foreach ($this->getSorted() as $offsets) {
+            yield from $offsets;
+        }
     }
 
     /**
-     * The add() method appends a new element with a specified value to the end of a Set object.
+     * The add() method adds a new element with a specified value with a given priority.
      *
      * @param mixed $value
+     * @param int|Priority $priority > 0 the highest the number, the highest the priority
      * @return static
      */
-    public function add(mixed $value): static
+    public function add(mixed $value, int|Priority $priority = Priority::MEDIUM): static
     {
-        if ( ! $this->has($value)) $this->storage[] = $value;
+
+        $priority = is_int($priority) ? $priority : $priority->value;
+
+        if ( ! $this->has($value)) {
+            $this->storage[] = $value;
+            $this->priorities[$this->indexOf($value)] = max(1, $priority);
+            //reset sorted
+            $this->sorted = [];
+        }
         return $this;
+    }
+
+    public function getPriority(mixed $value): int
+    {
+        $offset = $this->indexOf($value);
+
+        if ($offset < 0) {
+            return $offset;
+        }
+
+        return $this->priorities[$offset];
     }
 
     /**
@@ -80,8 +115,7 @@ class PrioritySet
      */
     public function clear(): void
     {
-        $this->storage = new Set();
-        $this->priorities = [];
+        $this->storage = $this->priorities = $this->sorted = [];
     }
 
     /**
@@ -94,7 +128,8 @@ class PrioritySet
     {
         $offset = $this->indexOf($value);
         if ($offset > -1) {
-            unset($this->storage[$offset]);
+            unset($this->storage[$offset], $this->priorities[$offset]);
+            $this->sorted = [];
             return true;
         }
         return false;
@@ -150,6 +185,46 @@ class PrioritySet
     public function values(): Generator
     {
         foreach ($this->entries() as $value) { yield $value; }
+    }
+
+    /** {@inheritdoc} */
+    public function count(): int
+    {
+        return count($this->storage);
+    }
+
+    /** {@inheritdoc} */
+    public function getIterator(): Traversable
+    {
+        yield from $this->entries();
+    }
+
+    /** {@inheritdoc} */
+    public function jsonSerialize(): mixed
+    {
+        return iterator_to_array($this->values());
+    }
+
+    /** {@inheritdoc} */
+    public function __debugInfo(): array
+    {
+        return $this->jsonSerialize();
+    }
+
+    public function __serialize(): array
+    {
+        return [$this->storage, $this->priorities];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        list($this->storage, $this->priorities) = $data;
+    }
+
+    /** {@inheritdoc} */
+    public function __clone(): void
+    {
+        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
 
 }

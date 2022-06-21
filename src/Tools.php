@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-use ErrorException,
+use BadMethodCallException,
+    ErrorException,
     InvalidArgumentException,
     ReflectionClass,
     ReflectionClassConstant,
     ReflectionException,
+    ReflectionMethod,
     RuntimeException;
 use const SCRIPT_START;
 use function mb_substr;
@@ -537,6 +539,74 @@ final class Tools
         }
 
         return $string;
+    }
+
+    protected static function isPublicMethod(object $instance, string $method): bool
+    {
+        static $cache = [];
+
+        $class = get_class($instance);
+
+        if ( ! isset($cache[$class])) {
+            $cache[$class] = [];
+        }
+
+        if ( ! is_bool($cache[$class][$method] ?? null)) {
+            try {
+                $reflector = new ReflectionMethod($instance, $method);
+                $cache[$class][$method] = $reflector->isPublic();
+            } catch (\ReflectionException) {
+                $cache[$class][$method] = false;
+            }
+        }
+
+        return $cache[$class][$method];
+    }
+
+    /**
+     * Call a method within an object ignoring its status
+     *
+     * @param object $instance
+     * @param string $method
+     * @param mixed $arguments
+     * @return mixed
+     */
+    public static function callPrivateMethod(object $instance, string $method, mixed ...$arguments): mixed
+    {
+        /**
+         * Caches context
+         */
+        static $contexts = [];
+
+        $class = get_class($instance);
+
+        if ( ! isset($contexts[$class][$method])) {
+
+            if (self::isPublicMethod($instance, $method)) {
+                return $instance->{$method}(...$arguments);
+            }
+
+            // context for protected method
+            $context = $class;
+            try {
+                $reflector = new ReflectionMethod($instance, $method);
+                // method can be private
+                if ($reflector->isPublic()) {
+                    return $instance->{$method}(...$arguments);
+                } elseif ($reflector->isPrivate()) {
+                    $context = $reflector->getDeclaringClass()->getName();
+                }
+            } catch (\ReflectionException) {
+                throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', get_class($instance), $method));
+            }
+
+            $contexts[$class][$method] = $context;
+        }
+        /** @var object $this */
+        $closure = (function (string $method, mixed ...$arguments) { return $this->{$method}(...$arguments); })
+                ->bindTo($instance, $contexts[$class][$method]);
+
+        return $closure($method, ...$arguments);
     }
 
 }

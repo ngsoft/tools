@@ -14,11 +14,7 @@ use function NGSOFT\Tools\some;
 /**
  * A trait to use with Enum/BackedEnum
  *
- *
- * @property-read string $name
- * @property-read int|string $value
- *
- * @phan-file-suppress PhanTypeMismatchReturn,PhanTypeMismatchDeclaredParam,PhanAbstractStaticMethodCallInTrait
+ * @phan-file-suppress PhanTypeMismatchReturn,PhanTypeMismatchDeclaredParam, PhanUndeclaredProperty
  */
 trait EnumTrait
 {
@@ -32,12 +28,40 @@ trait EnumTrait
     /** {@inheritdoc} */
     final public static function __callStatic(string $name, array $arguments): mixed
     {
-        if (count($arguments) > 0) throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
+        if (count($arguments) > 0) {
+            throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
+        }
         try {
             return static::get($name);
         } catch (Throwable) {
             throw new BadMethodCallException(sprintf('Invalid method %s::%s()', static::class, $name));
         }
+    }
+
+    private function isEnum(): bool
+    {
+        return is_subclass_of($this, BackedEnum::class) || is_subclass_of($this, Enum::class);
+    }
+
+    /**
+     * Get Enum Value
+     * @return int|string|null
+     */
+    public function getValue(): int|string|null
+    {
+        if ( ! $this->isEnum()) {
+            return null;
+        }
+        return $this->value;
+    }
+
+    /**
+     * Get Enum Name
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
     }
 
     /**

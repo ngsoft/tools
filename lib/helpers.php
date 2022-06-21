@@ -185,23 +185,7 @@ if ( ! function_exists('call_private_method')) {
 
     function call_private_method(object $instance, string $method, mixed ...$arguments): mixed
     {
-
-        $context = $instance;
-        try {
-            $reflector = new ReflectionMethod($instance, $method);
-
-            if ($reflector->isPublic()) {
-                return $instance->{$method}(...$arguments);
-            } elseif ($reflector->isPrivate()) {
-                $context = $reflector->getDeclaringClass()->getName();
-            }
-        } catch (\ReflectionException) {
-            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', get_class($instance), $method));
-        }
-
-        $closure = (function (string $method, mixed ...$arguments) { return $this->{$method}(...$arguments); })->bindTo($instance, $context);
-
-        return $closure($method, ...$arguments);
+        return Tools::callPrivateMethod($instance, $method, ...$arguments);
     }
 
 }
