@@ -31,7 +31,7 @@
             "NGSOFT\\": "src/",
             "": "lib/"
         },
-        "files": ["src/bootstrap.php"]
+        "files": ["lib/bootstrap.php"]
     },
     "minimum-stability": "dev",
     "prefer-stable": true

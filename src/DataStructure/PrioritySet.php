@@ -4,24 +4,17 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Countable,
-    Generator,
-    IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\StringableObject,
-    RuntimeException,
-    Stringable,
-    Traversable;
-
-/**
- * The Set object lets you store unique values of any type, whether primitive values or object references.
- */
-final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate
+class PrioritySet
 {
 
     use StringableObject;
 
-    private array $storage = [];
+    public const PRIORITY_HIGH = 128;
+    public const PRIORITY_DEFAULT = 64;
+    public const PRIORITY_LOW = 32;
+
+    private array $priorities = [];
+    private Set $storage;
 
     /**
      * Create a new Set
@@ -33,6 +26,19 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
         return new static();
     }
 
+    public function __construct()
+    {
+        $this->clear();
+    }
+
+    private function bindAndExec(Closure $closure, mixed ...$arguments): mixed
+    {
+
+        $bound = \Closure::bind($closure, $this->storage, $this->storage);
+
+        return $bound(...$arguments);
+    }
+
     /**
      * Get Index of value inside the set
      *
@@ -41,6 +47,11 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      */
     private function indexOf(mixed $value): int
     {
+
+        $closure = function (mixed $value): int {
+
+        };
+
         $index = array_search($value, $this->storage, true);
         return $index !== false ? $index : -1;
     }
@@ -69,7 +80,8 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      */
     public function clear(): void
     {
-        $this->storage = [];
+        $this->storage = new Set();
+        $this->priorities = [];
     }
 
     /**
@@ -138,46 +150,6 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     public function values(): Generator
     {
         foreach ($this->entries() as $value) { yield $value; }
-    }
-
-    /** {@inheritdoc} */
-    public function count(): int
-    {
-        return count($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
-    {
-        yield from $this->entries();
-    }
-
-    /** {@inheritdoc} */
-    public function jsonSerialize(): mixed
-    {
-        return $this->storage;
-    }
-
-    /** {@inheritdoc} */
-    public function __debugInfo(): array
-    {
-        return $this->storage;
-    }
-
-    public function __serialize(): array
-    {
-        return $this->storage;
-    }
-
-    public function __unserialize(array $data): void
-    {
-        $this->storage = $data;
-    }
-
-    /** {@inheritdoc} */
-    public function __clone(): void
-    {
-        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
     }
 
 }

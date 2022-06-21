@@ -29,7 +29,7 @@ if ( ! function_exists('trait_uses_recursive')) {
         return $traits;
     }
 
-}
+} else { return; }
 
 if ( ! function_exists('class_uses_recursive')) {
 

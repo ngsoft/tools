@@ -181,6 +181,35 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
         }
 
     }
+
+
+    if ( ! function_exists('call_private_method')) {
+
+        function call_private_method(object $instance, string $method, mixed ...$arguments): mixed
+        {
+
+
+
+
+
+
+            try {
+
+            } catch (\ReflectionException) {
+                throw new BadMethodCallException(sprintf('Method %s::%s() is not defined.', get_class($instance), $method));
+            }
+
+
+            if ( ! method_exists($instance, $method)) {
+
+            }
+
+            $closure = (function (string $method, ...$arguments) {
+
+                    })->bindTo($instance, $instance);
+        }
+
+    }
 }
 
 namespace NGSOFT\Tools {
