@@ -81,6 +81,16 @@ class FacadeUtils
                 continue;
             }
 
+
+            /**
+             * Must implements a Spl Interface,
+             * cannot be made static
+             */
+            if (($proto = $rMethod->getPrototype()) && empty(class_namespace($proto->class))) {
+                continue;
+            }
+
+
             $entry = ['', '', [], ''];
 
             if ($docs = $rMethod->getDocComment()) {
@@ -98,10 +108,6 @@ class FacadeUtils
             $params = [];
             /** @var ReflectionParameter $rParam */
             foreach ($rMethod->getParameters() as $rParam) {
-
-
-
-                var_dump([$rParam->getName() => $rParam->canBePassedByValue()]);
                 $param = sprintf(
                         '%s %s$%s',
                         self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
@@ -185,45 +191,68 @@ class FacadeUtils
         return '';
     }
 
-    public static function createMethods(string $facade)
+    public static function createMethodsForInstance(object $instance, string $facade = null): string
     {
-        static $sig = self::KEY_SIG, $ret = self::KEY_RET, $prm = self::KEY_PARAMS, $doc = self::KEY_DOC; ;
+        static $sig = self::KEY_SIG, $ret = self::KEY_RET, $prm = self::KEY_PARAMS, $doc = self::KEY_DOC;
+        $result = [];
 
-        try {
-            if (is_a($facade, Facade::class, true)) {
-                $instance = $facade::getFacadeRoot();
+        foreach (self::getClassMethodsSignatures($instance) as $method => $entry) {
 
-                $reflector = new ReflectionClass($facade);
-
-                $result = [];
-
-                foreach (self::getClassMethodsSignatures($instance) as $method => $entry) {
-
-                    if (method_exists($facade, $method)) {
-                        continue;
-                    }
-
-
-                    $code = require_file(__DIR__ . '/MethodTemplate.php', [
-                        'method' => $method,
-                        'sig' => $entry[$sig],
-                        'ret' => $entry[$ret],
-                        'params' => $entry[$prm],
-                        'doc' => $entry[$doc],
-                    ]);
-
-                    if ( ! blank($code)) {
-                        $result[] = $code;
-                    }
-                }
-
-                return implode('', $result);
+            if ($facade && method_exists($facade, $method)) {
+                continue;
             }
-        } catch (ReflectionException) {
 
+
+            $code = require_file(__DIR__ . '/MethodTemplate.php', [
+                'method' => $method,
+                'sig' => $entry[$sig],
+                'ret' => $entry[$ret],
+                'params' => $entry[$prm],
+                'doc' => $entry[$doc],
+            ]);
+
+            if ( ! blank($code)) {
+                $result[] = $code;
+            }
         }
 
+        return implode('', $result);
+    }
+
+    public static function createMethods(string $facade)
+    {
+        if (is_a($facade, Facade::class, true)) {
+            if ($instance = $facade::getFacadeRoot()) {
+                return self::createMethodsForInstance($instance, $facade);
+            }
+        }
         return '';
+    }
+
+    public static function createFacadeCode(string $name, object $instance, ?string $accessor = null)
+    {
+
+        $namespace = class_namespace($name);
+        $class = ucfirst(class_basename($class));
+
+        if (empty($accessor)) {
+            $accessor = $class;
+        }
+
+        if (empty($namespace)) {
+            $namespace = 'NGSOFT\\Facades';
+        }
+
+                $code = require_file(__DIR__ . '/FacadeTemplate.php', [
+                    'class' => $class,
+                    'namespace' => $namespace,
+                    'accessor'=> $accessor,
+                    'instance' => $instance
+                ]);
+
+
+
+
     }
 
 }

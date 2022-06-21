@@ -85,6 +85,12 @@ return [
         'PhanTypeMismatchArgumentNullableInternal',
         'PhanTypeInstantiateAbstractStatic',
     ],
+    // If true, seemingly undeclared variables in the global
+    // scope will be ignored.
+    //
+    // This is useful for projects with complicated cross-file
+    // globals that you have no hope of fixing.
+    'ignore_undeclared_variables_in_global_scope' => true,
     // If enabled, check all methods that override a
     // parent method to make sure its signature is
     // compatible with the parent's. This check
