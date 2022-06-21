@@ -42,9 +42,13 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
         return $this;
     }
 
-    protected function getIndexes(): Generator
+    protected function getIndexes(Sort $sort = Sort::ASC): Generator
     {
-        foreach (array_keys($this->keys) as $offset) { yield $offset; }
+        $keys = array_keys($this->keys);
+        if ($sort->is(Sort::DESC)) {
+            $keys = array_reverse($keys);
+        }
+        foreach ($keys as $offset) { yield $offset; }
     }
 
     /**
@@ -118,30 +122,27 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      *
      * @return Generator
      */
-    public function keys(): Generator
+    public function keys(Sort $sort = Sort::ASC): Generator
     {
-        foreach ($this->keys as $key) { yield $key; }
+        $keys = $sort->is(Sort::ASC) ? $this->keys : array_reverse($this->keys);
+        foreach ($keys as $key) { yield $key; }
     }
 
     /**
      * The values() method returns a new iterator object that contains the values for each element in the Map object in insertion order.
-     *
-     *
-     * @return Generator
      */
-    public function values(): Generator
+    public function values(Sort $sort = Sort::ASC): Generator
     {
-        foreach ($this->values as $value) { yield $value; }
+        $values = $sort->is(Sort::ASC) ? $this->values : array_reverse($this->values);
+        foreach ($values as $value) { yield $value; }
     }
 
     /**
      * The entries() method returns a new iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
-     *
-     * @return Generator
      */
-    public function entries(): Generator
+    public function entries(Sort $sort = Sort::ASC): Generator
     {
-        foreach ($this->getIndexes() as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
+        foreach ($this->getIndexes($sort) as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
     }
 
     /**
@@ -152,7 +153,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function forEach(callable $callable): void
     {
-        foreach ($this->entries() as $key => $value) { call_user_func_array($callable, [$value, $key, $this]); }
+        foreach ($this->entries() as $key => $value) { $callable($value, $key, $this); }
     }
 
     /** {@inheritdoc} */
