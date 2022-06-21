@@ -199,8 +199,6 @@ if ( ! function_exists('call_private_method')) {
             throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', get_class($instance), $method));
         }
 
-        var_dump($context);
-
         $closure = (function (string $method, mixed ...$arguments) { return $this->{$method}(...$arguments); })->bindTo($instance, $context);
 
         return $closure($method, ...$arguments);
