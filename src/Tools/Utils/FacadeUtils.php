@@ -149,13 +149,14 @@ class FacadeUtils
         return $result;
     }
 
-    public static function getClassDocBlocks(object $instance, bool $static = true): array
+    public static function getClassDocBlocks(object|string $instance, bool $static = true): array
     {
 
         static $model = " * @method %s%s %s%s", $sig = self::KEY_SIG, $ret = self::KEY_RET;
 
         $static = $static ? 'static ' : '';
         $result = [];
+        $class = is_object($instance) ? get_class($instance) : $instance;
 
         foreach (self::getClassMethodsSignatures($instance) as $method => $entry) {
 
@@ -163,7 +164,7 @@ class FacadeUtils
         }
 
 
-        $result[] = sprintf(' * @see %s', self::getFullyQualifiedClassName(get_class($instance)));
+        $result[] = sprintf(' * @see %s', self::getFullyQualifiedClassName($class));
 
         return $result;
     }

@@ -12,9 +12,9 @@ class Profiler
 
     }
 
-    public function getClassInfo(\ReflectionClass $class)
+    public function getClassInfo(\ReflectionClass $class): Models\ClassInfo
     {
-
+        return Models\ClassInfo::create($class);
     }
 
     public function getCallable(\ReflectionFunction $callable)
