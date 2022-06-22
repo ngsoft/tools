@@ -63,7 +63,18 @@ class ClassInfo extends BaseModel
 {
 
     public readonly string $name;
+    protected array $methods = [];
+    protected array $properties = [];
+    protected array $constants = [];
 
+    public static function getReflectorClassName(): string
+    {
+        return \ReflectionClass::class;
+    }
+
+    /**
+     * @phan-suppress PhanUndeclaredMethod, PhanUndeclaredProperty
+     */
     public function __construct(
             object|string $reflector
     )
@@ -72,9 +83,8 @@ class ClassInfo extends BaseModel
         if ( ! $reflector instanceof \ReflectionClass) {
             $reflector = new \ReflectionClass($reflector);
         }
-        parent::__construct($reflector);
-
         $this->name = $reflector->getName();
+        parent::__construct($reflector);
     }
 
 }
