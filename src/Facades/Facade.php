@@ -9,7 +9,8 @@ use NGSOFT\Container\{
     Container, ContainerInterface, NullServiceProvider, ServiceProvider
 };
 use RuntimeException;
-use function class_basename;
+use function class_basename,
+             NGSOFT\Filesystem\require_all_once;
 
 abstract class Facade
 {
@@ -81,6 +82,7 @@ abstract class Facade
 
                     protected array $resovedInstances = [];
                     protected ?ContainerInterface $container = null;
+                    private array $facades = [];
 
                     final public function registerServiceProvider(ServiceProvider $provider): void
                     {
@@ -108,9 +110,36 @@ abstract class Facade
                         return $this->container = $this->container ?? $this->getNewContainer();
                     }
 
+                    private function registerFacades(ContainerInterface $container)
+                    {
+
+                        if (empty($this->facades)) {
+
+                            var_dump(require_all_once(__DIR__));
+
+                            var_dump(implements_class(Facade::class, false));
+
+                            foreach (implements_class(Facade::class, false) as $class) {
+
+                                var_dump($class);
+
+                                if (str_contains($class, '@anonymous')) {
+                                    continue;
+                                }
+
+
+
+                                $this->facades[$class] = $class;
+                            }
+
+                            var_dump($this->facades);
+                        }
+                    }
+
                     final public function setContainer(ContainerInterface $container): void
                     {
                         $this->container = $container;
+                        $this->registerFacades($container);
                     }
 
                     protected static function getFacadeAccessor(): string

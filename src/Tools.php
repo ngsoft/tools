@@ -205,7 +205,6 @@ final class Tools
             if ($class === $parentClass) {
                 continue;
             }
-
             if (in_array($parentClass, $method($class))) {
                 $result[0][$class] = $class;
                 if ((new \ReflectionClass($class))->isInstantiable()) {

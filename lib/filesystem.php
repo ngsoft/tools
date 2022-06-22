@@ -120,26 +120,33 @@ function require_all(string|iterable $files, array $data = [], bool $once = fals
     if ( ! is_iterable($files)) {
         $files = [$files];
     }
-
+    $result = [];
     foreach ($files as $file) {
 
         if ( ! is_string($file)) {
             throw new ValueError(sprintf('Invalid type %s for requested type string.', get_debug_type($file)));
         }
+
+        if (array_key_exists($file, $result)) {
+            continue;
+        }
+
         if ( ! file_exists($file)) {
-            yield $file => null;
+            $result[$file] = null;
             continue;
         }
 
         if (is_file($file)) {
-            yield $file => require_file($file, $data, $once);
+            $result [$file] = require_file($file, $data, $once);
             continue;
         }
 
         foreach (list_files_recursive($file, 'php') as $file) {
-            yield $file => require_file($file, $data, $once);
+            $result[$file] = require_file($file, $data, $once);
         }
     }
+
+    return $result;
 }
 
 /**
