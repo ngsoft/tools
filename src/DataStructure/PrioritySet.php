@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Generator,
+use Countable,
+    Generator,
+    IteratorAggregate,
+    JsonSerializable,
     NGSOFT\Traits\StringableObject,
     RuntimeException,
+    Stringable,
     Traversable;
 
 /**
  * A Priority Set is a set that sorts entries by priority
  */
-class PrioritySet
+class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAggregate
 {
 
     use StringableObject;
-
-    public const PRIORITY_HIGH = 128;
-    public const PRIORITY_DEFAULT = 64;
-    public const PRIORITY_LOW = 32;
 
     private array $priorities = [];
     private array $storage = [];

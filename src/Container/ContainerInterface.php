@@ -25,14 +25,6 @@ interface ContainerInterface extends PsrContainerInterface
     public function tryGet(string $id): mixed;
 
     /**
-     * Checks if container has the requested entry physically
-     *
-     * @param string $id
-     * @return bool
-     */
-    public function hasEntry(string $id): bool;
-
-    /**
      * Add an handler to manage entry resolution
      * eg: add an handler to autowire LoggerAware ...
      *
@@ -49,14 +41,6 @@ interface ContainerInterface extends PsrContainerInterface
      * @return static
      */
     public function register(ServiceProvider $provider): static;
-
-    /**
-     * Check if service provider is registered
-     *
-     * @param ServiceProvider $provider
-     * @return bool
-     */
-    public function hasServiceProvider(ServiceProvider $provider): bool;
 
     /**
      * Adds multiple definitions

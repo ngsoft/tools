@@ -17,6 +17,7 @@ use Psr\Container\ContainerExceptionInterface,
     ReflectionParameter,
     ReflectionUnionType,
     Throwable;
+use function get_debug_type;
 
 /**
  * @phan-file-suppress PhanTypeMismatchArgumentSuperType

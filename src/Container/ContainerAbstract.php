@@ -25,21 +25,24 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     use StringableObject,
         Unserializable;
 
-    /** @var callable[] */
-    protected array $handlers = [];
+    /** @var PrioritySet<callable> */
+    protected PrioritySet $handlers;
+
+    /** @var array<string, true> */
+    protected array $resolved = [];
 
     /** @var array<string, string> */
     protected array $alias = [];
 
-    /** @var ServiceProvider[] */
-    protected PrioritySet $providers;
-    protected bool $registering = false;
+    /** @var array<string, ServiceProvider> */
+    protected array $providers = [];
+    protected array $registered = [];
 
     public function __construct(
             protected array $definitions = []
     )
     {
-        $this->providers = new PrioritySet();
+        $this->handlers = new PrioritySet();
 
         $this->set(static::class, $this);
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
@@ -50,13 +53,17 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     }
 
     /** {@inheritdoc} */
-    public function addResolutionHandlerOld(Closure|ContainerResolver $handler): static
+    public function addResolutionHandler(Closure|ContainerResolver $handler, int $priority = self::PRIORITY_MEDIUM): static
     {
-        if (in_array($handler, $this->handlers)) {
+
+        if ($this->handlers->has($handler)) {
             throw new ContainerResolverException('Cannot add the same resolver twice.');
         }
-        $this->handlers[] = $handler;
+        if ($handler instanceof ContainerResolver) {
+            $priority = $priority === self::PRIORITY_MEDIUM ? $handler->getDefaultPriority() : $priority;
+        }
 
+        $this->handlers->add($handler, $priority);
         return $this;
     }
 
@@ -67,9 +74,15 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
      */
     protected function resolve(string $id, mixed $resolved): mixed
     {
-        foreach (array_reverse($this->handlers) as $handler) {
+        if (isset($this->resolved[$id])) {
+            return $resolved;
+        }
+
+        foreach ($this->handlers as $handler) {
             $resolved = $handler($this, $id, $resolved);
         }
+
+        $this->resolved[$id] = true;
         return $resolved;
     }
 
@@ -78,11 +91,12 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
      */
     protected function handleServiceProvidersResolution(string $id): void
     {
-
-        if (isset($this->providers[$id])) {
-            $this->registering = true;
-            $this->providers[$id]->register($this);
-            $this->registering = false;
+        if ( ! isset($this->registered[$id]) && isset($this->providers[$id])) {
+            $provider = $this->providers[$id];
+            $provider->register($this);
+            foreach ($provider->provides() as $id) {
+                $this->registered[$id] = true;
+            }
         }
     }
 
@@ -97,49 +111,17 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function register(ServiceProvider $provider): static
     {
-        if ( ! $this->hasServiceProvider($provider)) {
-            foreach ($provider->provides() as $id) {
-                $this->providers[$id] = $provider;
-            }
+        foreach ($provider->provides() as $id) {
+            $this->providers[$id] = $provider;
+            unset($this->registered[$id]);
         }
         return $this;
     }
 
     /** {@inheritdoc} */
-    public function hasServiceProvider(ServiceProvider $provider): bool
+    public function has(string $id): bool
     {
-
-        $provides = $provider->provides();
-        if (empty($provides)) {
-            return false;
-        }
-
-
-        /** @var ServiceProvider $registered */
-        foreach ($provides as $id) {
-            if ( ! isset($this->providers[$id])) {
-                return false;
-            }
-
-            $registered = $this->providers[$id];
-            if (get_class($registered) !== get_class($provider)) {
-                return false;
-            }
-
-            if ($registered->provides() !== $provides) {
-                return false;
-            }
-        }
-
-
-        return true;
-    }
-
-    /** {@inheritdoc} */
-    public function hasEntry(string $id): bool
-    {
-        $id = $this->handleAliasResolution($id);
-        return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers);
+        return $this->tryGet($id) !== null;
     }
 
     /** {@inheritdoc} */
@@ -176,12 +158,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function set(string $id, mixed $entry): void
     {
-        $id = $this->handleAliasResolution($id);
-
-        $this->definitions[$id] = $entry;
-        if ($this->registering) {
-            unset($this->providers[$id]);
-        }
+        $this->definitions[$this->handleAliasResolution($id)] = $entry;
     }
 
     /** {@inheritdoc} */

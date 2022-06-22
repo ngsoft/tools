@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
-use Closure;
 use NGSOFT\Container\{
     ContainerInterface, ContainerResolver
 };
+use function value;
 
 /** @phan-file-suppress PhanUnusedPublicMethodParameter */
-class ClosureResolver implements ContainerResolver
+class SimpleClosureResolver implements ContainerResolver
 {
 
     public function getDefaultPriority(): int

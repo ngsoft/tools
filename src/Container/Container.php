@@ -16,17 +16,6 @@ class Container extends ContainerAbstract
 {
 
     /** {@inheritdoc} */
-    protected function resolve(string $id, mixed $resolved): mixed
-    {
-        static $resolver;
-        if ( ! $resolver) {
-            $resolver = new ParameterResolver();
-        }
-
-        return parent::resolve($id, $resolver($this, $id, $resolved));
-    }
-
-    /** {@inheritdoc} */
     public function has(string $id): bool
     {
         $id = $this->handleAliasResolution($id);
