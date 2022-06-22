@@ -53,8 +53,11 @@ class StackedContainer implements ContainerInterface, Stringable
      */
     public function stackContainer(ContainerInterface $container): void
     {
-        if ($this->appendContainer) $this->appendContainer($container);
-        else $this->prependContainer($container);
+        if ($this->appendContainer) {
+            $this->appendContainer($container);
+        } else {
+            $this->prependContainer($container);
+        }
     }
 
     /**
