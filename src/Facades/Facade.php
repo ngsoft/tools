@@ -30,7 +30,7 @@ abstract class Facade
      */
     protected static function getServiceProvider(): ServiceProvider
     {
-        return new NullServiceProvider(static::getFacadeAccessor());
+        return new NullServiceProvider();
     }
 
     /**

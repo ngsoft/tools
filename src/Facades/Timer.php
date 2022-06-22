@@ -25,7 +25,7 @@ use const SCRIPT_START;
 class Timer extends Facade
 {
 
-    public const GLOBAL_CLOCK = 'global';
+    public const GLOBAL_TIMER = 'global';
 
     protected static function getFacadeAccessor(): string
     {
@@ -34,19 +34,14 @@ class Timer extends Facade
 
     protected static function getServiceProvider(): ServiceProvider
     {
+
+        $accessor = static::getFacadeAccessor();
+
         return new SimpleServiceProvider(self::getFacadeAccessor(),
-                static function (ContainerInterface $container) {
-
-
-                    $hrtime = false;
-                    if ($container->has('Timer.hrtime')) {
-                        $hrtime = $container->get('Timer.hrtime');
-                    }
-
-                    $instance = new WatchFactory($hrtime);
+                static function (ContainerInterface $container) use ($accessor) {
+                    $instance = new WatchFactory();
                     $instance->start('global', SCRIPT_START);
-
-                    $container->set('Timer', $instance);
+                    $container->set($accessor, $instance);
                 }
         );
     }

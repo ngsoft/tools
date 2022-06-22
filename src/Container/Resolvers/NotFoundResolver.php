@@ -11,6 +11,9 @@ use NGSOFT\Container\{
 class NotFoundResolver implements ContainerResolver
 {
 
+    /**
+     * Better be executed last
+     */
     public function getDefaultPriority(): int
     {
         return 1;

@@ -7,7 +7,8 @@ namespace NGSOFT\Container;
 use ArrayAccess,
     Closure;
 use NGSOFT\{
-    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\LoggerAwareResolver, Container\Resolvers\NotFoundResolver, Container\Resolvers\SimpleClosureResolver, DataStructure\PrioritySet,
+    Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\{
     ContainerExceptionInterface, ContainerInterface as PsrContainerInterface
@@ -20,6 +21,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     protected const BASIC_RESOLVERS = [
         NotFoundResolver::class,
         LoggerAwareResolver::class,
+        SimpleClosureResolver::class,
     ];
 
     use StringableObject,
@@ -67,14 +69,20 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
         return $this;
     }
 
-    abstract protected function isResolved(string $id): bool;
+    /**
+     * Entry is resolved ?
+     */
+    protected function isResolved(string $id): bool
+    {
+        return $this->resolved[$id] ?? false;
+    }
 
     /**
      * Execute handlers when resolving the entry
      */
     protected function resolve(string $id, mixed $resolved): mixed
     {
-        if (isset($this->resolved[$id])) {
+        if ($this->isResolved($id)) {
             return $resolved;
         }
 
@@ -82,7 +90,11 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
             $resolved = $handler($this, $id, $resolved);
         }
 
-        $this->resolved[$id] = true;
+        // with NotFoundResolver we never get here
+        if ($resolved !== null) {
+            $this->resolved[$id] = true;
+        }
+
         return $resolved;
     }
 

@@ -26,8 +26,10 @@ class ParameterResolver implements ContainerResolver
 {
 
     protected ContainerInterface $container;
-    protected array $errors = [];
 
+    /**
+     * Very high priority to be executed first
+     */
     public function getDefaultPriority(): int
     {
         return 1024;
@@ -36,7 +38,6 @@ class ParameterResolver implements ContainerResolver
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
     {
         $this->container = $container;
-        $this->errors = [];
         return $this->resolve($id, $value);
     }
 
