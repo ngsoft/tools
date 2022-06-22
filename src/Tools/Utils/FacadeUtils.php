@@ -12,8 +12,8 @@ use NGSOFT\Facades\Facade,
     Stringable;
 use const NAMESPACE_SEPARATOR;
 use function NGSOFT\Filesystem\require_file,
-             str_contains,
-             str_starts_with;
+    str_contains,
+    str_starts_with;
 
 class FacadeUtils
 {
@@ -55,10 +55,14 @@ class FacadeUtils
             $result = '[';
             foreach ($data as $key => $value) {
                 $tmp = self::var_exporter($value);
-                if ($tmp === null) { return null; }
+                if ($tmp === null) {
+                    return null;
+                }
                 if (is_int($key)) {
                     $result .= sprintf('%s,', $tmp);
-                } else { $result .= sprintf('%s=>%s,', var_export($key, true), $tmp); }
+                } else {
+                    $result .= sprintf('%s=>%s,', var_export($key, true), $tmp);
+                }
             }
             return trim($result, ',') . ']';
         } elseif (is_scalar($data) || is_null($data)) {
@@ -90,7 +94,6 @@ class FacadeUtils
                     continue;
                 }
             } catch (\ReflectionException) {
-
             }
 
             $entry = ['', '', [], ''];
@@ -111,10 +114,10 @@ class FacadeUtils
             /** @var ReflectionParameter $rParam */
             foreach ($rMethod->getParameters() as $rParam) {
                 $param = sprintf(
-                        '%s %s$%s',
-                        self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
-                        $rParam->canBePassedByValue() ? '' : '&', // so passed by reference
-                        $rParam->getName()
+                    '%s %s$%s',
+                    self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
+                    $rParam->canBePassedByValue() ? '' : '&', // so passed by reference
+                    $rParam->getName()
                 );
                 if ($rParam->isDefaultValueAvailable()) {
                     $default = $rParam->getDefaultValue();
@@ -134,16 +137,17 @@ class FacadeUtils
         return $result;
     }
 
-    public static function getClassDocBlocks(object $instance): array
+    public static function getClassDocBlocks(object $instance, bool $static = true): array
     {
 
-        static $model = " * @method static %s %s%s", $sig = self::KEY_SIG, $ret = self::KEY_RET;
+        static $model = " * @method %s%s %s%s", $sig = self::KEY_SIG, $ret = self::KEY_RET;
 
+        $static = $static ? 'static ' : '';
         $result = [];
 
         foreach (self::getClassMethodsSignatures($instance) as $method => $entry) {
 
-            $result[] = sprintf($model, $method, $entry[$ret], $entry[$sig]);
+            $result[] = sprintf($model, $static, $entry[$ret],$method,  $entry[$sig]);
         }
 
 
@@ -174,7 +178,7 @@ class FacadeUtils
                 foreach ($docs as $line) {
                     if (str_contains($line, '*/')) {
                         foreach ($methods as $method) {
-                            if ( ! str_contains($orig, $method)) {
+                            if (!str_contains($orig, $method)) {
                                 $result[] = $method;
                             }
                         }
@@ -187,7 +191,6 @@ class FacadeUtils
                 return $docs;
             }
         } catch (ReflectionException) {
-
         }
 
         return '';
@@ -205,7 +208,7 @@ class FacadeUtils
             }
 
 
-            $code = require_file(__DIR__ . '/MethodTemplate.php', [
+            $code = require_file(__DIR__ . '/Templates/Method.php', [
                 'method' => $method,
                 'sig' => $entry[$sig],
                 'ret' => $entry[$ret],
@@ -213,7 +216,7 @@ class FacadeUtils
                 'doc' => $entry[$doc],
             ]);
 
-            if ( ! blank($code)) {
+            if (!blank($code)) {
                 $result[] = $code;
             }
         }
@@ -234,7 +237,7 @@ class FacadeUtils
     public static function createFacadeCode(object $instance, ?string $name = null, ?string $accessor = null)
     {
 
-        if ( ! $name) {
+        if (!$name) {
             $name = class_basename(get_class($instance));
         }
 
@@ -247,19 +250,23 @@ class FacadeUtils
         }
 
 
-        if (empty($namespace)) {
-            $namespace = 'NGSOFT\\Facades';
-        }
 
-        $code = require_file(__DIR__ . '/FacadeTemplate.php', [
+
+        /*if (empty($namespace)) {
+            $namespace = 'NGSOFT\\Facades';
+        }*/
+
+
+        $code = require_file(__DIR__ . '/Templates/Facade.php', [
             'class' => $class,
             'namespace' => $namespace,
             'accessor' => $accessor,
-            'instance' => $instance,
+            'constructor' => get_class($instance),
+            //'instance' => $instance,
             'provides' => $provides,
+            'methods' => self::createMethodsForInstance($instance),
         ]);
 
         return "<?php\n{$code}";
     }
-
 }

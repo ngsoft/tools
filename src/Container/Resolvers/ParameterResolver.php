@@ -64,6 +64,18 @@ class ParameterResolver implements ContainerResolver
                 } elseif (is_null($resolved)) {
                     throw new ContainerResolverException(sprintf('Entry "%s" {closure} does not return any value.', $id));
                 }
+            } elseif (is_string($entry) && class_exists($entry)) {
+
+                if ($reflectionClass = $this->resolveClassName($entry)) {
+
+                    if ($reflectionClass->isInstantiable()) {
+                        if ($constructor = $reflectionClass->getConstructor()) {
+                            $resolved = $reflectionClass->newInstance(...$this->resolveParameters($id, $constructor));
+                        } else {
+                            $resolved = $reflectionClass->newInstanceWithoutConstructor();
+                        }
+                    } else throw new ContainerResolverException(sprintf('Entry "%s" cannot be instanciated.', $id));
+                }
             } else $resolved = $entry;
         } catch (Throwable $error) {
             throw new NotFoundException($this->container, $id, $error);
@@ -74,18 +86,26 @@ class ParameterResolver implements ContainerResolver
 
     public function resolveParameters(string $id, ReflectionMethod|ReflectionFunction $reflectionMethod): array
     {
-        if ($reflectionMethod->getNumberOfParameters() === 0) return [];
+        if ($reflectionMethod->getNumberOfParameters() === 0) { return []; }
 
         $result = [];
 
         /** @var ReflectionParameter $reflectionParameter */
         foreach ($reflectionMethod->getParameters() as $index => $reflectionParameter) {
 
+
+            //  $reflectionParameter->isVariadic()
+
+
+
             $reflectionType = $reflectionParameter->getType();
 
             if ($reflectionType === null) {
-                if ($reflectionParameter->isDefaultValueAvailable()) $result[] = $reflectionParameter->getDefaultValue();
-                else $result[] = $index === 0 ? $this->container : null;
+                if ($reflectionParameter->isDefaultValueAvailable()) {
+                    $result[] = $reflectionParameter->getDefaultValue();
+                } elseif ($reflectionParameter->isVariadic()) {
+                    $result[] = [];
+                } else { $result[] = $index === 0 ? $this->container : null; }
                 continue;
             }
 
@@ -100,8 +120,13 @@ class ParameterResolver implements ContainerResolver
 
         if ($reflectionType instanceof ReflectionIntersectionType) {
             throw new ContainerResolverException('Intersection types are not allowed by this container.');
-        } elseif ($reflectionType instanceof ReflectionUnionType) $reflectionTypes = $reflectionType->getTypes();
-        else $reflectionTypes = [$reflectionType];
+        } elseif ($reflectionType instanceof ReflectionUnionType) {
+            $reflectionTypes = $reflectionType->getTypes();
+        } else {
+            $reflectionTypes = [$reflectionType];
+        }
+
+
 
 
         $previous = null;

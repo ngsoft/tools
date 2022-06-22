@@ -2,16 +2,18 @@
 
 declare(strict_types=1);
 
+<?php if(filled($namespace)): ?>
 namespace <?= $namespace ?>;
 
+<?php endif; ?>
 use NGSOFT\Container\{
     ServiceProvider,
-    SimpleServiceProvider
+    SimpleServiceProvider,
+    NullServiceProvider
 };
 
 /**
- * Facade <?= $class ?>
-
+ * Facade::get('<?= $class ?>')
  */
 class <?= $class ?> extends Facade
 {
@@ -24,10 +26,13 @@ class <?= $class ?> extends Facade
     protected static function getServiceProvider(): ServiceProvider
     {
         // please change this to declare custom services
-        return new SimpleServiceProvider(static::getFacadeAccessor(), new \<?= get_class($instance) ?>);
+        <?php if(filled($constructor)): ?>return new SimpleServiceProvider(static::getFacadeAccessor(), \<?= $constructor ?>::class);
+        <?php else: ?>return new NullServiceProvider();
+        <?php endif; ?>
+
     }
 
-<?= \NGSOFT\Tools\Utils\FacadeUtils::createMethodsForInstance($instance) ?>
+<?= $methods ?>
 
 }<?php
 return ob_get_clean();
