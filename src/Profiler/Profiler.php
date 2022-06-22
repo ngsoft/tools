@@ -17,7 +17,7 @@ class Profiler
         return Models\ClassInfo::create($class);
     }
 
-    public function getCallable(\ReflectionFunction $callable)
+    public function getFunction(\ReflectionFunction $callable)
     {
 
     }
@@ -62,15 +62,12 @@ class Profiler
 
     }
 
-    public function getTypes(\ReflectionType $type)
+    public function getTypes(\ReflectionType $types)
     {
 
     }
 
-    ////////////////////////////   Utils   ////////////////////////////
-
-
-    protected function getCallableReflection(callable $callable): \ReflectionMethod|\ReflectionFunction
+    public function getCallable(callable $callable): \ReflectionMethod|\ReflectionFunction
     {
 
         if ($callable instanceof \Closure) {

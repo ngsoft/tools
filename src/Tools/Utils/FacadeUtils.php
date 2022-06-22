@@ -28,13 +28,17 @@ class FacadeUtils
 
         $class = (string) $class;
 
-        $splitStr = ['|', '&'];
+        $splitStr = ['?', '|', '&'];
 
         foreach ($splitStr as $char) {
             $split = explode($char, $class);
 
             foreach ($split as &$segment) {
                 if (str_starts_with($segment, NAMESPACE_SEPARATOR)) {
+                    continue;
+                }
+
+                if (empty($segment)) {
                     continue;
                 }
 

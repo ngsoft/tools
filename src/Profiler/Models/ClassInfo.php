@@ -15,7 +15,7 @@ namespace NGSOFT\Profiler\Models;
  * @method int|false getStartLine()
  * @method int|false getEndLine()
  * @method string|false getDocComment()
- * @method ?ReflectionMethod getConstructor()
+ * @method ?\ReflectionMethod getConstructor()
  * @method bool hasMethod(string $name)
  * @method \ReflectionMethod getMethod(string $name)
  * @method array getMethods(?int $filter = null)
@@ -51,7 +51,7 @@ namespace NGSOFT\Profiler\Models;
  * @method bool isIterable()
  * @method bool isIterateable()
  * @method bool implementsInterface(\ReflectionClass|string $interface)
- * @method ?ReflectionExtension getExtension()
+ * @method ?\ReflectionExtension getExtension()
  * @method string|false getExtensionName()
  * @method bool inNamespace()
  * @method string getNamespaceName()
@@ -62,7 +62,6 @@ namespace NGSOFT\Profiler\Models;
 class ClassInfo extends BaseModel
 {
 
-    protected \ReflectionClass $reflector;
     public readonly string $name;
 
     public function __construct(
@@ -73,7 +72,7 @@ class ClassInfo extends BaseModel
         if ( ! $reflector instanceof \ReflectionClass) {
             $reflector = new \ReflectionClass($reflector);
         }
-        $this->reflector = $reflector;
+        parent::__construct($reflector);
 
         $this->name = $reflector->getName();
     }

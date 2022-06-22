@@ -14,10 +14,15 @@ abstract class BaseModel implements \Stringable
         return new static($reflector);
     }
 
+    public function __construct(protected \Reflector $reflector)
+    {
+
+    }
+
     public function __call(string $name, array $arguments): mixed
     {
-        if ( ! isset($this->reflector) || ! method_exists($this->reflector, $name)) {
-            throw new BadMethodCallException(sprintf('%s::%s() does not exists', static::class, $name));
+        if ( ! method_exists($this->reflector, $name)) {
+            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
         }
 
         return $this->reflector->{$name}(...$arguments);
@@ -25,13 +30,7 @@ abstract class BaseModel implements \Stringable
 
     public function __toString(): string
     {
-
-        if (isset($this->reflector)) {
-            return (string) $this->reflector;
-        }
-
-
-        return sprintf('object(%s)#%d', get_class($this), spl_object_id($this));
+        return (string) $this->reflector;
     }
 
 }
