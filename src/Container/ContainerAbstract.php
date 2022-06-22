@@ -86,6 +86,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
             return $resolved;
         }
 
+        // before to prevent infinite loops
         $this->resolved[$id] = true;
 
         foreach ($this->handlers as $handler) {
@@ -173,6 +174,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     {
         $id = $this->handleAliasResolution($id);
         $this->definitions[$id] = $entry;
+
         unset($this->resolved[$id]);
     }
 
