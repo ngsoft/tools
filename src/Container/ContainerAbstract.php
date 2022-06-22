@@ -50,7 +50,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
 
         foreach (self::BASIC_RESOLVERS as $resolver) {
-            $this->addResolutionHandler(new $resolver());
+            $this->addResolutionHandler(new $resolver);
         }
     }
 
@@ -86,14 +86,13 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
             return $resolved;
         }
 
+        $this->resolved[$id] = true;
+
         foreach ($this->handlers as $handler) {
             $resolved = $handler($this, $id, $resolved);
         }
 
-        // with NotFoundResolver we never get here
-        if ($resolved !== null) {
-            $this->resolved[$id] = true;
-        }
+        $this->definitions[$id] = $resolved;
 
         return $resolved;
     }
@@ -125,7 +124,7 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     {
         foreach ($provider->provides() as $id) {
             $this->providers[$id] = $provider;
-            unset($this->registered[$id]);
+            unset($this->registered[$id], $this->resolved[$id]);
         }
         return $this;
     }
@@ -149,12 +148,14 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-
         $this->handleServiceProvidersResolution($id);
+
         $id = $this->handleAliasResolution($id);
 
         if ( ! $this->isResolved($id)) {
             $this->definitions[$id] = $this->resolve($id, $this->definitions[$id] ?? null);
+        } elseif ( ! array_key_exists($id, $this->definitions)) {
+            throw new NotFoundException($this, $id);
         }
         return $this->definitions[$id];
     }

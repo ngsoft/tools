@@ -15,21 +15,10 @@ use Closure,
 class Container extends ContainerAbstract
 {
 
-    /** {@inheritdoc} */
-    public function has(string $id): bool
+    public function __construct(array $definitions = [])
     {
-        $id = $this->handleAliasResolution($id);
-        return array_key_exists($id, $this->definitions) || array_key_exists($id, $this->providers) || is_instanciable($id);
-    }
-
-    protected function isResolved(string $id): bool
-    {
-        if (array_key_exists($id, $this->definitions)) {
-            return $this->definitions[$id] instanceof Closure === false;
-        } elseif (class_exists($id)) {
-            return false;
-        }
-        throw new NotFoundException($this, $id);
+        parent::__construct($definitions);
+        $this->addResolutionHandler(new ParameterResolver());
     }
 
 }
