@@ -13,6 +13,8 @@ use Psr\Container\ContainerExceptionInterface;
 class ClassStringResolver implements ContainerResolver
 {
 
+    protected ParameterResolver $resolver;
+
     public function getDefaultPriority(): int
     {
         return ContainerInterface::PRIORITY_HIGH + 1;
@@ -21,12 +23,10 @@ class ClassStringResolver implements ContainerResolver
     public function __invoke(ContainerInterface $container, string $id, mixed $value): mixed
     {
 
-
         if (is_string($value) && class_exists($value)) {
-
-
+            $resolver = $this->resolver;
             try {
-                return $container->get($value);
+                return $resolver($container, $value, null);
             } catch (ContainerExceptionInterface) {
 
             }
@@ -34,6 +34,11 @@ class ClassStringResolver implements ContainerResolver
 
 
         return $value;
+    }
+
+    public function __construct()
+    {
+        $this->resolver = new ParameterResolver();
     }
 
 }
