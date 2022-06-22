@@ -15,4 +15,4 @@ require_once __DIR__ . DIRECTORY_SEPARATOR . 'tools.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'filesystem.php';
 
 // instanciating the container
-Facade::setContainer(new NGSOFT\Container\SimpleContainer());
+Facade::boot();
