@@ -171,7 +171,9 @@ abstract class ContainerAbstract implements ContainerInterface, Stringable, Arra
     /** {@inheritdoc} */
     public function set(string $id, mixed $entry): void
     {
-        $this->definitions[$this->handleAliasResolution($id)] = $entry;
+        $id = $this->handleAliasResolution($id);
+        $this->definitions[$id] = $entry;
+        unset($this->resolved[$id]);
     }
 
     /** {@inheritdoc} */
