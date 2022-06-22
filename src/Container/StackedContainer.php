@@ -124,7 +124,7 @@ class StackedContainer implements ContainerInterface, Stringable
         try {
             return $this->container->get($id);
         } catch (ContainerExceptionInterface $error) {
-            if ($this->next) return $this->next->get($id);
+            if ($this->next) { return $this->next->get($id); }
             throw $error;
         }
     }
@@ -139,7 +139,7 @@ class StackedContainer implements ContainerInterface, Stringable
     public function __debugInfo(): array
     {
         $result = [$this->__toString()];
-        if ($this->next) $result[] = $this->next->__toString();
+        if ($this->next) { $result[] = $this->next->__toString(); }
         return $result;
     }
 
