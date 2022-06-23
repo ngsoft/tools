@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use NGSOFT\Profiler\Models\Parsers\TypeParser,
+    ReflectionFunctionAbstract,
+    ReflectionParameter;
+
 /**
  * @method string getName()
  * @method bool isPassedByReference()
  * @method bool canBePassedByValue()
- * @method \ReflectionFunctionAbstract getDeclaringFunction()
+ * @method ReflectionFunctionAbstract getDeclaringFunction()
  * @method ?\ReflectionClass getDeclaringClass()
  * @method ?\ReflectionClass getClass()
  * @method bool hasType()
@@ -25,7 +29,7 @@ namespace NGSOFT\Profiler\Models;
  * @method bool isVariadic()
  * @method bool isPromoted()
  * @method array getAttributes(?string $name = null, int $flags = 0)
- * @see \ReflectionParameter
+ * @see ReflectionParameter
  */
 class Parameter extends TypeParser
 {
@@ -34,7 +38,7 @@ class Parameter extends TypeParser
 
     public static function getReflectorClassName(): string
     {
-        return \ReflectionParameter::class;
+        return ReflectionParameter::class;
     }
 
 }

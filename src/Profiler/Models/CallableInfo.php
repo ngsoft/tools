@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use Closure,
+    NGSOFT\Profiler\Models\Parsers\ReturnTypeParser,
+    ReflectionFunction;
+
 /**
  * @method bool isDisabled()
  * @method mixed invoke(mixed $args)
  * @method mixed invokeArgs(array $args)
- * @method \Closure getClosure()
+ * @method Closure getClosure()
  * @method bool inNamespace()
  * @method bool isClosure()
  * @method bool isDeprecated()
@@ -39,7 +43,7 @@ namespace NGSOFT\Profiler\Models;
  * @method bool hasTentativeReturnType()
  * @method ?\ReflectionType getTentativeReturnType()
  * @method array getAttributes(?string $name = null, int $flags = 0)
- * @see \ReflectionFunction
+ * @see ReflectionFunction
  */
 class CallableInfo extends ReturnTypeParser
 {
@@ -48,7 +52,7 @@ class CallableInfo extends ReturnTypeParser
 
     public static function getReflectorClassName(): string
     {
-        return \ReflectionFunction::class;
+        return ReflectionFunction::class;
     }
 
 }

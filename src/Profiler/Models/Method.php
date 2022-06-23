@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use Closure,
+    NGSOFT\Profiler\Models\Parsers\ReturnTypeParser,
+    ReflectionClass,
+    ReflectionMethod;
+
 /**
  * @method bool isPublic()
  * @method bool isPrivate()
@@ -12,12 +17,12 @@ namespace NGSOFT\Profiler\Models;
  * @method bool isFinal()
  * @method bool isConstructor()
  * @method bool isDestructor()
- * @method \Closure getClosure(?object $object = null)
+ * @method Closure getClosure(?object $object = null)
  * @method int getModifiers()
  * @method mixed invoke(?object $object, mixed $args)
  * @method mixed invokeArgs(?object $object, array $args)
- * @method \ReflectionClass getDeclaringClass()
- * @method \ReflectionMethod getPrototype()
+ * @method ReflectionClass getDeclaringClass()
+ * @method ReflectionMethod getPrototype()
  * @method void setAccessible(bool $accessible)
  * @method bool inNamespace()
  * @method bool isClosure()
@@ -49,7 +54,7 @@ namespace NGSOFT\Profiler\Models;
  * @method bool hasTentativeReturnType()
  * @method ?\ReflectionType getTentativeReturnType()
  * @method array getAttributes(?string $name = null, int $flags = 0)
- * @see \ReflectionMethod
+ * @see ReflectionMethod
  */
 class Method extends ReturnTypeParser
 {
@@ -58,7 +63,7 @@ class Method extends ReturnTypeParser
 
     public static function getReflectorClassName(): string
     {
-        return \ReflectionMethod::class;
+        return ReflectionMethod::class;
     }
 
 }

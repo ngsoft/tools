@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use NGSOFT\Profiler\Models\Parsers\TypeParser,
+    ReflectionClass,
+    ReflectionProperty;
+
 /**
  * @method string getName()
  * @method mixed getValue(?object $object = null)
@@ -17,7 +21,7 @@ namespace NGSOFT\Profiler\Models;
  * @method bool isDefault()
  * @method bool isPromoted()
  * @method int getModifiers()
- * @method \ReflectionClass getDeclaringClass()
+ * @method ReflectionClass getDeclaringClass()
  * @method string|false getDocComment()
  * @method void setAccessible(bool $accessible)
  * @method ?\ReflectionType getType()
@@ -25,7 +29,7 @@ namespace NGSOFT\Profiler\Models;
  * @method bool hasDefaultValue()
  * @method mixed getDefaultValue()
  * @method array getAttributes(?string $name = null, int $flags = 0)
- * @see \ReflectionProperty
+ * @see ReflectionProperty
  */
 class Property extends TypeParser
 {
@@ -34,7 +38,7 @@ class Property extends TypeParser
 
     public static function getReflectorClassName(): string
     {
-        return \ReflectionProperty::class;
+        return ReflectionProperty::class;
     }
 
 }

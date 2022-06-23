@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Profiler\Models;
+namespace NGSOFT\Profiler\Models\Parsers;
 
 use function mb_substr,
              NGSOFT\Tools\map;
