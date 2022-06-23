@@ -53,11 +53,8 @@ class SimpleArray extends Collection
 
     /**
      * Prepend one or more elements to the beginning of an array
-     *
-     * @param mixed $values
-     * @return int
      */
-    public function unshift(mixed $values): int
+    public function unshift(mixed ...$values): int
     {
         foreach ($values as $value) {
             if ($value instanceof self) $value = $value->storage;
@@ -70,9 +67,7 @@ class SimpleArray extends Collection
     }
 
     /**
-     *
-     * @param mixed $values
-     * @return int
+     * Appends one or more elements at the end of an array
      */
     public function push(mixed ...$values): int
     {

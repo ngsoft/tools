@@ -23,6 +23,11 @@ class FacadeUtils
     protected const KEY_PARAMS = 2;
     protected const KEY_DOC = 3;
 
+    protected static function isEnumOrConstant(string $input): bool
+    {
+        return str_contains($input, '::') && defined($input);
+    }
+
     protected static function getFullyQualifiedClassName(string|Stringable $class)
     {
 
@@ -42,7 +47,7 @@ class FacadeUtils
                     continue;
                 }
 
-                if (class_exists($segment) || interface_exists($segment)) {
+                if (class_exists($segment) || interface_exists($segment) || self::isEnumOrConstant($segment)) {
                     $segment = NAMESPACE_SEPARATOR . $segment;
                 }
             }
@@ -54,6 +59,7 @@ class FacadeUtils
 
     protected static function var_exporter(mixed $data): string|null
     {
+
 
         if (is_array($data)) {
             $result = '[';
@@ -69,9 +75,9 @@ class FacadeUtils
                 }
             }
             return trim($result, ',') . ']';
-        } elseif (is_scalar($data) || is_null($data)) {
-            return strtolower(var_export($data, true));
-        }
+        } elseif (is_scalar($data)) {
+            return var_export($data, true);
+        } elseif (is_null($data)) { return 'null'; }
         return null;
     }
 
@@ -96,7 +102,8 @@ class FacadeUtils
                  * Must implements a Spl Interface,
                  * cannot be made static
                  */
-                if (($proto = $rMethod->getPrototype()) && empty(class_namespace($proto->class))) {
+                if (($proto = $rMethod->getPrototype()) && $proto->getFileName() === false) {
+
                     continue;
                 }
             } catch (\ReflectionException) {
@@ -138,15 +145,25 @@ class FacadeUtils
                 $param = sprintf(
                         '%s %s$%s',
                         self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
-                        $rParam->canBePassedByValue() ? '' : '&', // so passed by reference
+                        $rParam->canBePassedByValue() ? ($rParam->isVariadic() ? '...' : '') : '&', // so passed by reference
                         $rParam->getName()
                 );
+
                 if ($rParam->isDefaultValueAvailable()) {
-                    $default = $rParam->getDefaultValue();
-                    $param .= sprintf(' = %s', self::var_exporter($default));
+
+
+                    if ($rParam->isDefaultValueConstant()) {
+                        $param .= sprintf(' = %s', self::getFullyQualifiedClassName($rParam->getDefaultValueConstantName()));
+                    } else { $param .= sprintf(' = %s', self::var_exporter($rParam->getDefaultValue())); }
                 }
 
-                $params['$' . $rParam->getName()] = $param;
+                $nParam = '$' . $rParam->getName();
+
+                if ($rParam->isVariadic()) {
+                    $nParam = "...$nParam";
+                }
+
+                $params[$nParam] = $param;
             }
 
 
@@ -220,7 +237,7 @@ class FacadeUtils
         return '';
     }
 
-    public static function createMethodsForInstance(object $instance, string $facade = null): string
+    public static function createMethodsForInstance(object|string $instance, string $facade = null): string
     {
         static $sig = self::KEY_SIG, $ret = self::KEY_RET, $prm = self::KEY_PARAMS, $doc = self::KEY_DOC;
         $result = [];

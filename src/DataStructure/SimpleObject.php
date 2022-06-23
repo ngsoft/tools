@@ -4,108 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    Countable,
-    IteratorAggregate,
-    JsonSerializable;
-use NGSOFT\{
-    Facades\Lock, Lock\LockStore
-};
-use OutOfBoundsException,
-    Stringable,
-    Throwable;
-use function get_debug_type,
-             NGSOFT\Tools\pause;
+use OutOfBoundsException;
+use function get_debug_type;
 
 class SimpleObject extends Collection
 {
-
-    protected string $filename = '';
-    protected ?string $hash = null;
-    protected ?LockStore $lock = null;
-
-    /** @var static[] */
-    protected array $children = [];
-
-    /**
-     * Instanciates a new instance using the given json file and syncs it (writes to it when keys are added/removed)
-     *
-     * @param string $filename
-     * @param bool $recursive
-     * @return static
-     */
-    public static function syncJsonFile(string $filename, bool $recursive = true): static
-    {
-        try {
-            $instance = static::fromJsonFile($filename, $recursive);
-            $instance->filename = $filename;
-            $instance->hash = $instance->getHash();
-        } catch (Throwable) {
-            $instance = static::create([], $recursive);
-            $instance->filename = $filename;
-        }
-
-        return $instance;
-    }
-
-    protected function getLock(): LockStore
-    {
-        $this->lock = $this->lock ?? Lock::createFileLock($this->filename);
-        return $this->lock;
-    }
-
-    /**
-     * Write to json file when modified
-     * @internal
-     * @return void
-     */
-    protected function update(): void
-    {
-        if ( ! empty($this->filename)) {
-            $this->getLock()->block(20, function () {
-                if ($this->saveToJson($this->filename)) {
-                    $this->hash = $this->getHash();
-                }
-            });
-        } else { $this->parent?->update(); }
-    }
-
-    /**
-     * Reloads json file if modified by another process/instance
-     *
-     * @return void
-     */
-    protected function load(): void
-    {
-        if ( ! empty($this->filename)) {
-            // can check concurrent modifications
-            $hash = $this->getHash();
-
-            if ($hash !== $this->hash) {
-                $this->getLock()->block(20, function () {
-                    if ($string = file_get_contents($this->filename)) {
-                        $array = json_decode($string, true);
-                        if (is_array($array)) {
-                            $this->storage = $array;
-                            $this->hash = $this->getHash();
-                        }
-                    }
-                });
-            }
-        } else { $this->parent?->load(); }
-    }
-
-    protected function getHash(): ?string
-    {
-        if ( ! is_file($this->filename)) {
-            return null;
-        }
-
-        while (($hash = hash_file('crc32', $this->filename) ) === false) {
-            pause(.095);
-        }
-        return $hash;
-    }
 
     protected function assertValidImport(array $import): void
     {
@@ -122,20 +25,25 @@ class SimpleObject extends Collection
         }
     }
 
-    protected function append(mixed $offset, mixed $value): void
+    protected function append(mixed $offset, mixed $value): int|string
     {
+
+        if ($value instanceof self) {
+            $value = $value->storage;
+        }
 
         if (null === $offset) {
             $this->storage[] = $value;
-            return;
+            return array_key_last($this->storage);
         }
 
         if ( ! is_int($offset) && ! is_string($offset)) {
-            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', static::class, get_debug_type($offset)));
+            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int, %s given.', static::class, get_debug_type($offset)));
         }
-        unset($this->storage[$offset], $this->children[$offset]);
-        if ($value instanceof self) $value = $value->storage;
+        unset($this->storage[$offset]);
         $this->storage[$offset] = $value;
+
+        return $offset;
     }
 
     /**
@@ -146,57 +54,9 @@ class SimpleObject extends Collection
      */
     public function search(mixed $value): int|string|null
     {
-        if ($value instanceof self) $value = $value->storage;
+        if ($value instanceof self) { $value = $value->storage; }
         $offset = array_search($value, $this->storage, true);
         return $offset === false ? null : $offset;
-    }
-
-    /** {@inheritdoc} */
-    public function offsetExists(mixed $offset): bool
-    {
-        return $this->offsetGet($offset) !== null;
-    }
-
-    /** {@inheritdoc} */
-    public function &offsetGet(mixed $offset): mixed
-    {
-        $this->load();
-        $value = null;
-        if (null === $offset) {
-            $this->storage[] = [];
-            $offset = array_key_last($this->storage);
-        }
-        if (array_key_exists($offset, $this->storage)) {
-            $value = &$this->storage[$offset];
-            if ($this->recursive && is_array($value)) {
-
-                if (isset($this->children[$offset])) {
-                    return $this->children[$offset];
-                }
-
-                $instance = $this->getNewInstance();
-                $instance->parent = $this;
-                $instance->storage = &$value;
-                $this->children[$offset] = $instance;
-                $this->offset = $offset;
-                return $instance;
-            }
-        }
-        return $value;
-    }
-
-    /** {@inheritdoc} */
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        $this->append($offset, $value);
-        $this->update();
-    }
-
-    /** {@inheritdoc} */
-    public function offsetUnset(mixed $offset): void
-    {
-        unset($this->storage[$offset]);
-        $this->update();
     }
 
     /** {@inheritdoc} */
@@ -222,18 +82,6 @@ class SimpleObject extends Collection
     public function __isset(string $name): bool
     {
         return $this->offsetExists($name);
-    }
-
-    /** {@inheritdoc} */
-    public function __serialize(): array
-    {
-        return [$this->storage, $this->recursive, $this->filename];
-    }
-
-    /** {@inheritdoc} */
-    public function __unserialize(array $data): void
-    {
-        list($this->storage, $this->recursive, $this->filename) = $data;
     }
 
 }

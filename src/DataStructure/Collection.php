@@ -293,7 +293,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     /**
      * Tests if at least one of the elements from the storage pass the test implemented by the callable
-
      */
     public function some(callable $callback): bool
     {
