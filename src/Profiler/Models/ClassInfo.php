@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use ReflectionClass,
+    ReflectionClassConstant,
+    ReflectionMethod,
+    ReflectionProperty;
+use function NGSOFT\Tools\map;
+
 /**
  * @method string getName()
  * @method bool isInternal()
@@ -17,16 +23,16 @@ namespace NGSOFT\Profiler\Models;
  * @method string|false getDocComment()
  * @method ?\ReflectionMethod getConstructor()
  * @method bool hasMethod(string $name)
- * @method \ReflectionMethod getMethod(string $name)
+ * @method ReflectionMethod getMethod(string $name)
  * @method array getMethods(?int $filter = null)
  * @method bool hasProperty(string $name)
- * @method \ReflectionProperty getProperty(string $name)
+ * @method ReflectionProperty getProperty(string $name)
  * @method array getProperties(?int $filter = null)
  * @method bool hasConstant(string $name)
  * @method array getConstants(?int $filter = null)
  * @method array getReflectionConstants(?int $filter = null)
  * @method mixed getConstant(string $name)
- * @method \ReflectionClassConstant|false getReflectionConstant(string $name)
+ * @method ReflectionClassConstant|false getReflectionConstant(string $name)
  * @method array getInterfaces()
  * @method array getInterfaceNames()
  * @method bool isInterface()
@@ -42,49 +48,62 @@ namespace NGSOFT\Profiler\Models;
  * @method object newInstance(mixed $args)
  * @method object newInstanceWithoutConstructor()
  * @method ?object newInstanceArgs(array $args = [])
- * @method \ReflectionClass|false getParentClass()
- * @method bool isSubclassOf(\ReflectionClass|string $class)
+ * @method ReflectionClass|false getParentClass()
+ * @method bool isSubclassOf(ReflectionClass|string $class)
  * @method ?array getStaticProperties()
  * @method mixed getStaticPropertyValue(string $name, mixed $default)
  * @method void setStaticPropertyValue(string $name, mixed $value)
  * @method array getDefaultProperties()
  * @method bool isIterable()
  * @method bool isIterateable()
- * @method bool implementsInterface(\ReflectionClass|string $interface)
+ * @method bool implementsInterface(ReflectionClass|string $interface)
  * @method ?\ReflectionExtension getExtension()
  * @method string|false getExtensionName()
  * @method bool inNamespace()
  * @method string getNamespaceName()
  * @method string getShortName()
  * @method array getAttributes(?string $name = null, int $flags = 0)
- * @see \ReflectionClass
+ * @see ReflectionClass
  */
 class ClassInfo extends BaseModel
 {
 
-    public readonly string $name;
-    protected array $methods = [];
-    protected array $properties = [];
-    protected array $constants = [];
+    use HasName;
 
     public static function getReflectorClassName(): string
     {
-        return \ReflectionClass::class;
+        return ReflectionClass::class;
     }
 
-    /**
-     * @phan-suppress PhanUndeclaredMethod, PhanUndeclaredProperty
-     */
-    public function __construct(
-            object|string $reflector
-    )
+    protected ?array $methods = null;
+    protected ?array $properties = null;
+
+    public function getClassMethod(string $name): ?Method
+    {
+        return $this->getClassMethods()[$name] ?? null;
+    }
+
+    public function getClassMethods(): array
     {
 
-        if ( ! $reflector instanceof \ReflectionClass) {
-            $reflector = new \ReflectionClass($reflector);
+        if ( ! $this->methods) {
+            $this->methods = map(function (\ReflectionMethod $method, &$key) {
+                $key = $method->getName();
+                return Method::create($method);
+            }, $this->getMethods());
         }
-        $this->name = $reflector->getName();
-        parent::__construct($reflector);
+
+        return $this->methods;
+    }
+
+    public function getClassProperty(string $name): ?Property
+    {
+        return $this->getClassProperties()[$name] ?? null;
+    }
+
+    public function getClassProperties(): array
+    {
+        return $this->properties;
     }
 
 }

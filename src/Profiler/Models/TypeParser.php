@@ -43,7 +43,7 @@ trait TypeParser
 
     public function isMixedType(): bool
     {
-        return $this->getType() === null || in_array('mixed', $this->getTypes());
+        return in_array('mixed', $this->getTypes());
     }
 
     /**
@@ -55,7 +55,7 @@ trait TypeParser
         $types = $this->getType();
 
         if (null === $types) {
-            return [];
+            return ['mixed'];
         }
 
         $str = (string) $types;

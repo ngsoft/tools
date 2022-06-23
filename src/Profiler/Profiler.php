@@ -54,15 +54,10 @@ class Profiler
 
     public function getParameter(\ReflectionParameter $parameter)
     {
-
+        return Models\ParameterInfo::create($parameter);
     }
 
     public function getProperty(\ReflectionProperty $property)
-    {
-
-    }
-
-    public function getTypes(\ReflectionType $types)
     {
 
     }
