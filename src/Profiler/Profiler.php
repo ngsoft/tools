@@ -9,14 +9,15 @@ use NGSOFT\Profiler\Models\{
     CallableInfo, ClassInfo, Method, Parameter, Property
 };
 use ReflectionClass,
-    ReflectionException,
     ReflectionFunction,
     ReflectionMethod,
     ReflectionParameter,
     ReflectionProperty;
-use function get_debug_type,
-             str_contains;
+use function get_debug_type;
 
+/**
+ * Profiler Factory
+ */
 class Profiler
 {
 
@@ -46,31 +47,6 @@ class Profiler
         return Method::create($method);
     }
 
-    public function getDefaultValue(ReflectionParameter|ReflectionProperty $reflector): mixed
-    {
-
-        $hasDefault = $reflector instanceof ReflectionProperty ? $reflector->hasDefaultValue() : $reflector->isDefaultValueAvailable();
-        $nullable = $reflector->getType() === null || str_contains((string) $reflector->getType(), 'null');
-
-        if ($reflector instanceof ReflectionParameter && $reflector->isVariadic()) {
-            return [];
-        }
-
-        if ($hasDefault) {
-            return $reflector->getDefaultValue();
-        }
-
-        if ($nullable) {
-            return null;
-        }
-
-        throw new ReflectionException(
-                        sprintf('Cannot get default value for %s $%s type %s',
-                                $reflector instanceof ReflectionProperty ? 'property' : 'parameter',
-                                $reflector->getName(), (string) $reflector->getType())
-        );
-    }
-
     public function getParameter(ReflectionParameter $parameter): Parameter
     {
         return Parameter::create($parameter);
@@ -81,7 +57,15 @@ class Profiler
         return Property::create($property);
     }
 
-    public function getCallable(callable $callable): ReflectionMethod|ReflectionFunction
+    public function getCallable(callable $callable): CallableInfo|Method
+    {
+
+        $reflector = $this->getCallableReflector($callable);
+
+        return $reflector instanceof Method ? $this->getMethod($reflector) : $this->getFunction($reflector);
+    }
+
+    protected function getCallableReflector(callable $callable): ReflectionMethod|ReflectionFunction
     {
 
         if ($callable instanceof Closure) {
