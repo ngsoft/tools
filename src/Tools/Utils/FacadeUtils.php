@@ -120,14 +120,6 @@ class FacadeUtils
                 $entry[$doc] = $docs;
             }
 
-            // the hacky way
-            /* $returntype = 'mixed';
-              $strMethod = (string) $rMethod;
-
-              if (preg_match('#return \[([^\]]+)#', $strMethod, $matches)) {
-              $returntype = trim($matches[1]);
-              } */
-
             $returntype = 'mixed';
 
             if ($rMethod->hasReturnType()) {
