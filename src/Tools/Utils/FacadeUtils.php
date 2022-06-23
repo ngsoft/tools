@@ -28,8 +28,12 @@ class FacadeUtils
         return str_contains($input, '::') && defined($input);
     }
 
-    protected static function getFullyQualifiedClassName(string|Stringable $class)
+    protected static function getFullyQualifiedClassName(string|Stringable|null $class)
     {
+
+        if ($class === null || $class === 'NULL') {
+            return 'null';
+        }
 
         $class = (string) $class;
 
