@@ -83,6 +83,9 @@ class ClassInfo extends BaseModel
         return $this->getClassMethods()[$name] ?? null;
     }
 
+    /**
+     * @return Method[]
+     */
     public function getClassMethods(): array
     {
 
@@ -101,8 +104,21 @@ class ClassInfo extends BaseModel
         return $this->getClassProperties()[$name] ?? null;
     }
 
+    /**
+     * @return Property[]
+     */
     public function getClassProperties(): array
     {
+
+        if ( ! $this->properties) {
+
+            $this->properties = map(function (\ReflectionProperty $prop, &$key) {
+                $key = $prop->getName();
+                return new Property($prop);
+            }, $this->getProperties());
+        }
+
+
         return $this->properties;
     }
 
