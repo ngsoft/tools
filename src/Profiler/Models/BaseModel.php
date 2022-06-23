@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
-use BadMethodCallException;
+use BadMethodCallException,
+    InvalidArgumentException,
+    ReflectionClass,
+    ReflectionFunction,
+    ReflectionMethod,
+    ReflectionParameter,
+    ReflectionProperty,
+    Stringable;
+use function get_debug_type;
 
-abstract class BaseModel implements \Stringable
+abstract class BaseModel implements Stringable
 {
 
     /** @var object[] */
@@ -19,10 +27,10 @@ abstract class BaseModel implements \Stringable
         return new static($reflector);
     }
 
-    public function __construct(protected \Reflector $reflector)
+    public function __construct(protected ReflectionClass|ReflectionFunction|ReflectionMethod|ReflectionParameter|ReflectionProperty $reflector)
     {
         if ( ! is_a($reflector, static::getReflectorClassName())) {
-            throw new \InvalidArgumentException(sprintf('Invalid type %s for $reflector type %s', get_debug_type($reflector), static::getReflectorClassName()));
+            throw new InvalidArgumentException(sprintf('Invalid type %s for $reflector type %s', get_debug_type($reflector), static::getReflectorClassName()));
         }
     }
 

@@ -62,7 +62,7 @@ class Profiler
 
         $reflector = $this->getCallableReflector($callable);
 
-        return $reflector instanceof Method ? $this->getMethod($reflector) : $this->getFunction($reflector);
+        return $reflector instanceof ReflectionMethod ? $this->getMethod($reflector) : $this->getFunction($reflector);
     }
 
     protected function getCallableReflector(callable $callable): ReflectionMethod|ReflectionFunction
