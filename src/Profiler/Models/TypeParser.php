@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use ReflectionIntersectionType,
+    ReflectionNamedType,
+    ReflectionUnionType;
+use function mb_substr,
+             NGSOFT\Tools\map;
+
 /**
  * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod
  */
@@ -12,17 +18,17 @@ trait TypeParser
 
     public function isIntersectionType(): bool
     {
-        return $this->getType() instanceof \ReflectionIntersectionType;
+        return $this->getType() instanceof ReflectionIntersectionType;
     }
 
     public function isUnionType(): bool
     {
-        return $this->getType() instanceof \ReflectionUnionType;
+        return $this->getType() instanceof ReflectionUnionType;
     }
 
     public function isNamedType(): bool
     {
-        return $this->getType() instanceof \ReflectionNamedType;
+        return $this->getType() instanceof ReflectionNamedType;
     }
 
     public function isMixedType(): bool
@@ -31,7 +37,7 @@ trait TypeParser
     }
 
     /**
-     * @return string[]
+     * @return Type[]
      */
     public function getTypes(): array
     {
@@ -52,10 +58,10 @@ trait TypeParser
         }
 
         foreach (preg_split('#[\&\|]+#', $str) as $type) {
-            $result[$type] = self::isBuiltinType($type) ? strtolower($type) : $type;
+            $result[$type] = $type;
         }
 
-        return array_values($result);
+        return map(fn($type) => Type::create($type), array_values($result));
     }
 
 }

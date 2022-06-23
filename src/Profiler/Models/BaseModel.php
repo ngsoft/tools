@@ -19,22 +19,6 @@ abstract class BaseModel implements \Stringable
         return new static($reflector);
     }
 
-    /**
-     * @link https://www.php.net/manual/en/language.types.declarations.php
-     * @param string $type
-     * @return bool
-     */
-    protected static function isBuiltinType(string $type): bool
-    {
-        static $builtin = [
-            'self', 'parent',
-            'array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed',
-            'void', 'never', 'static', 'null', 'false',
-        ];
-
-        return in_array(strtolower($type), $builtin);
-    }
-
     public function __construct(protected \Reflector $reflector)
     {
 

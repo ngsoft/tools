@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models;
 
+use function mb_substr,
+             NGSOFT\Tools\map;
+
 /**
  * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod
  */
 trait ReturnTypeParser
 {
 
+    /**
+     * @return Type[]
+     */
     public function getReturnTypes(): array
     {
 
@@ -30,10 +36,10 @@ trait ReturnTypeParser
         }
 
         foreach (preg_split('#[\&\|]+#', $str) as $type) {
-            $result[$type] = self::isBuiltinType($type) ? strtolower($type) : $type;
+            $result[$type] = $type;
         }
 
-        return array_values($result);
+        return map(fn($type) => Type::create($type), array_values($result));
     }
 
 }

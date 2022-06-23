@@ -111,13 +111,11 @@ class ClassInfo extends BaseModel
     {
 
         if ( ! $this->properties) {
-
             $this->properties = map(function (\ReflectionProperty $prop, &$key) {
                 $key = $prop->getName();
                 return new Property($prop);
             }, $this->getProperties());
         }
-
 
         return $this->properties;
     }
