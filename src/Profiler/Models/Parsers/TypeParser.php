@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler\Models\Parsers;
 
+use NGSOFT\Profiler\Models\{
+    BaseModel, Type
+};
 use ReflectionException,
     ReflectionIntersectionType,
     ReflectionNamedType,
@@ -16,7 +19,7 @@ use function NGSOFT\Tools\{
 };
 use function str_contains;
 
-class TypeParser extends BaseModel
+abstract class TypeParser extends BaseModel
 {
 
     public function isIntersectionType(): bool
