@@ -10,9 +10,6 @@ use NGSOFT\Profiler\Models\{
 use function mb_substr,
              NGSOFT\Tools\map;
 
-/**
- * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod
- */
 abstract class ReturnTypeParser extends BaseModel
 {
 
@@ -42,7 +39,7 @@ abstract class ReturnTypeParser extends BaseModel
             $result[$type] = $type;
         }
 
-        return map(fn($type) => Type::create($type), array_values($result));
+        return map(fn($type) => Type::create($type), $result);
     }
 
 }

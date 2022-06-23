@@ -67,12 +67,12 @@ abstract class TypeParser extends BaseModel
             $result[$type] = $type;
         }
 
-        return map(fn($type) => Type::create($type), array_values($result));
+        return map(fn($type) => Type::create($type), $result);
     }
 
     public function hasDefault(): bool
     {
-        return $this->reflector instanceof ReflectionProperty ? $this->hasDefaultValue() : $this->isDefaultValueAvailable(); ;
+        return $this->reflector instanceof ReflectionProperty ? $this->hasDefaultValue() : $this->isDefaultValueAvailable();
     }
 
     public function getDefault(): mixed

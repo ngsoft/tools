@@ -27,7 +27,9 @@ abstract class BaseModel implements Stringable
         return new static($reflector);
     }
 
-    public function __construct(protected ReflectionClass|ReflectionFunction|ReflectionMethod|ReflectionParameter|ReflectionProperty $reflector)
+    public function __construct(
+            protected ReflectionClass|ReflectionFunction|ReflectionMethod|ReflectionParameter|ReflectionProperty $reflector
+    )
     {
         if ( ! is_a($reflector, static::getReflectorClassName())) {
             throw new InvalidArgumentException(sprintf('Invalid type %s for $reflector type %s', get_debug_type($reflector), static::getReflectorClassName()));
