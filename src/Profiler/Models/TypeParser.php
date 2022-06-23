@@ -5,26 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\Profiler\Models;
 
 /**
- * @phan-file-suppress PhanUndeclaredMethod
+ * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod
  */
 trait TypeParser
 {
-
-    /**
-     * @link https://www.php.net/manual/en/language.types.declarations.php
-     * @param string $type
-     * @return bool
-     */
-    protected function isBuiltinType(string $type): bool
-    {
-        static $builtin = [
-            'self', 'parent',
-            'array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed',
-            'void', 'never', 'static', 'null', 'false',
-        ];
-
-        return in_array(strtolower($type), $builtin);
-    }
 
     public function isIntersectionType(): bool
     {
@@ -55,7 +39,7 @@ trait TypeParser
         $types = $this->getType();
 
         if (null === $types) {
-            return ['mixed'];
+            $types = 'mixed';
         }
 
         $str = (string) $types;
@@ -68,7 +52,7 @@ trait TypeParser
         }
 
         foreach (preg_split('#[\&\|]+#', $str) as $type) {
-            $result[$type] = $this->isBuiltinType($type) ? strtolower($type) : $type;
+            $result[$type] = self::isBuiltinType($type) ? strtolower($type) : $type;
         }
 
         return array_values($result);

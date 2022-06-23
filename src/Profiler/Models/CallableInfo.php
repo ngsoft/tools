@@ -44,7 +44,8 @@ namespace NGSOFT\Profiler\Models;
 class CallableInfo extends BaseModel
 {
 
-    use HasName;
+    use HasName,
+        ReturnTypeParser;
 
     public static function getReflectorClassName(): string
     {

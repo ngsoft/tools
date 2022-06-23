@@ -110,14 +110,20 @@ class FacadeUtils
             }
 
             // the hacky way
-            if ( ! $rMethod->hasReturnType()) {
-                $returntype = 'mixed';
-                $strMethod = (string) $rMethod;
+            /* $returntype = 'mixed';
+              $strMethod = (string) $rMethod;
 
-                if (preg_match('#return \[([^\]]+)#', $strMethod, $matches)) {
-                    $returntype = trim($matches[1]);
-                }
-            } else { $returntype = $rMethod->getReturnType(); }
+              if (preg_match('#return \[([^\]]+)#', $strMethod, $matches)) {
+              $returntype = trim($matches[1]);
+              } */
+
+            $returntype = 'mixed';
+
+            if ($rMethod->hasReturnType()) {
+                $returntype = $rMethod->getReturnType();
+            } elseif ($rMethod->hasTentativeReturnType()) {
+                $returntype = $rMethod->getTentativeReturnType();
+            }
 
 
             $returntype = (string) $returntype;
