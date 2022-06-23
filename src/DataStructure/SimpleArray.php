@@ -12,36 +12,43 @@ use ArrayAccess,
     Stringable;
 use function get_debug_type;
 
-class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
+class SimpleArray extends Collection
 {
-
-    use ArrayAccessCommon;
 
     protected function assertValidImport(array $import): void
     {
 
         foreach (array_keys($import) as $offset) {
-            if (!is_int($offset)) {
+            if ( ! is_int($offset)) {
                 throw new OutOfBoundsException(sprintf('%s only accepts offsets of type int, %s given.', static::class, get_debug_type($offset)));
+            }
+
+            if ($this->recursive && is_array($import[$offset])) {
+                $this->assertValidImport($import[$offset]);
             }
         }
     }
 
-    protected function append(mixed $offset, mixed $value): void
+    protected function append(mixed $offset, mixed $value): int|string
     {
 
-        if (null === $offset) {
-            $this->push($value);
-            return;
+        if ($value instanceof self) {
+            $value = $value->storage;
         }
 
-        if (!is_int($offset)) {
+        if (null === $offset) {
+            $this->storage[] = $value;
+            return array_key_last($this->storage);
+        }
+
+        if ( ! is_int($offset)) {
             throw new OutOfBoundsException(sprintf('%s only accepts offsets of type int, %s given.', static::class, get_debug_type($offset)));
         }
 
         $this->offsetUnset($offset);
-        if ($value instanceof self) $value = $value->storage;
         $this->storage[$offset] = $value;
+
+        return $offset;
     }
 
     /**
@@ -55,6 +62,9 @@ class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSeri
         foreach ($values as $value) {
             if ($value instanceof self) $value = $value->storage;
             array_unshift($this->storage, $value);
+        }
+        if (count($values)) {
+            $this->update();
         }
         return $this->count();
     }
@@ -70,6 +80,11 @@ class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSeri
             if ($value instanceof self) $value = $value->storage;
             array_push($this->storage, $value);
         }
+
+        if (count($values)) {
+            $this->update();
+        }
+
         return $this->count();
     }
 
@@ -84,6 +99,7 @@ class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSeri
         if (is_array($value) && $this->recursive) {
             $value = new static($value, $this->recursive);
         }
+        $this->update();
         return $value;
     }
 
@@ -98,6 +114,7 @@ class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSeri
         if (is_array($value) && $this->recursive) {
             $value = new static($value, $this->recursive);
         }
+        $this->update();
         return $value;
     }
 
@@ -111,7 +128,7 @@ class SimpleArray implements ArrayAccess, Countable, IteratorAggregate, JsonSeri
         if ($value instanceof self) {
             $value = $value->storage;
         }
-        $id = array_search($value, $this->storage);
+        $id = array_search($value, $this->storage, true);
         return $id === false ? -1 : $id;
     }
 

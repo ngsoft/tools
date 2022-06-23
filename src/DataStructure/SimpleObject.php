@@ -9,7 +9,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Facades\Lock, Lock\FileLock, Lock\LockStore
+    Facades\Lock, Lock\LockStore
 };
 use OutOfBoundsException,
     Stringable,
@@ -17,16 +17,12 @@ use OutOfBoundsException,
 use function get_debug_type,
              NGSOFT\Tools\pause;
 
-class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
+class SimpleObject extends Collection
 {
 
-    use ArrayAccessCommon;
-
     protected string $filename = '';
-    protected ?self $parent = null;
     protected ?string $hash = null;
-    protected ?FileLock $lock = null;
-    protected string|int|null $offset;
+    protected ?LockStore $lock = null;
 
     /** @var static[] */
     protected array $children = [];
@@ -117,6 +113,11 @@ class SimpleObject implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         foreach (array_keys($import) as $offset) {
             if ( ! is_int($offset) && ! is_string($offset)) {
                 throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int, %s given.', static::class, get_debug_type($offset)));
+            }
+
+
+            if ($this->recursive && is_array($import[$offset])) {
+                $this->assertValidImport($import[$offset]);
             }
         }
     }
