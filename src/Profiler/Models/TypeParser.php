@@ -35,7 +35,7 @@ trait TypeParser
 
     public function isMixedType(): bool
     {
-        return some(fn($type) => $type->name === 'mixed', $this->getTypes());
+        return some(fn($type) => $type->getName() === 'mixed', $this->getTypes());
     }
 
     /**

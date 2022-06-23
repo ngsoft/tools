@@ -109,13 +109,7 @@ if ( ! function_exists('is_instanciable')) {
 
     function is_instanciable(string $class): bool
     {
-        try {
-            return (new \ReflectionClass($class))->isInstantiable();
-        } catch (\Throwable) {
-
-        }
-
-        return false;
+        return class_exists($class) && (new \ReflectionClass($class))->isInstantiable();
     }
 
 }
