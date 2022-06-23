@@ -30,7 +30,8 @@ namespace NGSOFT\Profiler\Models;
 class Property extends BaseModel
 {
 
-    use HasName;
+    use HasName,
+        TypeParser;
 
     public static function getReflectorClassName(): string
     {

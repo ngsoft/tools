@@ -7,8 +7,10 @@ namespace NGSOFT\Profiler\Models;
 use ReflectionIntersectionType,
     ReflectionNamedType,
     ReflectionUnionType;
-use function mb_substr,
-             NGSOFT\Tools\map;
+use function mb_substr;
+use function NGSOFT\Tools\{
+    map, some
+};
 
 /**
  * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod
@@ -33,7 +35,7 @@ trait TypeParser
 
     public function isMixedType(): bool
     {
-        return in_array('mixed', $this->getTypes());
+        return some(fn($type) => $type->name === 'mixed', $this->getTypes());
     }
 
     /**
