@@ -27,11 +27,10 @@ namespace NGSOFT\Profiler\Models;
  * @method array getAttributes(?string $name = null, int $flags = 0)
  * @see \ReflectionProperty
  */
-class Property extends BaseModel
+class Property extends TypeParser
 {
 
-    use HasName,
-        TypeParser;
+    use HasName;
 
     public static function getReflectorClassName(): string
     {

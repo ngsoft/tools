@@ -10,7 +10,7 @@ use function mb_substr,
 /**
  * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod
  */
-trait ReturnTypeParser
+abstract class ReturnTypeParser extends BaseModel
 {
 
     /**

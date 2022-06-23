@@ -16,10 +16,7 @@ use function NGSOFT\Tools\{
 };
 use function str_contains;
 
-/**
- * @phan-file-suppress PhanUndeclaredMethod, PhanUndeclaredStaticMethod, PhanUndeclaredProperty
- */
-trait TypeParser
+abstract class TypeParser extends BaseModel
 {
 
     public function isIntersectionType(): bool
