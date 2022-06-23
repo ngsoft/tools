@@ -310,6 +310,7 @@ final class Tools
      */
     public static function every(callable $callback, iterable $iterable): bool
     {
+
         foreach ($iterable as $key => $value) {
             if ( ! $callback($value, $key, $iterable)) {
                 return false;
