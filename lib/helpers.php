@@ -129,7 +129,7 @@ if ( ! function_exists('random_string')) {
 
 }
 
-if ( ! function_exists('wait_for')) {
+if ( ! function_exists('wait')) {
 
     /**
      * Wait for a given amount of time
@@ -137,7 +137,7 @@ if ( ! function_exists('wait_for')) {
      * @param int $ms if 0 wait for .9 to 110 ms
      * @return void
      */
-    function wait_for(int $ms = 0): void
+    function wait(int $ms = 0): void
     {
         if ($ms === 0) {
             $ms = 100 + random_int(-10, 10);

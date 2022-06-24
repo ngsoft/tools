@@ -81,7 +81,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function offsetExists(mixed $offset): bool
     {
-        return $this->offsetGet($offset) !== null;
+        return array_key_exists($offset, $this->storage);
     }
 
     public function &offsetGet(mixed $offset): mixed
@@ -95,7 +95,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         }
 
         if ( ! array_key_exists($offset, $this->storage)) {
-            throw new OutOfBoundsException("Invalid offset {$this}[{$offset}]");
+            $value = null;
+            return $value;
         } elseif (is_array($this->storage[$offset])) {
             if ($this->recursive) {
                 $value = $this->prepForUpdate($offset);
@@ -246,6 +247,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         if ($sort->is(Sort::DESC)) {
             $indexes = array_reverse($indexes);
         }
+
         foreach ($indexes as $offset) { yield $offset; }
     }
 

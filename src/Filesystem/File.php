@@ -6,20 +6,26 @@ namespace NGSOFT\Filesystem;
 
 use ErrorException,
     InvalidArgumentException,
+    IteratorAggregate,
     NGSOFT\Tools,
     RuntimeException,
     SplFileInfo,
     SplFileObject,
     Stringable,
+    Traversable,
+    UI\Area,
     ValueError;
+use const SCRIPT_START;
 use function blank,
              get_debug_type;
 
 /**
  * Manages a File
  */
-class File extends Filesystem implements \IteratorAggregate
+class File extends Filesystem implements IteratorAggregate
 {
+
+    protected ?string $hash = null;
 
     public function __construct(
             string $path,
@@ -51,6 +57,33 @@ class File extends Filesystem implements \IteratorAggregate
     public function exists(): bool
     {
         return is_file($this->path);
+    }
+
+    /**
+     * Check if crc checksum has changed
+     *
+     * @return bool
+     */
+    public function isModified(): bool
+    {
+
+        $hash = $this->hash();
+        $changed = $this->hash !== $hash;
+
+        try {
+
+            if (
+                    $changed &&
+                    $this->exists() &&
+                    ! $this->hash
+            ) {
+                return $this->mtime() < SCRIPT_START;
+            }
+
+            return $changed;
+        } finally {
+            $this->hash = $hash;
+        }
     }
 
     /**
@@ -148,14 +181,14 @@ class File extends Filesystem implements \IteratorAggregate
      *
      * @return string|false
      */
-    public function hash(): string|false
+    public function hash(): string|null
     {
 
         if ( ! $this->exists()) {
-            return false;
+            return null;
         }
 
-        return hash_file('crc32', $this->path);
+        return hash_file('crc32', $this->path) ?: null;
     }
 
     /**
@@ -262,7 +295,7 @@ class File extends Filesystem implements \IteratorAggregate
         }
 
         if ( ! is_array($contents)) {
-            $contents = [];
+            $contents = [$contents];
         }
 
         $filecontents = '';
@@ -277,7 +310,7 @@ class File extends Filesystem implements \IteratorAggregate
             $filecontents .= (string) $line;
         }
 
-        return file_put_contents($this->path, $filecontents, LOCK_EX) !== false;
+        return file_put_contents($this->path, $filecontents) !== false;
     }
 
     /**
@@ -294,7 +327,7 @@ class File extends Filesystem implements \IteratorAggregate
         return false;
     }
 
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         yield from $this->getContents();
     }
