@@ -122,7 +122,26 @@ if ( ! class_exists(UserDeprecatedException::class)) {
 
 }
 
+if ( ! function_exists('list_error_handlers')) {
 
+    function list_error_handlers(): array
+    {
+        $result = [];
+
+        // unset/get the handlers
+        while ($handler = get_error_handler()) {
+            $result[] = $handler;
+            restore_error_handler();
+        }
+        // reset the handlers
+        $stack = $result;
+        while ($handler = array_pop($stack)) {
+            set_error_handler($handler);
+        }
+        return $result;
+    }
+
+}
 
 
 if ( ! function_exists('get_error_handler')) {
@@ -199,12 +218,12 @@ if ( ! function_exists('set_default_error_handler')) {
                 }
                 if ($class = $errors[$errno] ?? null) {
 
-                    if ($log === true) {
-                        Logger::log($levels[$errno], $errstr, [
-                            'line' => $errline,
-                            'file' => $errfile
-                        ]);
-                    }
+
+                    $log && Logger::log($levels[$errno], $errstr, [
+                                'line' => $errline,
+                                'file' => $errfile
+                    ]);
+
                     throw new $class($errstr, 0, $errno, $errfile, $errline);
                 }
                 return true;
@@ -212,6 +231,7 @@ if ( ! function_exists('set_default_error_handler')) {
         }
 
 
+        //prevent setting multiple times
         if (get_error_handler() === $handler) {
             return $handler;
         }
