@@ -8,6 +8,7 @@ use InvalidArgumentException,
     NGSOFT\Tools,
     PDO,
     PDOStatement,
+    Stringable,
     Throwable;
 use function str_starts_with;
 
@@ -24,19 +25,19 @@ class SQLiteLock extends BaseLockStore
     protected PDO $driver;
 
     /**
-     * @param string $name Lock name
+     * @param string|Stringable $name Lock name
      * @param int|float $seconds lock duration
      * @param string|PDO $database db3 filename or pdo instance
-     * @param string $owner the owner of the lock
+     * @param string|Stringable $owner the owner of the lock
      * @param bool $autoRelease release lock when object is destroyed
      * @param string $table table name to tuse for the locks
      * @throws InvalidArgumentException if invalid pdo driver
      */
     public function __construct(
-            string $name,
+            string|Stringable $name,
             int|float $seconds = 0,
             string|PDO $database = '',
-            string $owner = '',
+            string|Stringable $owner = '',
             bool $autoRelease = true,
             protected string $table = 'locks'
     )

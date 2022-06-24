@@ -50,7 +50,7 @@ class JsonObject extends SimpleObject
 
             if ($this->hash !== $this->file->hash()) {
                 $this->lockStore->block(20);
-                $this->storage = $this->file->readAsJson();
+                $this->storage = $this->file->readJson();
             }
         }
     }

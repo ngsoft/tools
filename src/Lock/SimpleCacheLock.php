@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\Lock;
 
 use Psr\SimpleCache\CacheInterface,
-    RuntimeException;
+    RuntimeException,
+    Stringable;
 
 if ( ! interface_exists(CacheInterface::class)) {
     throw new RuntimeException('psr/simple-cache not installed, please install a PSR-16 cache');
@@ -19,10 +20,10 @@ class SimpleCacheLock extends CacheLockAbstract
 
     public function __construct(
             protected CacheInterface $cache,
-            string $name,
-            int|float $seconds = 0,
-            string $owner = '',
-            bool $autoRelease = true
+            string|Stringable $name,
+            protected int|float $seconds = 0,
+            string|Stringable $owner = '',
+            protected bool $autoRelease = true
     )
     {
         parent::__construct($name, $seconds, $owner, $autoRelease);
