@@ -95,14 +95,31 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         return isset($this->storage[$offset]);
     }
 
+    /** {@inheritdoc} */
     public function &offsetGet(mixed $offset): mixed
     {
 
+        $this->assertValidOffset($offset);
         try {
             $this->reload();
-            $this->append($offset, $value);
+            $initial = $this->storage;
+            $value = null;
+            // overloading $obj[][] = 'value';
+            $offset ??= $this->append(null, []);
+
+            if (array_key_exists($offset, $this->storage)) {
+
+                $value = &$this->storage[$offset];
+                if (is_array($value) && $this->recursive) {
+                    $instance = $this->getNewInstance();
+                    $instance->storage = &$value;
+                }
+            }
+            return $value;
         } finally {
-            $this->update();
+            if ($this->storage !== $initial) {
+                $this->update();
+            }
         }
     }
 
@@ -210,10 +227,10 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /**
      * Creates new instance copying properties and binding parent if needed
      */
-    protected function getNewInstance(?self $parent = null): static
+    protected function getNewInstance(): static
     {
         $instance = static::create(recursive: $this->recursive);
-        $instance->parent = $parent;
+        // $instance->parent = $parent;
         return $instance;
     }
 
@@ -360,6 +377,18 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function each(callable $callback): void
     {
         Tools::each($callback, $this->entries());
+    }
+
+    /**
+     * Checks if value in the storage
+     */
+    public function has(mixed $value): bool
+    {
+
+        if ($value instanceof self) {
+            $value = $value->storage;
+        }
+        return in_array($value, $this->storage, true);
     }
 
     protected function clone(array $array): array
