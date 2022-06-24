@@ -81,37 +81,34 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function offsetExists(mixed $offset): bool
     {
-        return array_key_exists($offset, $this->storage);
+        return $this->offsetGet($offset) !== null;
     }
 
     public function &offsetGet(mixed $offset): mixed
     {
+        $this->load();
 
         if (is_null($offset)) {
             if ( ! $this->recursive) {
-                throw new OutOfBoundsException('Cannot overload object ($object[][]) if it is not recursive.');
+                throw new OutOfBoundsException("Cannot overload {$this}[][] if it is not recursive.");
             }
             $value = $this->prepForUpdate($offset);
-
             return $value;
         }
 
         if ( ! array_key_exists($offset, $this->storage)) {
-            $value = null;
+            throw new OutOfBoundsException("Invalid offset {$this}[{$offset}]");
         } elseif (is_array($this->storage[$offset])) {
-
             if ($this->recursive) {
                 $value = $this->prepForUpdate($offset);
             } else { $value = &$this->storage[$offset]; }
         } else { $value = $this->storage[$offset]; }
-
         return $value;
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->append($offset, $value);
-
         $this->update();
     }
 
@@ -144,27 +141,40 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     protected function prepForUpdate(mixed $offset): static
     {
-
         $instance = $this->getNewInstance(true);
         $instance->offset = $offset;
         if ( ! is_null($offset)) {
             $instance->storage = $this->storage[$offset];
         }
+
         return $instance;
     }
 
     /**
      * Update data on dynamic object creation
+     * child->parent->parent->...->parent
      */
     protected function update(?self $child = null): void
     {
+
         if ($child instanceof static) {
             $child->offset = $this->append($child->offset, $child->storage);
-        }
+        } else { $this->load(); }
 
         $this->parent?->update($this);
     }
 
+    /**
+     * Gets triggered before reading data
+     */
+    protected function load(): void
+    {
+
+    }
+
+    /**
+     * Creates new instance copying properties and binding parent if needed
+     */
     protected function getNewInstance(bool $parent = false): static
     {
         $instance = new static(recursive: $this->recursive);
@@ -355,7 +365,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function __debugInfo(): array
     {
-        return $this->storage;
+        return iterator_to_array($this);
     }
 
 }
