@@ -8,13 +8,12 @@ use ErrorException,
     InvalidArgumentException,
     IteratorAggregate,
     JsonException,
-    NGSOFT\Tools,
+    NGSOFT\Lock\FileSystemLock,
     RuntimeException,
     SplFileInfo,
     SplFileObject,
     Stringable,
     Traversable,
-    UI\Area,
     ValueError;
 use const SCRIPT_START;
 use function blank,
@@ -128,19 +127,8 @@ class File extends Filesystem implements IteratorAggregate
     public function require(array $data = [], bool $once = false): mixed
     {
 
-        if ( ! $this->exists()) {
-            return null;
-        }
-
-        // isolation from the current context
-        $closure = static function (array $data) {
-            extract($data);
-            unset($data);
-            return func_get_arg(2) ? require_once func_get_arg(1) : require func_get_arg(1);
-        };
-
         try {
-            require_file($this->path, $data, $once);
+            return require_file($this->path, $data, $once);
         } catch (ErrorException) {
             return null;
         } finally { restore_error_handler(); }
@@ -329,6 +317,14 @@ class File extends Filesystem implements IteratorAggregate
     public function getIterator(): Traversable
     {
         yield from $this->getContents();
+    }
+
+    /**
+     * Locks file access on concurrent access
+     */
+    public function lock(int|float $seconds = 0, string $owner = ''): FileSystemLock
+    {
+        return new FileSystemLock($this->path, $seconds, $owner);
     }
 
 }

@@ -27,7 +27,7 @@ class JsonObject extends SimpleObject
         $data = [];
         if ($file->exists()) {
             $lock->block(20);
-            $data = $file->readAsJson();
+            $data = $file->readJson();
         }
         $instance = static::create($data, $recursive);
 
