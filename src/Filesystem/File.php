@@ -141,6 +141,7 @@ class File extends Filesystem implements IteratorAggregate
 
         try {
             Tools::errors_as_exceptions();
+
             return $closure($data, $this->path, $once);
         } catch (ErrorException) {
             return null;

@@ -83,10 +83,7 @@ final class Tools
      */
     public static function errors_as_exceptions(): callable|null
     {
-        return set_error_handler(function ($type, $msg, $file, $line) {
-            if ( ! (error_reporting() & $type)) { return false; }
-            throw new ErrorException($msg, 0, $type, $file, $line);
-        });
+        return set_default_error_handler();
     }
 
     /**
