@@ -16,6 +16,7 @@ use OutOfBoundsException,
     RuntimeException,
     Stringable,
     Traversable;
+use function get_debug_type;
 
 /**
  * A base Collection
@@ -26,9 +27,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     use StringableObject;
 
     protected array $storage = [];
-    // Update event
-    protected ?self $parent = null;
-    protected int|string|null $offset = null;
 
     /**
      * Create new instance
@@ -41,7 +39,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /**
      * Instanciates a new instance using the given array
      */
-    public static function from(array $array, bool $recursive = true): static
+    public static function from(array $array, bool $recursive = false): static
     {
         return new static($array, $recursive);
     }
@@ -66,7 +64,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
             $string = file_get_contents($filename);
             if (false !== $string) { return static::fromJson($string, $recursive); }
         }
-        throw new InvalidArgumentException("Cannot import {$filename}: file does not exists.");
+        throw new InvalidArgumentException("Cannot import {$filename}: file does not exists or cannot be read.");
     }
 
     public function __construct(
@@ -78,97 +76,144 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         $this->storage = $array;
     }
 
-    public function offsetExists(mixed $offset): bool
-    {
-        return array_key_exists($offset, $this->storage);
-    }
-
-    public function &offsetGet(mixed $offset): mixed
-    {
-        if (is_null($offset)) {
-            if ( ! $this->recursive) {
-                throw new OutOfBoundsException("Cannot overload {$this}[][] as it is not recursive.");
-            }
-            $value = $this->prepForUpdate($offset);
-            return $value;
-        }
-
-        if ( ! array_key_exists($offset, $this->storage)) {
-            $value = null;
-            return $value;
-        } elseif (is_array($this->storage[$offset])) {
-            if ($this->recursive) {
-                $value = $this->prepForUpdate($offset);
-            } else { $value = &$this->storage[$offset]; }
-        } else { $value = $this->storage[$offset]; }
-        return $value;
-    }
-
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        $this->append($offset, $value);
-        $this->update();
-    }
-
-    public function offsetUnset(mixed $offset): void
-    {
-        unset($this->storage[$offset]);
-        $this->update();
-    }
-
+    /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->storage);
     }
 
+    /** {@inheritdoc} */
     public function getIterator(): Traversable
     {
         yield from $this->entries();
     }
 
+    /** {@inheritdoc} */
+    public function offsetExists(mixed $offset): bool
+    {
+        $this->reload();
+        return isset($this->storage[$offset]);
+    }
+
+    public function &offsetGet(mixed $offset): mixed
+    {
+
+        try {
+            $this->reload();
+            $this->append($offset, $value);
+        } finally {
+            $this->update();
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+
+        try {
+            $this->reload();
+            $this->append($offset, $value);
+        } finally {
+            $this->update();
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function offsetUnset(mixed $offset): void
+    {
+        try {
+            $this->reload();
+            unset($this->storage[$offset]);
+        } finally {
+            $this->update();
+        }
+    }
+
+    /**
+     * Gets called before every transaction (isset, get, set, unset)
+     */
+    protected function reload(): void
+    {
+        var_dump(__FUNCTION__);
+    }
+
+    /**
+     * Get called if data has been changed
+     */
+    protected function update(): void
+    {
+        var_dump(__FUNCTION__);
+    }
+
     /**
      * Checks if import is valid
      */
-    abstract protected function assertValidImport(array $array): void;
+    protected function assertValidImport(array $array): void
+    {
+
+        foreach (array_keys($import) as $offset) {
+
+            $this->assertValidOffset($offset);
+
+            $this->assertValidValue($import[$offset]);
+
+            if ($this->recursive && is_array($import[$offset])) {
+                $this->assertValidImport($import[$offset]);
+            }
+        }
+    }
+
+    /**
+     * Checks if the offset is valid
+     */
+    protected function assertValidOffset(mixed $offset): void
+    {
+        if ( ! is_int($offset) && ! is_string($offset) && ! is_null($offset)) {
+            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', static::class, get_debug_type($offset)));
+        }
+    }
+
+    /**
+     * Checks if value is valid
+     */
+    protected function assertValidValue(mixed $value): void
+    {
+        // accepts anything, override this to set your conditions
+    }
 
     /**
      * Appends a value at the end of the array updating the internal pointer
      * @return int|string current offset
      */
-    abstract protected function append(mixed $offset, mixed $value): int|string;
-
-    protected function prepForUpdate(mixed $offset): static
-    {
-        $instance = $this->getNewInstance(true);
-        $instance->offset = $offset;
-        if ( ! is_null($offset)) {
-            $instance->storage = $this->storage[$offset];
-        }
-
-        return $instance;
-    }
-
-    /**
-     * Update data on dynamic object creation
-     * child->parent->parent->...->parent
-     */
-    protected function update(?self $child = null): void
+    public function append(mixed $offset, mixed $value): int|string
     {
 
-        if ($child instanceof static) {
-            $child->offset = $this->append($child->offset, $child->storage);
+        $this->assertValidOffset($offset);
+
+        if ($value instanceof self) {
+            $value = $value->storage;
         }
 
-        $this->parent?->update($this);
+        $this->assertValidValue($value);
+
+        if (null === $offset) {
+            $this->storage[] = $value;
+            return array_key_last($this->storage);
+        }
+
+        unset($this->storage[$offset]);
+        $this->storage[$offset] = $value;
+
+        return $offset;
     }
 
     /**
      * Creates new instance copying properties and binding parent if needed
      */
-    protected function getNewInstance(bool $parent = false): static
+    protected function getNewInstance(?self $parent = null): static
     {
-        $instance = new static(recursive: $this->recursive);
-        if ($parent) { $instance->parent = $this; }
+        $instance = static::create(recursive: $this->recursive);
+        $instance->parent = $parent;
         return $instance;
     }
 
@@ -277,6 +322,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function filter(callable $callback): static
     {
         $result = $this->getNewInstance();
+
         foreach ($this->entries() as $offset => $value) {
 
             if ( ! $callback($value, $offset, $this)) {
@@ -316,7 +362,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         Tools::each($callback, $this->entries());
     }
 
-    protected function clone(array $array, bool $recursive): array
+    protected function clone(array $array): array
     {
 
         foreach ($array as $offset => $value) {
@@ -326,8 +372,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
             }
 
 
-            if (is_array($value) && $recursive) {
-                $array[$offset] = $this->clone($value, $recursive);
+            if (is_array($value)) {
+                $array[$offset] = $this->clone($value);
             }
         }
 
@@ -341,7 +387,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function __clone(): void
     {
-        $this->storage = $this->clone($this->storage, $this->recursive);
+        $this->storage = $this->clone($this->storage);
     }
 
     public function __serialize(): array

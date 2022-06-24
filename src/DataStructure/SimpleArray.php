@@ -15,40 +15,11 @@ use function get_debug_type;
 class SimpleArray extends Collection
 {
 
-    protected function assertValidImport(array $import): void
+    protected function assertValidOffset(mixed $offset): void
     {
-
-        foreach (array_keys($import) as $offset) {
-            if ( ! is_int($offset)) {
-                throw new OutOfBoundsException(sprintf('%s only accepts offsets of type int, %s given.', static::class, get_debug_type($offset)));
-            }
-
-            if ($this->recursive && is_array($import[$offset])) {
-                $this->assertValidImport($import[$offset]);
-            }
+        if ( ! is_int($offset) && ! is_null($offset)) {
+            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type int|null, %s given.', static::class, get_debug_type($offset)));
         }
-    }
-
-    protected function append(mixed $offset, mixed $value): int|string
-    {
-
-        if ($value instanceof self) {
-            $value = $value->storage;
-        }
-
-        if (null === $offset) {
-            $this->storage[] = $value;
-            return array_key_last($this->storage);
-        }
-
-        if ( ! is_int($offset)) {
-            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type int, %s given.', static::class, get_debug_type($offset)));
-        }
-
-        $this->offsetUnset($offset);
-        $this->storage[$offset] = $value;
-
-        return $offset;
     }
 
     /**

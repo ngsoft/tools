@@ -9,6 +9,9 @@ use NGSOFT\{
 };
 use Stringable;
 
+/**
+ * Creates a lock file with the same filename and directory as provided file
+ */
 class FileSystemLock extends BaseLockStore
 {
 
