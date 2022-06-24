@@ -187,3 +187,36 @@ if ( ! function_exists('call_private_method')) {
     }
 
 }
+
+
+if ( ! function_exists('require_package')) {
+
+
+    /**
+     * Helper to define an optionnal composer required package
+     *
+     * @link https://getcomposer.org/doc/04-schema.md#json-schema
+     *
+     * @param string $package Composer package name with version eg: ngsoft/tools:^3
+     * @param string $classCheck A class/interface/trait present in the package to check if exists
+     * @param string $exceptionClass the exception class to throw if not present
+     * @return void
+     * @throws InvalidArgumentException if package name is incorrect
+     */
+    function require_package(string $package, string $classCheck, string $exceptionClass = RuntimeException::class): void
+    {
+
+        list($name) = explode(':', $package);
+
+        if (preg_match('#^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]?|-{0,2})[a-z0-9]+)*$#', $name) === false) {
+            throw new InvalidArgumentException("Invalid package name: {$name}");
+        }
+
+        if ( ! class_exists($classCheck) && ! interface_exists($classCheck) && ! trait_exists($classCheck)) {
+            throw new $exceptionClass(
+                            sprintf('Composer package %s not installed, please run: composer require %s', $name, $package)
+            );
+        }
+    }
+
+}
