@@ -8,6 +8,10 @@ if ( ! defined('NAMESPACE_SEPARATOR')) {
     define('NAMESPACE_SEPARATOR', '\\');
 }
 
+if ( ! defined('PHP_EXT')) {
+    define('PHP_EXT', '.php');
+}
+
 if ( ! defined('SCRIPT_START')) {
     define('SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
 }

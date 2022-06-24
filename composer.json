@@ -23,8 +23,7 @@
         "symfony/polyfill-mbstring": "^1.25",
         "psr/log": "^1|^2|^3",
         "psr/container": "^2",
-        "psr/cache": "^1|^2|^3",
-        "psr/event-dispatcher": "^1"
+        "psr/cache": "^1|^2|^3"
     },
     "autoload": {
         "psr-4": {

@@ -51,11 +51,10 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public static function fromJson(string $json, bool $recursive = true): static
     {
-        $array = json_decode($json, true);
-        if (
-                (json_last_error() === JSON_ERROR_NONE) && is_array($array)
-        ) { return static::from($array, $recursive); }
-        throw new InvalidArgumentException("Cannot import: Invalid JSON");
+        if (is_array($array = json_decode($json, true, flags: JSON_THROW_ON_ERROR))) {
+            return static::from($array, $recursive);
+        }
+        throw new InvalidArgumentException(sprintf('Invalid json return type, array expected, %s given.', get_debug_type($array)));
     }
 
     /**
@@ -67,7 +66,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
             $string = file_get_contents($filename);
             if (false !== $string) { return static::fromJson($string, $recursive); }
         }
-        throw new InvalidArgumentException("Cannot import {$filename}: Invalid json file");
+        throw new InvalidArgumentException("Cannot import {$filename}: file does not exists.");
     }
 
     public function __construct(
