@@ -88,7 +88,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         if (is_null($offset)) {
             if ( ! $this->recursive) {
-                throw new OutOfBoundsException("Cannot overload {$this}[][] if it is not recursive.");
+                throw new OutOfBoundsException("Cannot overload {$this}[][] as it is not recursive.");
             }
             $value = $this->prepForUpdate($offset);
             return $value;
