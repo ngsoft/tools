@@ -78,18 +78,16 @@ function require_file(string $file, array $data = [], bool $once = false): mixed
     $closure = static function (array $___data): mixed {
         extract($___data);
         unset($___data);
-        return func_get_arg(2) ?
-        require_once func_get_arg(1) :
-        require func_get_arg(1);
+        return func_get_arg(2) ? // $once
+        require_once func_get_arg(1) : // $file
+        require func_get_arg(1); // $file
     };
-
+    // Warnings will be thrown as ErrorException
+    set_error_handler(function ($type, $msg, $file, $line) {
+        if ( ! (error_reporting() & $type)) { return false; }
+        throw new ErrorException($msg, 0, $type, $file, $line);
+    });
     try {
-        // Warnings will be thrown as ErrorException
-        set_error_handler(function ($type, $msg, $file, $line) {
-            if ( ! (error_reporting() & $type)) { return false; }
-            throw new ErrorException($msg, 0, $type, $file, $line);
-        });
-
         return $closure($data, $file, $once);
     } finally { restore_error_handler(); }
 }

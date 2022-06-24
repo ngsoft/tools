@@ -140,9 +140,7 @@ class File extends Filesystem implements IteratorAggregate
         };
 
         try {
-            Tools::errors_as_exceptions();
-
-            return $closure($data, $this->path, $once);
+            require_file($this->path, $data, $once);
         } catch (ErrorException) {
             return null;
         } finally { restore_error_handler(); }
