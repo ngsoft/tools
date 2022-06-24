@@ -7,6 +7,7 @@ namespace NGSOFT\Filesystem;
 use ErrorException,
     InvalidArgumentException,
     IteratorAggregate,
+    JsonException,
     NGSOFT\Tools,
     RuntimeException,
     SplFileInfo,
@@ -166,7 +167,7 @@ class File extends Filesystem implements IteratorAggregate
 
         $split = explode('.', $this->path);
 
-        if (count($split) > 0) {
+        if (count($split) > 1) {
 
             if ( ! blank($value = array_pop($split))) {
                 return $value;
@@ -178,8 +179,6 @@ class File extends Filesystem implements IteratorAggregate
 
     /**
      * Get CRC32 Checksum
-     *
-     * @return string|false
      */
     public function hash(): string|null
     {
@@ -256,9 +255,6 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function readAsArray(): array
     {
-        if ( ! $this->exists()) {
-            return [];
-        }
         $contents = $this->read();
         if (empty($contents)) {
             return [];
@@ -271,13 +267,17 @@ class File extends Filesystem implements IteratorAggregate
      *
      * @return mixed
      */
-    public function readAsJson(): mixed
+    public function readJson(): mixed
     {
 
         if (blank($contents = $this->read())) {
             return null;
         }
-        return json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+        $result = json_decode($contents, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new JsonException(json_last_error_msg());
+        }
+        return $result;
     }
 
     /**
@@ -315,16 +315,16 @@ class File extends Filesystem implements IteratorAggregate
 
     /**
      * Dumps data to json
-     *
-     * @param mixed $data
-     * @return bool
      */
-    public function writeJson(mixed $data): bool
+    public function writeJson(mixed $data, int $flags = JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES): bool
     {
-        if ($contents = json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) {
-            return $this->write($contents);
+        $contents = json_encode($data, $flags);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new JsonException(json_last_error_msg());
         }
-        return false;
+
+        return $contents !== false && $this->write($contents);
     }
 
     public function getIterator(): Traversable

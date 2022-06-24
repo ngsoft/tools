@@ -156,17 +156,17 @@ if ( ! function_exists('until')) {
      *
      * @param callable $contition must returns non blank value for success
      * @param int $times maximum times the loop can run
-     * @param int $waitForMs time to wait between attempts
+     * @param int $waitMs time to wait between attempts
      * @return bool Success or failure
      */
-    function until(callable $contition, int $times = 1000, int $waitForMs = 10): bool
+    function until(callable $contition, int $times = 1000, int $waitMs = 10): bool
     {
 
         while ($times > 0) {
             if (filled($contition())) {
                 return true;
             }
-            wait_for($waitForMs);
+            wait($waitMs);
             $times --;
         }
         return false;

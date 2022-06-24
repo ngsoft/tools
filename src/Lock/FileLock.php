@@ -6,6 +6,7 @@ namespace NGSOFT\Lock;
 
 use InvalidArgumentException,
     NGSOFT\Tools,
+    Stringable,
     Throwable;
 use function NGSOFT\Tools\safe;
 
@@ -16,18 +17,18 @@ class FileLock extends BaseLockStore
 {
 
     /**
-     * @param string $name
+     * @param string|Stringable $name
      * @param int|float $seconds
-     * @param string $owner
+     * @param string|Stringable $owner
      * @param bool $autoRelease
      * @param string $rootpath where to put the locks
      * @param string $prefix subdirectory to $rootpath
      * @throws InvalidArgumentException
      */
     public function __construct(
-            string $name,
-            int|float $seconds = 0,
-            string $owner = '',
+            string|Stringable $name,
+            protected int|float $seconds = 0,
+            string|Stringable $owner = '',
             protected bool $autoRelease = true,
             protected string $rootpath = '',
             protected string $prefix = '@flocks'

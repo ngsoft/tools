@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use InvalidArgumentException;
+use InvalidArgumentException,
+    Stringable;
 use function random_string;
 
 abstract class BaseLockStore implements LockStore
@@ -14,18 +15,23 @@ abstract class BaseLockStore implements LockStore
     protected const KEY_OWNER = 1;
     protected const FOREVER = 3600;
 
+    public readonly string $name;
+    protected string $owner;
     protected int|float $until = 0;
 
     public function __construct(
-            public readonly string $name,
+            string|Stringable $name,
             protected int|float $seconds = 0,
-            protected string $owner = '',
+            string|Stringable $owner = '',
             protected bool $autoRelease = true
     )
     {
         if (empty($name)) {
             throw new InvalidArgumentException('You provided an empty lock name.');
         }
+
+        $this->name = (string) $name;
+        $this->owner = (string) $owner;
 
         $this->seconds = max(0, $seconds);
 

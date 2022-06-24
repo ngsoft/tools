@@ -9,6 +9,7 @@ use NGSOFT\{
 // Set the internal encoding
 mb_internal_encoding("UTF-8");
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'errors.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'support.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'helpers.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'tools.php';
