@@ -12,7 +12,6 @@ use Stringable;
 class FileSystemLock extends BaseLockStore
 {
 
-    protected File $lockedFile;
     protected File $file;
 
     public function __construct(
@@ -24,15 +23,16 @@ class FileSystemLock extends BaseLockStore
     {
         parent::__construct($name, $seconds, $owner, $autoRelease);
 
-        $file = $this->file = $name;
-        if ($file->extension() === 'lock') {
-            $locked = $file;
-        } else { $locked = $file->dirname() . DIRECTORY_SEPARATOR . $file->name() . '.lock'; }
+        if ($name->extension() === 'lock') {
+            $locked = $name->getPath();
+        } else { $locked = $name->dirname() . DIRECTORY_SEPARATOR . $name->name() . '.lock'; }
+
+        $this->file = new File($locked);
     }
 
     protected function read(): array|false
     {
-        $data = $this->lockedFile->require();
+        $data = $this->file->require();
         return is_array($data) ? $data : false;
     }
 
@@ -47,7 +47,7 @@ class FileSystemLock extends BaseLockStore
 
         try {
             Tools::errors_as_exceptions();
-            return $this->lockedFile->write($contents);
+            return $this->file->write($contents);
         } finally {
             restore_error_handler();
         }
@@ -55,7 +55,7 @@ class FileSystemLock extends BaseLockStore
 
     public function forceRelease(): void
     {
-        $this->lockedFile->unlink();
+        $this->file->unlink();
     }
 
 }
