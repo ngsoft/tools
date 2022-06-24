@@ -126,7 +126,7 @@ if ( ! function_exists('get_error_handler')) {
 
     /**
      * Get the current set error handler
-     * 
+     *
      * @phan-suppress PhanTypeMismatchArgumentInternal
      */
     function get_error_handler(): ?callable
@@ -143,9 +143,6 @@ if ( ! function_exists('get_error_handler')) {
 
 
 if ( ! function_exists('handle_errors')) {
-
-
-
 
     /**
      * Set error handler to throw targeted exceptions
@@ -188,8 +185,8 @@ if ( ! function_exists('handle_errors')) {
             };
         }
 
-        if (get_error_handler() === $handler) {
 
+        if (get_error_handler() === $handler) {
             return $handler;
         }
 
@@ -197,3 +194,5 @@ if ( ! function_exists('handle_errors')) {
     }
 
 }
+
+
