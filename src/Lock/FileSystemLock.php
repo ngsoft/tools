@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use NGSOFT\Filesystem\File,
-    Stringable;
+use NGSOFT\{
+    Filesystem\File, Tools
+};
+use Stringable;
 
 class FileSystemLock extends BaseLockStore
 {
@@ -30,17 +32,30 @@ class FileSystemLock extends BaseLockStore
 
     protected function read(): array|false
     {
-
+        $data = $this->lockedFile->require();
+        return is_array($data) ? $data : false;
     }
 
     protected function write(int|float $until): bool
     {
 
+        $contents = sprintf(
+                "<?php\nreturn [%u => %f, %u => %s];",
+                static::KEY_UNTIL, $until,
+                static::KEY_OWNER, var_export($this->getOwner(), true),
+        );
+
+        try {
+            Tools::errors_as_exceptions();
+            return $this->lockedFile->write($contents);
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function forceRelease(): void
     {
-
+        $this->lockedFile->unlink();
     }
 
 }

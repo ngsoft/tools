@@ -324,7 +324,7 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function lock(int|float $seconds = 0, string $owner = ''): FileSystemLock
     {
-        return new FileSystemLock($this->path, $seconds, $owner);
+        return new FileSystemLock($this, $seconds, $owner);
     }
 
 }
