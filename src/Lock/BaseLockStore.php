@@ -90,7 +90,6 @@ abstract class BaseLockStore implements LockStore
 
     /**
      * Write data from the driver
-     * and updates $this->until if successful
      */
     abstract protected function write(int|float $until): bool;
 

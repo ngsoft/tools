@@ -86,8 +86,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function &offsetGet(mixed $offset): mixed
     {
-        $this->load();
-
         if (is_null($offset)) {
             if ( ! $this->recursive) {
                 throw new OutOfBoundsException("Cannot overload {$this}[][] if it is not recursive.");
@@ -159,17 +157,9 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
         if ($child instanceof static) {
             $child->offset = $this->append($child->offset, $child->storage);
-        } else { $this->load(); }
+        }
 
         $this->parent?->update($this);
-    }
-
-    /**
-     * Gets triggered before reading data
-     */
-    protected function load(): void
-    {
-
     }
 
     /**

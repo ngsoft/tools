@@ -277,8 +277,7 @@ class File extends Filesystem implements \IteratorAggregate
             $filecontents .= (string) $line;
         }
 
-
-        return file_put_contents($this->path, $filecontents) !== false;
+        return file_put_contents($this->path, $filecontents, LOCK_EX) !== false;
     }
 
     /**
