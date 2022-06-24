@@ -25,7 +25,6 @@
         "symfony/polyfill-mbstring": "^1.25",
         "psr/log": "^1|^2|^3",
         "psr/container": "^2",
-
         "psr/event-dispatcher": "^1"
     },
     "autoload": {

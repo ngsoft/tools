@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * Symfony Event dispatcher interfaces polyfill
- */
 /*
   Copyright (c) 2018-2022 Fabien Potencier
 
@@ -27,9 +24,19 @@ declare(strict_types=1);
   THE SOFTWARE.
  */
 
+/**
+ * Symfony Event dispatcher interfaces polyfill
+ *
+ *
+ * @phan-file-suppress PhanTypeMismatchDeclaredParam, PhanTypeMismatchDeclaredReturn, PhanTemplateTypeNotDeclaredInFunctionParams
+ */
+
 namespace Symfony\Contracts\EventDispatcher {
 
 
+    if (interface_exists(EventDispatcherInterface::class)) {
+        return;
+    }
 
     /*
      * This file is part of the Symfony package.
@@ -102,6 +109,128 @@ namespace Symfony\Contracts\EventDispatcher {
         public function stopPropagation(): void
         {
             $this->propagationStopped = true;
+        }
+
+    }
+
+}
+
+namespace Symfony\Component\EventDispatcher {
+
+    use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as ContractsEventDispatcherInterface;
+
+    /**
+     * The EventDispatcherInterface is the central point of Symfony's event listener system.
+     * Listeners are registered on the manager and events are dispatched through the
+     * manager.
+     *
+     * @author Bernhard Schussek <bschussek@gmail.com>
+     */
+    interface EventDispatcherInterface extends ContractsEventDispatcherInterface
+    {
+
+        /**
+         * Adds an event listener that listens on the specified events.
+         *
+         * @param int $priority The higher this value, the earlier an event
+         *                      listener will be triggered in the chain (defaults to 0)
+         */
+        public function addListener(string $eventName, callable $listener, int $priority = 0);
+
+        /**
+         * Adds an event subscriber.
+         *
+         * The subscriber is asked for all the events it is
+         * interested in and added as a listener for these events.
+         */
+        public function addSubscriber(EventSubscriberInterface $subscriber);
+
+        /**
+         * Removes an event listener from the specified events.
+         */
+        public function removeListener(string $eventName, callable $listener);
+
+        public function removeSubscriber(EventSubscriberInterface $subscriber);
+
+        /**
+         * Gets the listeners of a specific event or all listeners sorted by descending priority.
+         *
+         * @return array<callable[]|callable>
+         */
+        public function getListeners(string $eventName = null): array;
+
+        /**
+         * Gets the listener priority for a specific event.
+         *
+         * Returns null if the event or the listener does not exist.
+         */
+        public function getListenerPriority(string $eventName, callable $listener): ?int;
+
+        /**
+         * Checks whether an event has any registered listeners.
+         */
+        public function hasListeners(string $eventName = null): bool;
+    }
+
+    /**
+     * An EventSubscriber knows itself what events it is interested in.
+     * If an EventSubscriber is added to an EventDispatcherInterface, the manager invokes
+     * {@link getSubscribedEvents} and registers the subscriber as a listener for all
+     * returned events.
+     *
+     * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
+     * @author Jonathan Wage <jonwage@gmail.com>
+     * @author Roman Borschel <roman@code-factory.org>
+     * @author Bernhard Schussek <bschussek@gmail.com>
+     */
+    interface EventSubscriberInterface
+    {
+
+        /**
+         * Returns an array of event names this subscriber wants to listen to.
+         *
+         * The array keys are event names and the value can be:
+         *
+         *  * The method name to call (priority defaults to 0)
+         *  * An array composed of the method name to call and the priority
+         *  * An array of arrays composed of the method names to call and respective
+         *    priorities, or 0 if unset
+         *
+         * For instance:
+         *
+         *  * ['eventName' => 'methodName']
+         *  * ['eventName' => ['methodName', $priority]]
+         *  * ['eventName' => [['methodName1', $priority], ['methodName2']]]
+         *
+         * The code must not depend on runtime state as it will only be called at compile time.
+         * All logic depending on runtime state must be put into the individual methods handling the events.
+         *
+         * @return array<string, string|array{0: string, 1: int}|list<array{0: string, 1?: int}>>
+         */
+        public static function getSubscribedEvents();
+    }
+
+}
+
+namespace Symfony\Component\EventDispatcher\Attribute {
+
+    /**
+     * Service tag to autoconfigure event listeners.
+     *
+     * @author Alexander M. Turek <me@derrabus.de>
+     */
+    #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+    class AsEventListener
+    {
+
+        public function __construct(
+                public ?string $event = null,
+                public ?string $method = null,
+                public int $priority = 0,
+                public ?string $dispatcher = null,
+        )
+        {
+
         }
 
     }
