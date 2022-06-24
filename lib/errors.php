@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use NGSOFT\Facades\Logger,
+    Psr\Log\LogLevel;
+
 /**
  * Prevents displaying warnings and stop script execution
  * just set error_reporting() to a specific value to prevent some errors
@@ -142,12 +145,12 @@ if ( ! function_exists('get_error_handler')) {
 }
 
 
-if ( ! function_exists('handle_errors')) {
+if ( ! function_exists('set_default_error_handler')) {
 
     /**
      * Set error handler to throw targeted exceptions
      */
-    function set_default_error_handler(): ?callable
+    function set_default_error_handler(bool $log = false): ?callable
     {
         static $handler, $errors = [
             E_ERROR => ErrorException::class,
@@ -164,7 +167,23 @@ if ( ! function_exists('handle_errors')) {
             E_STRICT => StrictException::class,
             E_RECOVERABLE_ERROR => RecoverableErrorException::class,
             E_DEPRECATED => DeprecatedException::class,
-            E_USER_DEPRECATED => UserDeprecatedException::class,
+            E_USER_DEPRECATED => UserDeprecatedException::class],
+        $levels = [
+            E_ERROR => LogLevel::ERROR,
+            E_WARNING => LogLevel::WARNING,
+            E_PARSE => LogLevel::CRITICAL,
+            E_NOTICE => LogLevel::NOTICE,
+            E_CORE_ERROR => LogLevel::ERROR,
+            E_CORE_WARNING => LogLevel::WARNING,
+            E_COMPILE_ERROR => LogLevel::EMERGENCY,
+            E_COMPILE_WARNING => LogLevel::CRITICAL,
+            E_USER_ERROR => LogLevel::ERROR,
+            E_USER_WARNING => LogLevel::WARNING,
+            E_USER_NOTICE => LogLevel::NOTICE,
+            E_STRICT => LogLevel::NOTICE,
+            E_RECOVERABLE_ERROR => LogLevel::WARNING,
+            E_DEPRECATED => LogLevel::NOTICE,
+            E_USER_DEPRECATED => LogLevel::NOTICE,
         ];
 
         if ( ! $handler) {
@@ -173,12 +192,19 @@ if ( ! function_exists('handle_errors')) {
                     string $errstr,
                     string $errfile,
                     int $errline
-            )use ($errors): bool {
+            )use ($errors, $levels, $log): bool {
 
                 if ( ! (error_reporting() & $errno)) {
                     return false;
                 }
                 if ($class = $errors[$errno] ?? null) {
+
+                    if ($log === true) {
+                        Logger::log($levels[$errno], $errstr, [
+                            'line' => $errline,
+                            'file' => $errfile
+                        ]);
+                    }
                     throw new $class($errstr, 0, $errno, $errfile, $errline);
                 }
                 return true;
