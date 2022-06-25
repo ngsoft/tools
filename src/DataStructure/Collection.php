@@ -105,8 +105,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
 
         $this->assertValidOffset($offset);
-        $this->reload();
-        if ($offset === null) {
+
+        if ( ! $this->offsetExists($offset)) {
             $null = null;
             return $null;
         }
