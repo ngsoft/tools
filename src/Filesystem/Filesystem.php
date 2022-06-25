@@ -234,7 +234,17 @@ abstract class Filesystem implements Countable, Stringable
 
     public function __debugInfo(): array
     {
-        return [];
+        $result = [
+            'path' => $this->path,
+        ];
+
+        if ($this->exists()) {
+            $result += [
+                'ctime' => date(DATE_DB, $this->ctime()),
+                'mtime' => date(DATE_DB, $this->mtime()),
+            ];
+        }
+        return $result;
     }
 
 }

@@ -16,6 +16,10 @@ if ( ! defined('SCRIPT_START')) {
     define('SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
 }
 
+if ( ! defined('DATE_DB')) {
+    define('DATE_DB', 'Y-m-d H:i:s');
+}
+
 if ( ! function_exists('class_namespace')) {
 
     /**

@@ -26,6 +26,7 @@ class File extends Filesystem implements IteratorAggregate
 {
 
     protected ?string $hash = null;
+    protected ?FileSystemLock $lock = null;
 
     public function __construct(
             string $path,
@@ -320,11 +321,29 @@ class File extends Filesystem implements IteratorAggregate
     }
 
     /**
-     * Locks file access on concurrent access
+     * Locks file access on concurrent requests
      */
     public function lock(int|float $seconds = 0, string $owner = ''): FileSystemLock
     {
-        return new FileSystemLock($this, $seconds, $owner);
+        return $this->lock ??= new FileSystemLock($this, $seconds, $owner);
+    }
+
+    public function __debugInfo(): array
+    {
+        $result = [
+            'path' => $this->path,
+        ];
+
+        if ($this->exists()) {
+            $result += [
+                'ctime' => date(DATE_DB, $this->ctime()),
+                'mtime' => date(DATE_DB, $this->mtime()),
+                'crc32' => $this->hash(),
+                'locked' => $this->lock()->isAcquired(),
+                'lock' => $this->lock(),
+            ];
+        }
+        return $result;
     }
 
 }

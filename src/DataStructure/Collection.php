@@ -15,7 +15,8 @@ use NGSOFT\{
 use OutOfBoundsException,
     RuntimeException,
     Stringable,
-    Traversable;
+    Traversable,
+    ValueError;
 use function get_debug_type;
 
 /**
@@ -27,6 +28,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     use StringableObject;
 
     protected array $storage = [];
+    protected ?self $parent = null;
 
     /**
      * Create new instance
@@ -79,6 +81,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /** {@inheritdoc} */
     public function count(): int
     {
+        $this->reload();
         return count($this->storage);
     }
 
@@ -100,27 +103,25 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
 
         $this->assertValidOffset($offset);
-        try {
-            $this->reload();
-            $initial = $this->storage;
-            $value = null;
-            // overloading $obj[][] = 'value';
-            $offset ??= $this->append(null, []);
+        $this->reload();
 
-            if (array_key_exists($offset, $this->storage)) {
+        $initial = count($this->storage);
 
-                $value = &$this->storage[$offset];
-                if (is_array($value) && $this->recursive) {
-                    $instance = $this->getNewInstance();
-                    $instance->storage = &$value;
-                }
-            }
-            return $value;
-        } finally {
-            if ($this->storage !== $initial) {
-                $this->update();
-            }
+        $value = null;
+
+        // overloading $obj[][] = 'value';
+        $offset ??= $this->append(null, []);
+
+        if ( ! array_key_exists($offset, $this->storage)) {
+            $this->append($offset, null);
         }
+        if (is_array($this->storage[$offset]) && $this->recursive) {
+            $instance = $this->getNewInstance($this);
+            $instance->storage = &$this->storage[$offset];
+            return $instance;
+        }
+
+        return $this->storage[$offset];
     }
 
     /** {@inheritdoc} */
@@ -138,6 +139,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
+
         try {
             $this->reload();
             unset($this->storage[$offset]);
@@ -146,12 +148,22 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         }
     }
 
+    protected function cleanUp(): void
+    {
+        foreach ($this->keys() as $offset) {
+            if (is_null($this->storage[$offset])) {
+                unset($this->storage[$offset]);
+            }
+        }
+    }
+
     /**
      * Gets called before every transaction (isset, get, set, unset)
      */
     protected function reload(): void
     {
-        var_dump(__FUNCTION__);
+
+        $this->parent?->reload();
     }
 
     /**
@@ -159,7 +171,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     protected function update(): void
     {
-        var_dump(__FUNCTION__);
+        $this->cleanUp();
+        $this->parent?->update();
     }
 
     /**
@@ -168,14 +181,14 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     protected function assertValidImport(array $array): void
     {
 
-        foreach (array_keys($import) as $offset) {
+        foreach (array_keys($array) as $offset) {
 
             $this->assertValidOffset($offset);
 
-            $this->assertValidValue($import[$offset]);
+            $this->assertValidValue($array[$offset]);
 
-            if ($this->recursive && is_array($import[$offset])) {
-                $this->assertValidImport($import[$offset]);
+            if ($this->recursive && is_array($array[$offset])) {
+                $this->assertValidImport($array[$offset]);
             }
         }
     }
@@ -186,7 +199,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     protected function assertValidOffset(mixed $offset): void
     {
         if ( ! is_int($offset) && ! is_string($offset) && ! is_null($offset)) {
-            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', static::class, get_debug_type($offset)));
+            throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', $this, get_debug_type($offset)));
         }
     }
 
@@ -196,6 +209,10 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     protected function assertValidValue(mixed $value): void
     {
         // accepts anything, override this to set your conditions
+        if ( ! is_scalar($value) && ! is_array($value) && ! is_object($value) && ! is_null($value)) {
+
+            throw new ValueError(sprintf('%s can only use types string|int|float|bool|null|array|object, %s given.', $this, get_debug_type($value)));
+        }
     }
 
     /**
@@ -227,10 +244,10 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /**
      * Creates new instance copying properties and binding parent if needed
      */
-    protected function getNewInstance(): static
+    protected function getNewInstance(?self $parent = null): static
     {
         $instance = static::create(recursive: $this->recursive);
-        // $instance->parent = $parent;
+        $instance->parent = $parent;
         return $instance;
     }
 

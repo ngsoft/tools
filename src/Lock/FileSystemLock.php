@@ -58,7 +58,9 @@ class FileSystemLock extends BaseLockStore
 
     public function forceRelease(): void
     {
-        $this->file->unlink();
+        if ($this->file->unlink()) {
+            $this->until = 1;
+        }
     }
 
 }
