@@ -29,6 +29,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     protected array $storage = [];
     protected ?self $parent = null;
+    protected ?self $child = null;
     protected mixed $offset = null;
 
     /**
@@ -96,7 +97,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function offsetExists(mixed $offset): bool
     {
         $this->reload();
-        return isset($this->storage[$offset]);
+        return $offset !== null && array_key_exists($offset, $this->storage);
     }
 
     /** {@inheritdoc} */
@@ -105,17 +106,13 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
         $this->assertValidOffset($offset);
         $this->reload();
-
-        // overloading $obj[][] = 'value';
-        $offset ??= $this->append(null, []);
-
-        if ( ! array_key_exists($offset, $this->storage)) {
-            $this->append($offset, null);
+        if ($offset === null) {
+            $null = null;
+            return $null;
         }
-        if (is_array($this->storage[$offset]) && $this->recursive) {
-            var_dump([__FUNCTION__ => $offset, spl_object_id($this)]);
 
-            $instance = $this->getNewInstance($this);
+        if (is_array($this->storage[$offset]) && $this->recursive) {
+            $instance = $this->getNewInstance();
             $instance->storage = &$this->storage[$offset];
             return $instance;
         }
@@ -128,8 +125,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
 
         try {
-            $this->reload();
-            var_dump([__FUNCTION__ => $offset, spl_object_id($this)]);
+            $this->reload(); ;
             $this->append($offset, $value);
         } finally {
             $this->update();
@@ -148,15 +144,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         }
     }
 
-    protected function cleanUp(): void
-    {
-        foreach ($this->keys() as $offset) {
-            if (is_null($this->storage[$offset])) {
-                unset($this->storage[$offset]);
-            }
-        }
-    }
-
     /**
      * Gets called before every transaction (isset, get, set, unset)
      */
@@ -171,7 +158,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     protected function update(): void
     {
-        $this->cleanUp();
         $this->parent?->update();
     }
 
@@ -244,10 +230,9 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /**
      * Creates new instance copying properties and binding parent if needed
      */
-    protected function getNewInstance(?self $parent = null): static
+    protected function getNewInstance(): static
     {
         $instance = static::create(recursive: $this->recursive);
-        $instance->parent = $parent;
         return $instance;
     }
 
@@ -448,10 +433,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function __debugInfo(): array
     {
-        return [
-            'storage' => iterator_to_array($this),
-            'parent' => $this->parent
-        ];
+        return iterator_to_array($this);
     }
 
 }

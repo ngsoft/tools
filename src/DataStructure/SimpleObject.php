@@ -21,10 +21,9 @@ class SimpleObject extends Collection
     }
 
     /** {@inheritdoc} */
-    public function &__get(string $name): mixed
+    public function __get(string $name): mixed
     {
-        $value = &$this->offsetGet($name);
-        return $value;
+        return $this->offsetGet($name);
     }
 
     /** {@inheritdoc} */
