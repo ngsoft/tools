@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use NGSOFT\Tools;
+use ArrayAccess,
+    NGSOFT\Tools;
+use const NAMESPACE_SEPARATOR;
 
 if (defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'MICROSECOND')) {
     return;
@@ -80,9 +82,28 @@ function each(callable $callback, iterable $iterable): iterable
 /**
  * Get a value from the array, and remove it.
  */
-function pull(iterable|string|int $keys, array|\ArrayAccess &$iterable): mixed
+function pull(iterable|string|int $keys, array|ArrayAccess &$iterable): mixed
 {
     return Tools::pull($keys, $iterable);
+}
+
+/**
+ * Converts an iterable to an array recursively
+ * if the keys are not string the will be indexed
+ */
+function iterable_to_array(iterable $iterable): array
+{
+    return Tools::iterableToArray($iterable);
+}
+
+/**
+ * Concatenate multiple values into the iterable provided recursively
+ * If a provided value is iterable it will be merged into the iterable
+ * (non numeric keys will be replaced if not iterable into the provided object)
+ */
+function concat(array|ArrayAccess &$iterable, mixed ...$values): array|ArrayAccess
+{
+    return Tools::concat($iterable, ...$values);
 }
 
 /**

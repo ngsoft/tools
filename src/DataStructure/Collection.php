@@ -358,11 +358,20 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     }
 
     /**
-     * Pull  the value(s) from the collection and returns it
+     * Pull the value(s) from the storage and returns it
      */
     public function pull(iterable|int|string ...$keys): mixed
     {
         return Tools::pull($keys, $this);
+    }
+
+    /**
+     * Concatenate multiple values into the storage
+     */
+    public function concat(mixed ...$values): static
+    {
+        Tools::concat($this, ...$values);
+        return $this;
     }
 
     /**

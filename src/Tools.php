@@ -13,7 +13,8 @@ use ArrayAccess,
     ReflectionMethod,
     RuntimeException;
 use const SCRIPT_START;
-use function mb_substr,
+use function get_debug_type,
+             mb_substr,
              set_default_error_handler;
 
 /**
@@ -289,6 +290,73 @@ final class Tools
         $result = $iterable[$keys] ?? null;
         unset($iterable[$keys]);
         return $result;
+    }
+
+    /**
+     * Converts an iterable to an array recursively
+     * if the keys are not string the will be indexed
+     */
+    public static function iterableToArray(iterable $iterable): array
+    {
+        $new = [];
+        foreach ($iterable as $key => $value) {
+
+            if (is_iterable($value)) {
+                $value = self::iterableToArray($value);
+            }
+
+            if ( ! is_string($key)) {
+                $new[] = $value;
+                continue;
+            }
+
+            $new[$key] = $value;
+        }
+
+        return $new;
+    }
+
+    /**
+     * Concatenate multiple values into the iterable provided recursively
+     * If a provided value is iterable it will be merged into the iterable
+     * (non numeric keys will be replaced if not iterable into the provided object)
+     */
+    public static function concat(array|ArrayAccess &$iterable, mixed ...$values): array|ArrayAccess
+    {
+
+        static $check;
+        $check ??= static function (mixed $value): bool {
+            return (is_array($value) || $value instanceof ArrayAccess);
+        };
+
+        foreach ($values as $value) {
+
+            if (is_iterable($value)) {
+                foreach ($value as $_key => $_value) {
+                    if ( ! is_string($_key) && is_array($iterable)) {
+                        $iterable[] = $_value;
+                        continue;
+                    }
+                    if (is_int($_key)) {
+                        $iterable[] = $_value;
+                        continue;
+                    }
+
+                    // merge iterable together
+                    if ($check($iterable[$_key]) && is_iterable($_value)) {
+                        $iterable[$_key] = static::concat($iterable[$_key], $_value);
+                        continue;
+                    }
+
+                    $iterable[$_key] = $_value;
+                }
+                continue;
+            }
+
+            $iterable[] = $value;
+        }
+
+        return $iterable;
     }
 
     ////////////////////////////   Strings   ////////////////////////////
