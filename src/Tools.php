@@ -587,10 +587,8 @@ final class Tools
             $context = $class;
             try {
                 $reflector = new ReflectionMethod($instance, $method);
-                // method can be private
-                if ($reflector->isPublic()) {
-                    return $instance->{$method}(...$arguments);
-                } elseif ($reflector->isPrivate()) {
+
+                if ($reflector->isPrivate()) {
                     $context = $reflector->getDeclaringClass()->getName();
                 }
             } catch (\ReflectionException) {

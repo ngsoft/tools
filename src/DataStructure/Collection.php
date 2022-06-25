@@ -195,7 +195,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         // accepts anything, override this to set your conditions
         if ( ! is_scalar($value) && ! is_array($value) && ! is_object($value) && ! is_null($value)) {
-
             throw new ValueError(sprintf('%s can only use types string|int|float|bool|null|array|object, %s given.', $this, get_debug_type($value)));
         }
     }

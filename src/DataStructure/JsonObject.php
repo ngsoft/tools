@@ -46,7 +46,6 @@ class JsonObject extends SimpleObject
             $this->lock->block(30);
             if ($this->file->exists() && $this->file->isModified()) {
                 $retry = 0;
-
                 while ($retry < 3) {
                     if ($data = $this->file->readJson()) {
                         break;
@@ -90,8 +89,15 @@ class JsonObject extends SimpleObject
     {
         // accepts anything, override this to set your conditions
         if ( ! is_scalar($value) && ! is_array($value) && ! is_null($value)) {
-
             throw new ValueError(sprintf('%s can only use types string|int|float|bool|null|array|\\%s, %s given.', $this, Collection::class, get_debug_type($value)));
+        }
+
+        if (is_array($value)) {
+
+            call_private_method($instance, $method);
+            foreach ($value as $_value) {
+                $this->assertValidValue($_value);
+            }
         }
     }
 
