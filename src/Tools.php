@@ -658,7 +658,7 @@ final class Tools
         if ( ! is_bool($cache[$class][$method] ?? null)) {
             try {
                 $reflector = new ReflectionMethod($instance, $method);
-                $cache[$class][$method] = $reflector->isPublic();
+                $cache[$class][$method] = $reflector->isPublic() && ! $reflector->isStatic();
             } catch (\ReflectionException) {
                 $cache[$class][$method] = false;
             }
@@ -696,16 +696,21 @@ final class Tools
             $context = $class;
             try {
                 $reflector = new ReflectionMethod($instance, $method);
-
+                if ($reflector->isStatic()) {
+                    throw new \ReflectionException();
+                }
+                // context for private method
                 if ($reflector->isPrivate()) {
                     $context = $reflector->getDeclaringClass()->getName();
                 }
             } catch (\ReflectionException) {
-                throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', get_class($instance), $method));
+                throw new BadMethodCallException(sprintf('Call to undefined non static method %s::%s()', get_class($instance), $method));
             }
 
             $contexts[$class][$method] = $context;
         }
+
+
 
         $closure = $baseClosure->bindTo($instance, $contexts[$class][$method]);
 

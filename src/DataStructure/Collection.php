@@ -99,7 +99,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     }
 
     /** {@inheritdoc} */
-    public function &offsetGet(mixed $offset): mixed
+    public function offsetGet(mixed $offset): mixed
     {
 
         $this->assertValidOffset($offset);
