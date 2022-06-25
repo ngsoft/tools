@@ -11,6 +11,9 @@ use ValueError;
 use function get_debug_type,
              wait;
 
+/**
+ * A Json object that syncs data with a json file concurently
+ */
 class JsonObject extends SimpleObject
 {
 
@@ -56,7 +59,6 @@ class JsonObject extends SimpleObject
                     throw new ValueError(sprintf('Invalid json return type, array expected, %s given.', get_debug_type($data)));
                 }
 
-                var_dump(__FUNCTION__);
 
                 $this->storage = $data;
             }
@@ -69,7 +71,6 @@ class JsonObject extends SimpleObject
         parent::update();
         if ($this->file) {
 
-            var_dump(__FUNCTION__);
             $retry = 0;
             while ($retry < 3) {
                 if ($this->file->writeJson($this->storage)) {
@@ -79,6 +80,18 @@ class JsonObject extends SimpleObject
                 $retry ++;
             }
             $this->lock->release();
+        }
+    }
+
+    /**
+     * Checks if value is valid
+     */
+    protected function assertValidValue(mixed $value): void
+    {
+        // accepts anything, override this to set your conditions
+        if ( ! is_scalar($value) && ! is_array($value) && ! is_null($value)) {
+
+            throw new ValueError(sprintf('%s can only use types string|int|float|bool|null|array|\\%s, %s given.', $this, Collection::class, get_debug_type($value)));
         }
     }
 
