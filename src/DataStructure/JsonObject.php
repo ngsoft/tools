@@ -49,6 +49,8 @@ class JsonObject extends SimpleObject
     {
         parent::update();
         if ($this->file) {
+
+            var_dump(__FUNCTION__);
             $this->file->writeJson($this->storage);
             $this->lock->release();
         }

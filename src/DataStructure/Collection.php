@@ -29,8 +29,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     protected array $storage = [];
     protected ?self $parent = null;
-    protected ?self $child = null;
-    protected mixed $offset = null;
 
     /**
      * Create new instance
@@ -112,12 +110,13 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         }
 
         if (is_array($this->storage[$offset]) && $this->recursive) {
-            $instance = $this->getNewInstance();
+            $instance = $this->getNewInstance($this);
             $instance->storage = &$this->storage[$offset];
             return $instance;
         }
 
-        return $this->storage[$offset];
+        $value = &$this->storage[$offset];
+        return $value;
     }
 
     /** {@inheritdoc} */
@@ -125,7 +124,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
 
         try {
-            $this->reload(); ;
+            $this->reload();
             $this->append($offset, $value);
         } finally {
             $this->update();
@@ -230,9 +229,11 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /**
      * Creates new instance copying properties and binding parent if needed
      */
-    protected function getNewInstance(): static
+    protected function getNewInstance(?self $parent = null): static
     {
         $instance = static::create(recursive: $this->recursive);
+        $instance->parent = $parent;
+
         return $instance;
     }
 
