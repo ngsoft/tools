@@ -78,6 +78,14 @@ function each(callable $callback, iterable $iterable): iterable
 }
 
 /**
+ * Get a value from the array, and remove it.
+ */
+function pull(iterable|string|int $keys, array|\ArrayAccess &$iterable): mixed
+{
+    return Tools::pull($keys, $iterable);
+}
+
+/**
  * Change the current active directory
  * And stores the last position, use popd() to return to previous directory
  * @param string $dir

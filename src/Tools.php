@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-use BadMethodCallException,
-    ErrorException,
+use ArrayAccess,
+    BadMethodCallException,
     InvalidArgumentException,
     ReflectionClass,
     ReflectionClassConstant,
@@ -13,7 +13,8 @@ use BadMethodCallException,
     ReflectionMethod,
     RuntimeException;
 use const SCRIPT_START;
-use function mb_substr;
+use function mb_substr,
+             set_default_error_handler;
 
 /**
  * Useful Functions to use in my projects
@@ -61,6 +62,8 @@ final class Tools
      */
     private static $pushd_history = [];
 
+    ////////////////////////////   Error Handling   ////////////////////////////
+
     /**
      * Execute a callback and hides all php errors that can be thrown
      * Exceptions thrown inside the callback will be preserved
@@ -98,6 +101,8 @@ final class Tools
         $handler = $handler ?? static fn() => null;
         return set_error_handler($handler);
     }
+
+    ////////////////////////////   Files   ////////////////////////////
 
     /**
      * Normalize pathnames
@@ -153,64 +158,7 @@ final class Tools
         } finally { restore_error_handler(); }
     }
 
-    /**
-     * Get class implementing given parent class from the loaded classes
-     *
-     * @param string|object $parentClass
-     * @param bool $instanciable
-     * @return array
-     * @throws InvalidArgumentException
-     */
-    public static function implements_class(string|object $parentClass, bool $instanciable = true): array
-    {
-        static $parsed = [
-            'count' => 0,
-            'classes' => []
-        ];
-
-        $cache = &$parsed['classes'];
-        $count = &$parsed['count'];
-
-        $instanciable = (int) $instanciable;
-
-        if (is_object($parentClass)) {
-            $parentClass = get_class($parentClass);
-        }
-
-        if ( ! class_exists($parentClass) && ! interface_exists($parentClass)) {
-            throw new InvalidArgumentException(sprintf('Invalid class %s', $parentClass));
-        }
-
-        $iterator = array_reverse(get_declared_classes());
-
-        if (count($iterator) !== $count) {
-            $cache = [];
-            $count = count($iterator);
-        }
-
-        if (isset($cache[$parentClass])) {
-            return $cache[$parentClass][$instanciable];
-        }
-
-        $cache[$parentClass] = [[], []];
-
-        $result = &$cache[$parentClass];
-
-        $method = interface_exists($parentClass) ? 'class_implements' : 'class_parents';
-
-        foreach ($iterator as $class) {
-            if ($class === $parentClass) {
-                continue;
-            }
-            if (in_array($parentClass, $method($class))) {
-                $result[0][$class] = $class;
-                if ((new \ReflectionClass($class))->isInstantiable()) {
-                    $result[1][$class] = $class;
-                }
-            }
-        }
-        return $result[$instanciable];
-    }
+    ////////////////////////////   Iterables   ////////////////////////////
 
     /**
      * Uses callback for each elements of the array and returns the value
@@ -243,7 +191,8 @@ final class Tools
             if ( ! $callback($value, $key, $iterable)) {
                 continue;
             }
-            if (is_int($key) || is_null($key)) {
+
+            if ( ! is_string($key)) {
                 $new[] = $value;
                 continue;
             }
@@ -315,6 +264,34 @@ final class Tools
         }
         return true;
     }
+
+    /**
+     * Get a value from the array, and remove it.
+     */
+    public static function pull(iterable|string|int $keys, array|ArrayAccess &$iterable): mixed
+    {
+
+        if (is_iterable($keys)) {
+            $result = [];
+            foreach ($keys as $key) {
+
+                if (is_iterable($key)) {
+                    $result += static::pull($key, $iterable);
+                    continue;
+                }
+
+
+                $result[] = static::pull($key, $iterable);
+            }
+            return $result;
+        }
+
+        $result = $iterable[$keys] ?? null;
+        unset($iterable[$keys]);
+        return $result;
+    }
+
+    ////////////////////////////   Strings   ////////////////////////////
 
     /**
      * Checks if is a valid url
@@ -419,6 +396,30 @@ final class Tools
     }
 
     /**
+     * Generate a more truly "random" alpha-numeric string.
+     *
+     * @param  int  $length
+     * @return string
+     */
+    public static function randomString(int $length = 16): string
+    {
+
+        $string = '';
+
+        while (($len = strlen($string)) < $length) {
+            $size = $length - $len;
+
+            $bytes = random_bytes($size);
+
+            $string .= substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $size);
+        }
+
+        return $string;
+    }
+
+    ////////////////////////////   Time   ////////////////////////////
+
+    /**
      * Get script execution time
      *
      * @return float|int
@@ -469,6 +470,67 @@ final class Tools
         static::pause($milliseconds * static::MILLISECOND);
     }
 
+    ////////////////////////////   Classes   ////////////////////////////
+
+    /**
+     * Get class implementing given parent class from the loaded classes
+     *
+     * @param string|object $parentClass
+     * @param bool $instanciable
+     * @return array
+     * @throws InvalidArgumentException
+     */
+    public static function implements_class(string|object $parentClass, bool $instanciable = true): array
+    {
+        static $parsed = [
+            'count' => 0,
+            'classes' => []
+        ];
+
+        $cache = &$parsed['classes'];
+        $count = &$parsed['count'];
+
+        $instanciable = (int) $instanciable;
+
+        if (is_object($parentClass)) {
+            $parentClass = get_class($parentClass);
+        }
+
+        if ( ! class_exists($parentClass) && ! interface_exists($parentClass)) {
+            throw new InvalidArgumentException(sprintf('Invalid class %s', $parentClass));
+        }
+
+        $iterator = array_reverse(get_declared_classes());
+
+        if (count($iterator) !== $count) {
+            $cache = [];
+            $count = count($iterator);
+        }
+
+        if (isset($cache[$parentClass])) {
+            return $cache[$parentClass][$instanciable];
+        }
+
+        $cache[$parentClass] = [[], []];
+
+        $result = &$cache[$parentClass];
+
+        $method = interface_exists($parentClass) ? 'class_implements' : 'class_parents';
+
+        foreach ($iterator as $class) {
+            if ($class === $parentClass) {
+                continue;
+            }
+            if (in_array($parentClass, $method($class))) {
+                $result[0][$class] = $class;
+                if ((new \ReflectionClass($class))->isInstantiable()) {
+                    $result[1][$class] = $class;
+                }
+            }
+        }
+        return $result[$instanciable];
+    }
+
     /**
      * Get Constants defined in a class
      *
@@ -516,28 +578,6 @@ final class Tools
         return $cache[$class];
     }
 
-    /**
-     * Generate a more truly "random" alpha-numeric string.
-     *
-     * @param  int  $length
-     * @return string
-     */
-    public static function randomString(int $length = 16): string
-    {
-
-        $string = '';
-
-        while (($len = strlen($string)) < $length) {
-            $size = $length - $len;
-
-            $bytes = random_bytes($size);
-
-            $string .= substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $size);
-        }
-
-        return $string;
-    }
-
     protected static function isPublicMethod(object $instance, string $method): bool
     {
         static $cache = [];
@@ -573,7 +613,9 @@ final class Tools
         /**
          * Caches context
          */
-        static $contexts = [];
+        static $contexts = [], $baseClosure;
+        /** @var object $this */
+        $baseClosure ??= function (string $method, mixed ...$arguments) { return $this->{$method}(...$arguments); };
 
         $class = get_class($instance);
 
@@ -597,9 +639,8 @@ final class Tools
 
             $contexts[$class][$method] = $context;
         }
-        /** @var object $this */
-        $closure = (function (string $method, mixed ...$arguments) { return $this->{$method}(...$arguments); })
-                ->bindTo($instance, $contexts[$class][$method]);
+
+        $closure = $baseClosure->bindTo($instance, $contexts[$class][$method]);
 
         return $closure($method, ...$arguments);
     }

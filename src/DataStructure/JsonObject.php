@@ -94,7 +94,6 @@ class JsonObject extends SimpleObject
 
         if (is_array($value)) {
 
-            call_private_method($instance, $method);
             foreach ($value as $_value) {
                 $this->assertValidValue($_value);
             }
