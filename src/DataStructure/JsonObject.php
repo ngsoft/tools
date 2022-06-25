@@ -7,6 +7,9 @@ namespace NGSOFT\DataStructure;
 use NGSOFT\{
     Filesystem\File, Lock\FileSystemLock
 };
+use ValueError;
+use function get_debug_type,
+             wait;
 
 class JsonObject extends SimpleObject
 {
@@ -39,7 +42,23 @@ class JsonObject extends SimpleObject
         if ($this->file) {
             $this->lock->block(30);
             if ($this->file->exists() && $this->file->isModified()) {
-                $this->storage = $this->file->readJson();
+                $retry = 0;
+
+                while ($retry < 3) {
+                    if ($data = $this->file->readJson()) {
+                        break;
+                    }
+                    wait();
+                    $retry ++;
+                }
+
+                if ( ! is_array($data)) {
+                    throw new ValueError(sprintf('Invalid json return type, array expected, %s given.', get_debug_type($data)));
+                }
+
+                var_dump(__FUNCTION__);
+
+                $this->storage = $data;
             }
         }
         parent::reload();
@@ -51,7 +70,14 @@ class JsonObject extends SimpleObject
         if ($this->file) {
 
             var_dump(__FUNCTION__);
-            $this->file->writeJson($this->storage);
+            $retry = 0;
+            while ($retry < 3) {
+                if ($this->file->writeJson($this->storage)) {
+                    break;
+                }
+                wait();
+                $retry ++;
+            }
             $this->lock->release();
         }
     }
