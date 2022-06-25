@@ -29,6 +29,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     protected array $storage = [];
     protected ?self $parent = null;
+    protected mixed $offset = null;
 
     /**
      * Create new instance
@@ -105,10 +106,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         $this->assertValidOffset($offset);
         $this->reload();
 
-        $initial = count($this->storage);
-
-        $value = null;
-
         // overloading $obj[][] = 'value';
         $offset ??= $this->append(null, []);
 
@@ -116,6 +113,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
             $this->append($offset, null);
         }
         if (is_array($this->storage[$offset]) && $this->recursive) {
+            var_dump([__FUNCTION__ => $offset, spl_object_id($this)]);
+
             $instance = $this->getNewInstance($this);
             $instance->storage = &$this->storage[$offset];
             return $instance;
@@ -130,6 +129,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
         try {
             $this->reload();
+            var_dump([__FUNCTION__ => $offset, spl_object_id($this)]);
             $this->append($offset, $value);
         } finally {
             $this->update();
@@ -448,7 +448,10 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function __debugInfo(): array
     {
-        return iterator_to_array($this);
+        return [
+            'storage' => iterator_to_array($this),
+            'parent' => $this->parent
+        ];
     }
 
 }

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use OutOfBoundsException;
-use function get_debug_type;
-
 class SimpleObject extends Collection
 {
 

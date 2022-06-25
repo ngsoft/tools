@@ -81,7 +81,6 @@ abstract class BaseLockStore implements LockStore
     /** {@inheritdoc} */
     public function release(): bool
     {
-
         if ($this->isAcquired()) {
             $this->forceRelease();
             return true;
