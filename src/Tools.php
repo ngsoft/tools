@@ -13,8 +13,7 @@ use ArrayAccess,
     ReflectionMethod,
     RuntimeException;
 use const SCRIPT_START;
-use function get_debug_type,
-             mb_substr,
+use function mb_substr,
              set_default_error_handler;
 
 /**
