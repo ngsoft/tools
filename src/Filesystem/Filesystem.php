@@ -9,7 +9,9 @@ use Countable,
     RuntimeException,
     SplFileInfo,
     Stringable;
+use const DATE_DB;
 use function blank,
+             preg_exec,
              str_starts_with;
 
 abstract class Filesystem implements Countable, Stringable
@@ -17,12 +19,39 @@ abstract class Filesystem implements Countable, Stringable
 
     protected ?SplFileInfo $info;
     protected string $path;
-    protected ?string $absolute = null;
-    protected ?bool $relative = null;
 
     public static function create(string $path): static
     {
         return new static($path);
+    }
+
+    /**
+     * Checks if path begins with (drive:)[/\]
+     */
+    protected static function isRelativePath(string $path): bool
+    {
+        return ! preg_match('#^(?:(?:\w+:)?[\/\\\]+)#', $path);
+    }
+
+    /**
+     * Get absolute path
+     */
+    protected static function getAbsolute(string $path)
+    {
+        return normalize_path(static::isRelativePath($path) ? getcwd() . DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+    /**
+     * Crates a dir fi it does not exists
+     */
+    protected static function createDir(string $dirname): void
+    {
+
+        $dirname = static::getAbsolute($dirname);
+
+        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true)) {
+            throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
+        }
     }
 
     public function __construct(
@@ -38,32 +67,19 @@ abstract class Filesystem implements Countable, Stringable
     }
 
     /**
-     * Checks if path begins with (drive:)[/\]
+     * Check if file exists
      */
-    protected static function isRelativePath(string $path): bool
-    {
-        return preg_match('#^(?:(?:\w+:)?[\/\\\]+)#', $path) > 0;
-    }
+    abstract public function exists(): bool;
 
     /**
-     * Get absolute path
+     * Gets an SplFileInfo object for the file
+     *
+     * @return SplFileInfo
      */
-    protected static function getAbsolute(string $path)
+    public function getFileInfo(): SplFileInfo
     {
-        return normalize_path(static::isRelativePath($path) ? getcwd() . DIRECTORY_SEPARATOR . $path : $path);
+        return $this->info ??= new SplFileInfo($this->path);
     }
-
-    protected static function createDir(string $dirname): void
-    {
-
-        $dirname = static::getAbsolute($dirname);
-
-        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true)) {
-            throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
-        }
-    }
-
-    abstract public function exists(): bool;
 
     /**
      * Checks if file basename matches regular expression
@@ -76,7 +92,7 @@ abstract class Filesystem implements Countable, Stringable
     /**
      * Get Realpath
      */
-    public function getRealpath(): string|false
+    public function realpath(): string|false
     {
         return realpath($this->path);
     }

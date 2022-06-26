@@ -68,6 +68,26 @@ class FileList implements IteratorAggregate, Countable
     }
 
     /**
+     * Returns only files
+     */
+    public function files(): static
+    {
+        static $handler;
+        $handler ??= fn($file) => $file instanceof File;
+        return $this->filter($handler);
+    }
+
+    /**
+     * Returns only directories
+     */
+    public function directories(): static
+    {
+        static $handler;
+        $handler ??= fn($file) => $file instanceof Directory;
+        return $this->filter($handler);
+    }
+
+    /**
      * Filter results using callable
      *
      * @param callable $callable
@@ -91,6 +111,11 @@ class FileList implements IteratorAggregate, Countable
         return array_keys($this->files);
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->count() === 0;
+    }
+
     public function count(): int
     {
         return count($this->files);
@@ -104,14 +129,6 @@ class FileList implements IteratorAggregate, Countable
         foreach ($this->files as $file => $obj) {
             yield $file => $obj;
         }
-    }
-
-    /**
-     * @return string[]
-     */
-    public function files(): array
-    {
-        return $this->keys();
     }
 
     /**

@@ -204,7 +204,7 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function exists(): bool
     {
-        $real = $this->getRealpath();
+        $real = $this->realpath();
         return $real && is_dir($real);
     }
 
@@ -252,7 +252,19 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function chdir(): bool
     {
-        return $this->exists() && chdir($this->path);
+        if ( ! $this->exists()) {
+            return false;
+        }
+
+        return $this->isCurrentWorkingDir() || chdir($this->path);
+    }
+
+    /**
+     * Checks if is current active dir
+     */
+    public function isCurrentWorkingDir(): bool
+    {
+        return getcwd() === $this->realpath();
     }
 
     protected function filesIterator(FileList $list, string|array $extensions = [], bool $hidden = false): FileList
@@ -296,10 +308,16 @@ class Directory extends Filesystem implements IteratorAggregate
             Tools::errors_as_exceptions();
 
             if (preg_valid($query)) {
+
+                var_dump([__METHOD__ => 'regex']);
                 $result = static::scanFiles($this->path)->filter(fn(Filesystem $path) => $path->matches($query));
             } elseif (false !== strpbrk($query, static::GLOB_SEARCH)) {
+                var_dump([__METHOD__ => 'glob']);
                 $result = $this->glob($query);
-            } else { $result = static::scanFiles($this->path)->filter(fn(Filesystem $path) => str_ends_with($path->getPath(), $query)); }
+            } else {
+                var_dump([__METHOD__ => 'str_ends_with']);
+                $result = static::scanFiles($this->path)->filter(fn(Filesystem $path) => str_ends_with($path->getPath(), $query));
+            }
 
             return $result;
         } catch (\Throwable) {
@@ -307,26 +325,6 @@ class Directory extends Filesystem implements IteratorAggregate
         } finally {
             restore_error_handler();
         }
-    }
-
-    /**
-     * Search for a regular file using regex, glob or check if path ends with $query
-     */
-    public function searchFile(string $query): FileList
-    {
-        static $handler;
-        $handler ??= fn($file) => $file instanceof File;
-        return $this->search($query)->filter($handler);
-    }
-
-    /**
-     * Search for a directory using regex, glob or check if path ends with $query
-     */
-    public function searchDir(string $query): FileList
-    {
-        static $handler;
-        $handler ??= fn($file) => $file instanceof Directory;
-        return $this->search($query)->filter($handler);
     }
 
     /**
@@ -339,9 +337,11 @@ class Directory extends Filesystem implements IteratorAggregate
         try {
             Tools::errors_as_exceptions();
             $list = new FileList();
+
             if ($this->chdir()) {
 
                 $result = glob($pattern, $flags);
+
                 if ($result === false) {
                     return $list;
                 }
@@ -353,28 +353,6 @@ class Directory extends Filesystem implements IteratorAggregate
             restore_error_handler();
             chdir($current);
         }
-    }
-
-    /**
-     * Performs a glob search but returns only files
-     */
-    public function globFiles(string $pattern, int $flags = 0): FileList
-    {
-        static $handler;
-        $handler ??= fn($file) => $file instanceof File;
-
-        return $this->glob($pattern, $flags)->filter($handler);
-    }
-
-    /**
-     * Performs a glob search but returns only directories
-     */
-    public function globDirs(string $pattern, int $flags = 0): FileList
-    {
-        static $handler;
-        $handler ??= fn($file) => $file instanceof Directory;
-
-        return $this->glob($pattern, $flags)->filter($handler);
     }
 
     /**
@@ -425,7 +403,7 @@ class Directory extends Filesystem implements IteratorAggregate
 
             return $result;
         }
-        return $list->filter(fn($f) => $f instanceof Directory);
+        return $list->directories();
     }
 
     /**

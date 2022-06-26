@@ -57,7 +57,7 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function exists(): bool
     {
-        $real = $this->getRealpath();
+        $real = $this->realpath();
         return $real && is_file($real);
     }
 
@@ -177,17 +177,6 @@ class File extends Filesystem implements IteratorAggregate
         }
 
         return hash_file('crc32', $this->path) ?: null;
-    }
-
-    /**
-     * Gets an SplFileInfo object for the file
-     *
-     * @return SplFileInfo
-     */
-    public function getFileInfo(): SplFileInfo
-    {
-        $this->info = $this->info ?? new SplFileInfo($this->path);
-        return $this->info;
     }
 
     /**
