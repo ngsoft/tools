@@ -143,6 +143,16 @@ class FileList implements IteratorAggregate, Countable
         return array_values($this->files);
     }
 
+    public function __serialize(): array
+    {
+        return [$this->files];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        list($this->files) = $data;
+    }
+
     public function __debugInfo(): array
     {
         return $this->files;
