@@ -250,7 +250,7 @@ final class Tools
     }
 
     /**
-     * Get a value from the array, and remove it.
+     * Get a value(s) from the array, and remove it.
      */
     public static function pull(iterable|string|int $keys, array|ArrayAccess &$iterable): mixed
     {
