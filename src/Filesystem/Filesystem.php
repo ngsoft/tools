@@ -297,6 +297,16 @@ abstract class Filesystem implements Countable, Stringable
         return $this->path;
     }
 
+    public function __serialize(): array
+    {
+        return [$this->path];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        list($this->path) = $data;
+    }
+
     public function __debugInfo(): array
     {
         $result = [

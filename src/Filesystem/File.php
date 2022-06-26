@@ -236,7 +236,7 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function getContents(): FileContents
     {
-        return new FileContents($this, $this->readAsArray());
+        return new FileContents($this);
     }
 
     /**
