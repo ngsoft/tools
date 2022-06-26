@@ -38,8 +38,9 @@ abstract class Filesystem implements Countable, Stringable
     /**
      * Get absolute path
      */
-    protected static function getAbsolute(string $path)
+    protected static function getAbsolute(string|self $path)
     {
+        $path = (string) $path;
         return normalize_path(static::isRelativePath($path) ? getcwd() . DIRECTORY_SEPARATOR . $path : $path);
     }
 
@@ -150,17 +151,32 @@ abstract class Filesystem implements Countable, Stringable
      * @param ?bool $success True if the operation succeeded
      * @return static a File instance for the target
      */
-    public function move(string $target, bool &$success = null): static
+    public function move(string|self $target, bool &$success = null): static
     {
+
+        $dest = self::getAbsolute($target);
+
+        $target = $target instanceof self ? $target : new static($target);
+
+        if (get_class($target) !== static::class) {
+
+            throw new InvalidArgumentException(
+                            sprintf(
+                                    'Cannot move a %s to a %s.',
+                                    class_basename($target), class_basename(static::class)
+                            )
+            );
+        }
+
 
         $success = false;
 
         if ($this->exists()) {
             $this->createDir(dirname($target));
-            $success = rename($this->path, self::getAbsolute($target));
+            $success = rename($this->path, $dest);
         }
 
-        return new static($target);
+        return $target;
     }
 
     /**

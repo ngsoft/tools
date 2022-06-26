@@ -83,12 +83,9 @@ class File extends Filesystem implements IteratorAggregate
         $changed = $this->hash !== $hash;
 
         try {
-
-            if (
-                    $changed &&
-                    $this->exists() &&
-                    ! $this->hash
-            ) {
+            // initial value
+            if ($hash && ! $this->hash && $this->exists()) {
+                // check if file modified before script started
                 return $this->mtime() < SCRIPT_START;
             }
 
@@ -118,22 +115,27 @@ class File extends Filesystem implements IteratorAggregate
     /**
      * Copy File
      *
-     * @param string $target new file
+     * @param string|self $target new file
      * @param ?bool $success True if the operation succeeded
      * @return static a File instance for the target
      */
-    public function copy(string $target, bool &$success = null): static
+    public function copy(string|self $target, bool &$success = null): static
     {
 
+        $dest = (string) $target;
+        $target = $target instanceof self ? $target : new static($dest);
+
         $success = false;
+
         if ($this->exists()) {
-
-            $this->createDir(dirname($target));
-
-            $success = copy($this->path, $target);
+            static::createDir(dirname($dest));
+            // no need to copy if files are the same
+            if ($target->hash() !== $this->hash()) {
+                $success = copy($this->path, $dest);
+            } else { $success = true; }
         }
 
-        return new static($target);
+        return $target;
     }
 
     public function delete(): bool
@@ -210,6 +212,7 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function touch(?int $mtime = null, ?int $atime = null): bool
     {
+        self::createDir($this->dirname());
         return touch($this->path, $mtime, $atime);
     }
 
