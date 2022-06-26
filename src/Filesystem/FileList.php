@@ -104,7 +104,7 @@ class FileList implements IteratorAggregate, Countable
      */
     public function toArray(): array
     {
-        return map(fn($file) => $file->realpath(), $this);
+        return map(fn($file) => $file->getPath(), $this);
     }
 
     public function isEmpty(): bool

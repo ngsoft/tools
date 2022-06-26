@@ -210,9 +210,13 @@ class Directory extends Filesystem implements IteratorAggregate
             return true;
         }
 
-        foreach (self::scanFilesArray($this->path, true) as $file) {
+        /** @var File|self $file */
+        foreach (self::scanFiles($this->path, true) as $file) {
 
         }
+
+
+        return ! $this->exists();
     }
 
     /**
