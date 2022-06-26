@@ -17,6 +17,21 @@ class TypeCheck
 
     public const INTERSECTION = '&';
     public const UNION = '|';
+    public const TYPE_ARRAY = 'array';
+    public const TYPE_CALLABLE = 'callable';
+    public const TYPE_BOOL = 'bool';
+    public const TYPE_FLOAT = 'float';
+    public const TYPE_INT = 'int';
+    public const TYPE_STRING = 'string';
+    public const TYPE_ITERABLE = 'iterable';
+    public const TYPE_OBJECT = 'object';
+    public const TYPE_MIXED = 'mixed';
+    public const TYPE_NULL = 'null';
+    public const TYPE_FALSE = 'false';
+    public const TYPE_RESOURCE = 'resource';
+    public const TYPE_ARRAYACCESS = 'ArrayAccess&Countable&Traversable';
+    public const TYPE_STRINGABLE = 'string|Stringable';
+    public const TYPE_SCALAR = 'int|bool|float|string';
 
     /**
      * Check the given value against the supplied types and throw TypeError if not valid
@@ -94,6 +109,8 @@ class TypeCheck
                 continue;
             }
 
+            // cleaning up for assertion purpose
+            $current = trim($current, self::INTERSECTION . self::UNION);
 
             if (in_array($previous, [self::INTERSECTION, self::UNION]) || empty($str)) {
                 $str .= $current;
@@ -146,9 +163,9 @@ class TypeCheck
             return true;
         }
 
-        /* if ($type === 'scalar') {
-          return in_array(get_debug_type($value), ['int', 'float', 'bool', 'string']);
-          } */
+        if ($type === 'scalar') {
+            return in_array(get_debug_type($value), ['int', 'float', 'bool', 'string']);
+        }
 
         $type = str_replace(array_keys($aliases), array_values($aliases), $type);
 
@@ -159,6 +176,7 @@ class TypeCheck
         if ($type === 'resource') {
             return str_starts_with(get_debug_type($value), 'resource');
         }
+
         if ($type === 'false') {
             return $value === false;
         }
