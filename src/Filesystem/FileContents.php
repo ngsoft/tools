@@ -27,12 +27,48 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     }
 
     /**
+     * Reorganize lines
+     */
+    public function refresh(): void
+    {
+        $this->load();
+        $this->lines = array_values($this->lines);
+    }
+
+    /**
      * Reloads file contents
      */
     public function reload(): void
     {
         $this->lines = $this->file->readAsArray();
         $this->loaded = true;
+    }
+
+    /**
+     * Clears the contents
+     */
+    public function clear(): void
+    {
+        $this->loaded = true;
+        $this->lines = [];
+    }
+
+    /**
+     * Run the callable with all the lines and replaces the contents with the return value
+     */
+    public function map(callable $callable): static
+    {
+
+        foreach ($this as $offset => $line) {
+            $number = $offset;
+            $result = $callable($line, $offset, $this);
+
+            if (is_string($result) && $result !== $line) {
+                $this->writeLine($result, $number);
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -47,7 +83,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     /**
      * Reads a line
      */
-    protected function readLine(int $offset): string|null
+    public function readLine(int $offset): string|null
     {
         $this->load();
         $offset --;
@@ -55,15 +91,34 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     }
 
     /**
+     * Replaces the entire contents
+     */
+    public function write(string|iterable $lines): static
+    {
+        $this->clear();
+
+        if ( ! is_iterable($lines)) {
+            $lines = [$lines];
+        }
+
+        foreach ($lines as $line) {
+            $this->writeLine($line);
+        }
+
+        return $this;
+    }
+
+    /**
      * replaces / adds a line
      */
-    protected function writeLine(string $value, int|null $offset = null): static
+    public function writeLine(string $value, int|null $offset = null): static
     {
         $this->load();
         if ( ! is_int($offset)) {
             $this->lines[] = $value;
             return $this;
         }
+        $offset = max(1, $offset);
         $offset --;
         $this->lines[$offset] = $value;
 
@@ -71,14 +126,33 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     }
 
     /**
-     * Delete a line
+     * Insert a line
+     * if no offset defined will add to the begining of the file, if out of range will be added to the end of the file
      */
-    protected function removeLine(int $offset): static
+    public function insertLine(string $value, int|null $offset = null): static
     {
         $this->load();
-        $offset --;
-        unset($this->lines[$offset]);
 
+        $offset = max(1, is_int($offset) ? $offset : 1);
+        $offset --;
+        if (array_key_exists($offset, $this->lines)) {
+            array_splice($this->lines, $offset, 0, $value);
+        } else { $this->lines[] = $value; }
+
+        return $this;
+    }
+
+    /**
+     * Delete a line, also reorganize lines
+     */
+    public function removeLine(int $offset): static
+    {
+        $this->load();
+        $offset = max(1, $offset);
+        $offset --;
+        if (array_key_exists($offset, $this->lines)) {
+            array_splice($this->lines, $offset, 1);
+        }
         return $this;
     }
 
@@ -106,6 +180,11 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
         $this->removeLine($offset);
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->count() === 0;
+    }
+
     /** {@inheritdoc} */
     public function count(): int
     {
@@ -119,8 +198,11 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     public function getIterator(): \Traversable
     {
         $this->load();
-        foreach ($this->lines as $index => $line) {
-            yield $index + 1 => $line;
+        $copy = $this->lines;
+        for ($i = 0; $i < count($copy); $i ++ ) {
+            $index = $i + 1;
+            $line = $copy[$i];
+            yield $index => $line;
         }
     }
 
@@ -134,6 +216,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     public function __toString(): string
     {
         $this->load();
+
         return implode("\n", $this->lines);
     }
 
