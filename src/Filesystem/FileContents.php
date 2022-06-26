@@ -24,8 +24,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
      */
     protected function load(): void
     {
-        ! $this->loaded || $this->reload();
-        $this->loaded = true;
+        $this->loaded || $this->reload();
     }
 
     /**
@@ -34,6 +33,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     public function reload(): void
     {
         $this->lines = $this->file->readAsArray();
+        $this->loaded = true;
     }
 
     /**
