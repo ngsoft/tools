@@ -7,15 +7,16 @@ namespace NGSOFT\Filesystem;
 use ErrorException,
     InvalidArgumentException,
     IteratorAggregate,
-    JsonException,
-    NGSOFT\Lock\FileSystemLock,
-    RuntimeException,
-    SplFileInfo,
-    SplFileObject,
-    Stringable,
+    JsonException;
+use NGSOFT\{
+    Lock\FileSystemLock, Tools
+};
+use Stringable,
+    Throwable,
     Traversable,
     ValueError;
-use const SCRIPT_START;
+use const DATE_DB,
+          SCRIPT_START;
 use function blank,
              get_debug_type;
 
@@ -27,6 +28,8 @@ class File extends Filesystem implements IteratorAggregate
 
     protected ?string $hash = null;
     protected ?FileSystemLock $lock = null;
+    protected array $tmpFiles = [];
+    protected ?string $tmpFile = null;
 
     public function __construct(
             string $path,
@@ -38,6 +41,13 @@ class File extends Filesystem implements IteratorAggregate
 
 
         parent::__construct($path);
+    }
+
+    public function __destruct()
+    {
+        while ($file = array_pop($this->tmpFiles)) {
+            ! is_file($file) || unlink($file);
+        }
     }
 
     /**
@@ -95,7 +105,14 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function unlink(): bool
     {
-        return ! $this->exists() || unlink($this->path);
+        try {
+            Tools::errors_as_exceptions();
+            return ! $this->exists() || unlink($this->path);
+        } catch (Throwable) {
+            return false;
+        } finally {
+            clearstatcache(false, $this->path);
+        }
     }
 
     /**
@@ -117,6 +134,11 @@ class File extends Filesystem implements IteratorAggregate
         }
 
         return new static($target);
+    }
+
+    public function delete(): bool
+    {
+        return $this->unlink();
     }
 
     /**
@@ -177,17 +199,6 @@ class File extends Filesystem implements IteratorAggregate
         }
 
         return hash_file('crc32', $this->path) ?: null;
-    }
-
-    /**
-     * Gets an SplFileObject object for the file
-     *
-     * @param string $mode
-     * @return SplFileObject
-     */
-    public function openFile(string $mode = 'r'): SplFileObject
-    {
-        return $this->getFileInfo()->openFile($mode);
     }
 
     /**
@@ -267,11 +278,6 @@ class File extends Filesystem implements IteratorAggregate
     public function write(string|array|Stringable $contents): bool
     {
 
-        $dirname = $this->dirname();
-        if (( ! file_exists($dirname)) && ! mkdir($dirname, 0777, true)) {
-            throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
-        }
-
         if ( ! is_array($contents)) {
             $contents = [$contents];
         }
@@ -288,7 +294,32 @@ class File extends Filesystem implements IteratorAggregate
             $filecontents .= (string) $line;
         }
 
-        return file_put_contents($this->path, $filecontents) !== false;
+        $path = $this->realpath() ?: $this->path;
+        static::createDir(dirname($path));
+
+        $retry = 0;
+
+        while ($retry < 3) {
+
+            try {
+                Tools::errors_as_exceptions();
+
+                $tmpfile = $this->tmpFile ??= $this->tmpFiles[] = $this->dirname() . DIRECTORY_SEPARATOR . uniqid('', true);
+
+                if (file_put_contents($tmpfile, $filecontents) !== false) {
+                    return rename($tmpfile, $path) && $this->chmod(0777);
+                }
+            } catch (Throwable) {
+                $this->tmpFile = null;
+            } finally {
+                restore_error_handler();
+            }
+            $retry ++;
+            wait();
+        }
+
+
+        return false;
     }
 
     /**

@@ -8,10 +8,12 @@ use Countable,
     InvalidArgumentException,
     RuntimeException,
     SplFileInfo,
+    SplFileObject,
     Stringable;
 use const DATE_DB;
 use function blank,
              preg_exec,
+             str_contains,
              str_starts_with;
 
 abstract class Filesystem implements Countable, Stringable
@@ -62,7 +64,6 @@ abstract class Filesystem implements Countable, Stringable
             throw new InvalidArgumentException('Filename is empty.');
         }
 
-
         $this->path = self::getAbsolute($path);
     }
 
@@ -82,6 +83,17 @@ abstract class Filesystem implements Countable, Stringable
     }
 
     /**
+     * Gets an SplFileObject object for the file
+     *
+     * @param string $mode
+     * @return SplFileObject
+     */
+    public function openFile(string $mode = 'r'): SplFileObject
+    {
+        return $this->getFileInfo()->openFile($mode);
+    }
+
+    /**
      * Checks if file basename matches regular expression
      */
     public function matches(string $pattern, int $limit = 1): array|false
@@ -97,11 +109,17 @@ abstract class Filesystem implements Countable, Stringable
         return str_contains($this->basename(), $needle);
     }
 
+    public function isLink(): bool
+    {
+        return $this->exists() && is_link($this->path);
+    }
+
     /**
      * Get Realpath
      */
     public function realpath(): string|false
     {
+        clearstatcache(true, $this->path);
         return realpath($this->path);
     }
 

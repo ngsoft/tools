@@ -28,8 +28,6 @@ use function preg_valid,
 class Directory extends Filesystem implements IteratorAggregate
 {
 
-    protected const GLOB_SEARCH = '*?[]';
-
     /** @var Directory[] */
     protected static array $pushd = [];
 
@@ -157,8 +155,6 @@ class Directory extends Filesystem implements IteratorAggregate
             $destination = realpath($destination);
         }
 
-
-
         $len = mb_strlen($directory);
 
         /** @var File $type */
@@ -166,6 +162,8 @@ class Directory extends Filesystem implements IteratorAggregate
             if ($relative = mb_substr($file, $len)) {
                 $path = $destination . $relative;
 
+                var_dump($path);
+                exit;
                 if ($path === $file) {
                     return false;
                 }
@@ -199,6 +197,22 @@ class Directory extends Filesystem implements IteratorAggregate
         }
 
         return new static($target);
+    }
+
+    /**
+     * Recursively delete a directory.
+     *
+     * @return bool
+     */
+    public function delete(): bool
+    {
+        if ( ! $this->exists()) {
+            return true;
+        }
+
+        foreach (self::scanFilesArray($this->path, true) as $file) {
+
+        }
     }
 
     /**
@@ -245,6 +259,10 @@ class Directory extends Filesystem implements IteratorAggregate
     {
         if ( ! $this->exists()) {
             return true;
+        }
+
+        if ($this->isLink()) {
+            return unlink($this->path);
         }
 
         return $this->isEmpty() && rmdir($this->path);
@@ -305,28 +323,23 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function search(string $pattern): FileList
     {
+        if ($this->exists()) {
+            try {
+                Tools::errors_as_exceptions();
 
-        if ( ! $this->exists()) {
-            return FileList::create();
-        }
+                if (preg_valid($pattern)) {
+                    return static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->matches($pattern));
+                } elseif (false !== strpbrk($pattern, '*?[]')) {
+                    return $this->glob($pattern);
+                }
+                return static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->contains($pattern));
+            } catch (\Throwable) {
 
-        try {
-            Tools::errors_as_exceptions();
-
-            if (preg_valid($pattern)) {
-                $result = static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->matches($pattern));
-            } elseif (false !== strpbrk($pattern, static::GLOB_SEARCH)) {
-                $result = $this->glob($pattern);
-            } else {
-                $result = static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->contains($pattern));
+            } finally {
+                restore_error_handler();
             }
-
-            return $result;
-        } catch (\Throwable) {
-            return FileList::create();
-        } finally {
-            restore_error_handler();
         }
+        return FileList::create();
     }
 
     /**

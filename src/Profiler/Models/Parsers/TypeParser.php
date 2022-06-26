@@ -22,19 +22,31 @@ use function str_contains;
 abstract class TypeParser extends BaseModel
 {
 
+    protected ?string $typeClass = null;
+
+    protected function getTypeClass(): string
+    {
+
+        if (is_null($this->typeClass)) {
+            $type = $this->getType();
+            $this->typeClass = is_null($type) ? 'null' : get_class($type);
+        }
+        return $this->typeClass;
+    }
+
     public function isIntersectionType(): bool
     {
-        return $this->getType() instanceof ReflectionIntersectionType;
+        return $this->getTypeClass() === ReflectionIntersectionType::class;
     }
 
     public function isUnionType(): bool
     {
-        return $this->getType() instanceof ReflectionUnionType;
+        return $this->getTypeClass() === ReflectionUnionType::class;
     }
 
     public function isNamedType(): bool
     {
-        return $this->getType() instanceof ReflectionNamedType;
+        return $this->getTypeClass() === ReflectionNamedType::class;
     }
 
     public function isMixedType(): bool
