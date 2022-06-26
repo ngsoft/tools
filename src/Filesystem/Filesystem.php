@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace NGSOFT\Filesystem;
 
 use Countable,
-    InvalidArgumentException,
-    NGSOFT\Tools,
-    RuntimeException,
+    InvalidArgumentException;
+use NGSOFT\{
+    Tools, Traits\ClassUtils
+};
+use RuntimeException,
     SplFileInfo,
     SplFileObject,
     Stringable,
     Throwable;
 use const DATE_DB;
 use function blank,
-             class_basename,
              preg_exec,
              str_contains,
              str_starts_with;
@@ -22,7 +23,7 @@ use function blank,
 abstract class Filesystem implements Countable, Stringable
 {
 
-    use \NGSOFT\Traits\ClassUtils;
+    use ClassUtils;
 
     protected ?SplFileInfo $info;
     protected string $path;
@@ -77,6 +78,16 @@ abstract class Filesystem implements Countable, Stringable
      * Check if file exists
      */
     abstract public function exists(): bool;
+
+    /**
+     * Inheritance error on self if directly invoking copy()
+     */
+    abstract protected function doCopy(string|self $target, bool &$success = null): static;
+
+    /**
+     * Delete the file
+     */
+    abstract protected function delete(): bool;
 
     /**
      * Gets an SplFileInfo object for the file
@@ -159,26 +170,23 @@ abstract class Filesystem implements Countable, Stringable
     public function move(string|self $target, bool &$success = null): static
     {
 
-        $dest = static::getAbsolute($target);
-
-        $target = $target instanceof self ? $target : new static($target);
-
-        if (get_class($target) !== static::class) {
+        if (is_object($target) && ! self::isSelf($target)) {
 
             throw new InvalidArgumentException(
                             sprintf(
                                     'Cannot move a %s to a %s.',
-                                    class_basename($target), class_basename(static::class)
+                                    static::classname(), $target::classname()
                             )
             );
         }
 
+        $dest = static::getAbsolute($target);
+        $target = $target instanceof static ? $target : new static($dest);
         $success = false;
 
         try {
             Tools::errors_as_exceptions();
             if ($this->exists()) {
-
                 $this->createDir(dirname($dest));
                 $success = rename($this->path, $dest);
             }
@@ -188,20 +196,8 @@ abstract class Filesystem implements Countable, Stringable
             $success = $success && $this->delete();
         } finally { restore_error_handler(); }
 
-
-
         return $target;
     }
-
-    /**
-     * Inheritance error on self if directly invoking copy()
-     */
-    abstract protected function doCopy(string|self $target, bool &$success = null): static;
-
-    /**
-     * Delete the file
-     */
-    abstract protected function delete(): bool;
 
     /**
      * Can Read

@@ -18,7 +18,7 @@ trait ClassUtils
     /**
      * Get class name without the namespace
      */
-    final protected static function basename(): string
+    final protected static function classname(): string
     {
         return class_basename(static::class);
     }
