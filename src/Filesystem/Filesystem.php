@@ -22,6 +22,8 @@ use function blank,
 abstract class Filesystem implements Countable, Stringable
 {
 
+    use \NGSOFT\Traits\ClassUtils;
+
     protected ?SplFileInfo $info;
     protected string $path;
 
