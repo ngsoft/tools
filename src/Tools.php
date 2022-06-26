@@ -7,6 +7,7 @@ namespace NGSOFT;
 use ArrayAccess,
     BadMethodCallException,
     InvalidArgumentException,
+    NGSOFT\Filesystem\Directory,
     ReflectionClass,
     ReflectionClassConstant,
     ReflectionException,
@@ -55,12 +56,6 @@ final class Tools
     public const MB = 1048576;
     public const GB = 1073741824;
     public const TB = 1099511627776;
-
-    /**
-     * Stores pushd history
-     * @var string[]
-     */
-    private static $pushd_history = [];
 
     ////////////////////////////   Error Handling   ////////////////////////////
 
@@ -134,14 +129,7 @@ final class Tools
      */
     public static function pushd(string $dir): bool
     {
-        try {
-            self::suppress_errors();
-            if (($current = getcwd()) && chdir($dir)) {
-                self::$pushd_history[] = $current;
-                return true;
-            }
-        } finally { restore_error_handler(); }
-        return false;
+        return Directory::pushd($dir) !== false;
     }
 
     /**
@@ -150,12 +138,8 @@ final class Tools
      */
     public static function popd(): string|false
     {
-
-        try {
-            self::suppress_errors();
-            $previous = array_pop(self::$pushd_history) ?? getcwd();
-            return chdir($previous) ? $previous : false;
-        } finally { restore_error_handler(); }
+        $result = Directory::popd();
+        return $result === false ? false : $result->realpath();
     }
 
     ////////////////////////////   Iterables   ////////////////////////////
