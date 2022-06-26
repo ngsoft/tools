@@ -90,6 +90,14 @@ abstract class Filesystem implements Countable, Stringable
     }
 
     /**
+     * Checks if file basename contains specific string
+     */
+    public function contains(string $needle): bool
+    {
+        return str_contains($this->basename(), $needle);
+    }
+
+    /**
      * Get Realpath
      */
     public function realpath(): string|false

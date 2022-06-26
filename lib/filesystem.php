@@ -28,7 +28,7 @@ function list_files(string|Directory $directory, string|array $extensions = [], 
         $directory = Directory::create($directory);
     }
     $iterator = $recursive ? $directory->allFiles($extensions, $hidden) : $directory->files($extensions, $hidden);
-    return $iterator->files();
+    return array_flip($iterator->toArray());
 }
 
 /**
@@ -56,7 +56,18 @@ function list_directories(string|Directory $directory, bool $recursive = false):
     if (is_string($directory)) {
         $directory = Directory::create($directory);
     }
-    return $directory->directories($recursive)->files();
+    return array_flip($directory->directories($recursive)->toArray());
+}
+
+/**
+ * Search for a regular file using pattern (pcre/glob/str_contains)
+ */
+function search_file(string|Directory $directory, string $pattern): array
+{
+    if (is_string($directory)) {
+        $directory = Directory::create($directory);
+    }
+    return $directory->search($pattern)->files()->toArray();
 }
 
 /**

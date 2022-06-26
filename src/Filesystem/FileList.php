@@ -7,7 +7,8 @@ namespace NGSOFT\Filesystem;
 use Countable,
     IteratorAggregate,
     Traversable;
-use function is_stringable;
+use function is_stringable,
+             NGSOFT\Tools\map;
 
 /**
  * File list Iterator
@@ -20,30 +21,13 @@ class FileList implements IteratorAggregate, Countable
     public static function create(array $files = [])
     {
         $instance = new static();
-        $instance->import($files);
+        $instance->append($files);
         return $instance;
     }
 
-    protected function import(iterable $files)
-    {
-
-        $this->files = [];
-        foreach ($files as $key => $value) {
-            if (is_string($key) && file_exists($key)) {
-                $this->append($key);
-                continue;
-            }
-            if (is_string($value) && file_exists($value)) {
-                $this->append($value);
-                continue;
-            }
-
-            if ($value instanceof Filesystem) {
-                $this->files[$value->getPath()] = $value;
-            }
-        }
-    }
-
+    /**
+     * Adds a file to the list
+     */
     public function append(string|iterable|Filesystem $files): void
     {
 
@@ -51,19 +35,28 @@ class FileList implements IteratorAggregate, Countable
             $files = [$files];
         }
         if ($files instanceof Filesystem) {
-            $this->files[$files->getPath()] = $files;
+            $this->files[$files->realpath()] = $files;
             return;
         }
-        foreach ($files as $file) {
+        foreach ($files as $relative => $file) {
+
+            if ($file instanceof Filesystem && $file->exists()) {
+                $this->files[is_string($relative) ? $relative : $file->realpath()] = $file;
+                continue;
+            }
+
             if ( ! is_stringable($file)) {
                 continue;
             }
+
             $file = (string) $file;
+
+            $relative = is_string($relative) ? $relative : $file;
 
             if ( ! file_exists($file)) {
                 continue;
             }
-            $this->files[$file] = is_dir($file) ? Directory::create($file) : File::create($file);
+            $this->files[$relative] = is_dir($file) ? Directory::create($file) : File::create($file);
         }
     }
 
@@ -106,9 +99,12 @@ class FileList implements IteratorAggregate, Countable
         return static::create($result);
     }
 
+    /**
+     * Returns files realpaths
+     */
     public function toArray(): array
     {
-        return array_keys($this->files);
+        return map(fn($file) => $file->realpath(), $this);
     }
 
     public function isEmpty(): bool
