@@ -44,7 +44,6 @@ class TypeCheck
      */
     public static function assertType(string $name, mixed $value, string ...$types): void
     {
-
         if ( ! self::checkType($value, ...$types)) {
             throw new TypeError(sprintf('%s must be of type %s, %s given', $name, self::getTypeString($types), get_debug_type($value)));
         }

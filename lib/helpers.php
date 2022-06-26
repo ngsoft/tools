@@ -137,6 +137,78 @@ if ( ! function_exists('random_string')) {
 
 }
 
+
+if ( ! function_exists('preg_valid')) {
+
+    /**
+     * Check if regular expression is valid
+     *
+     * @phan-suppress PhanParamSuspiciousOrder
+     */
+    function preg_valid(string $pattern, bool $exception = false): bool
+    {
+
+        try {
+            Tools::errors_as_exceptions();
+            return preg_match($pattern, '') !== false; // must be >=0 to be correct
+        } catch (ErrorException $error) {
+            if ($exception) {
+                $msg = str_replace('_match', '_valid', $error->getMessage());
+                throw new WarningException($msg, previous: $error);
+            }
+            return false;
+        } finally { restore_error_handler(); }
+    }
+
+}
+
+if ( ! function_exists('preg_test')) {
+
+    /**
+     * Test if subject mathes the pattern
+     */
+    function preg_test(string $pattern, string $subject): bool
+    {
+        return preg_match($pattern, $subject) > 0;
+    }
+
+}
+
+if ( ! function_exists('preg_exec')) {
+
+    /**
+     * Perform a regular expression match
+     *
+     * @param string $pattern the regular expression
+     * @param string $subject the subject
+     * @param int $limit maximum number of results if set to 0, all results are returned
+     * @return array|false
+     */
+    function preg_exec(string $pattern, string $subject, int $limit = 1): array|false
+    {
+        $limit = max(0, $limit);
+
+        if (preg_match_all($pattern, $subject, $matches, PREG_SET_ORDER) > 0) {
+
+            if ($limit === 0) {
+                $limit = count($matches);
+            }
+            if ($limit === 1) {
+                return $matches[0];
+            }
+
+            while (count($matches) > $limit) {
+                array_pop($matches);
+            }
+            return $matches;
+        }
+
+        return false;
+    }
+
+}
+
+
 if ( ! function_exists('wait')) {
 
     /**

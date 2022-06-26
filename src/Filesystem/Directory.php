@@ -26,6 +26,79 @@ use function str_ends_with,
 class Directory extends Filesystem implements IteratorAggregate
 {
 
+    /** @var Directory[] */
+    private static array $pushd = [];
+
+    /**
+     * Scan files in a directory
+     * @param string $dirname
+     * @param bool $recursive
+     * @return FileList
+     */
+    public static function scanFiles(string $dirname, bool $recursive = false): FileList
+    {
+
+        static $ignore = ['.', '..'];
+
+        $result = new FileList();
+
+        if ( ! is_dir($dirname)) {
+            return $result;
+        }
+        $dirs = [];
+
+        foreach (scandir($dirname) as $file) {
+            if (in_array($file, $ignore)) {
+                continue;
+            }
+            $path = $dirname . DIRECTORY_SEPARATOR . $file;
+
+            if ( ! $recursive || ! is_dir($path)) {
+                $result->append($path);
+                continue;
+            }
+
+            if (is_dir($path)) {
+                $dirs[] = $path;
+            }
+        }
+
+
+        foreach ($dirs as $dir) {
+            $result->append(static::scanFiles($dir, $recursive));
+        }
+
+        return $result;
+    }
+
+    public static function scanFilesArray(string $dirname, bool $recursive = false): array
+    {
+        return self::scanFiles($dirname, $recursive)->keys();
+    }
+
+    public static function cwd(): static
+    {
+        return new static(realpath(getcwd()));
+    }
+
+    public static function pushd(string|self $directory): static
+    {
+        if (is_string($directory)) {
+            $directory = new static($directory);
+        }
+        /** @var self $last */
+        if ($last = end(self::$pushd)) {
+            if ($last->getRealpath() === $directory->getRealpath()) {
+                return $last;
+            }
+        }
+    }
+
+    public static function popd()
+    {
+
+    }
+
     public function __construct(
             protected string $path
     )
@@ -178,6 +251,11 @@ class Directory extends Filesystem implements IteratorAggregate
                             return true;
                         }
         );
+    }
+
+    public function search(string $query, bool $fileOnly = true): FileList
+    {
+
     }
 
     /**

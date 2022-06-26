@@ -23,9 +23,8 @@ use function get_debug_type,
  * @property int $lastIndex
  */
 #[HasProperties(lazy: false)]
-class RegExp extends PropertyAble implements Stringable, JsonSerializable {
-
-    public const VERSION = Tools::VERSION;
+class RegExp extends PropertyAble implements Stringable, JsonSerializable
+{
 
     /**
      * Most used php delimiters
@@ -120,7 +119,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param string|string[] $flags modifiers
      * @return static
      */
-    public static function create(string $pattern, string|array $flags = ''): static {
+    public static function create(string $pattern, string|array $flags = ''): static
+    {
         return new static($pattern, $flags);
     }
 
@@ -135,7 +135,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
     public function __construct(
             string $pattern,
             string|array $flags = ''
-    ) {
+    )
+    {
 
         if (is_string($flags)) $flags = mb_str_split($flags);
         $cleanPattern = $pattern;
@@ -147,7 +148,7 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
                     $cleanPattern = mb_substr($pattern, 1);
                     $cleanPattern = mb_substr($cleanPattern, 0, mb_strlen($cleanPattern) - mb_strlen($suffix));
 
-                    if (!empty($addedFlags)) $flags = array_merge($flags, mb_str_split($addedFlags));
+                    if ( ! empty($addedFlags)) $flags = array_merge($flags, mb_str_split($addedFlags));
                     break;
                 }
                 throw new InvalidArgumentException(sprintf('Invalid Pattern "%s" delimiters.', $pattern));
@@ -161,7 +162,7 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
                 $this->isGlobal = true;
                 continue;
             }
-            if (!in_array($flag, self::ACCEPTED_FLAGS)) {
+            if ( ! in_array($flag, self::ACCEPTED_FLAGS)) {
                 throw new InvalidArgumentException(sprintf('Invalid flag "%s" (accepted: %s).', $flag, implode('', array_merge(self::ACCEPTED_FLAGS, [self::PCRE_GLOBAL]))));
             }
             $this->modifiers[$flag] = $flag;
@@ -190,7 +191,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @return mixed
      * @throws RegExpException
      */
-    private function execute(callable $callback, array $arguments, mixed $expectedErrorReturnValue): mixed {
+    private function execute(callable $callback, array $arguments, mixed $expectedErrorReturnValue): mixed
+    {
 
         Tools::errors_as_exceptions();
         try {
@@ -211,7 +213,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      *
      * @phan-suppress PhanParamSuspiciousOrder
      */
-    private function assertValidRegex() {
+    private function assertValidRegex()
+    {
         if ($this->tested) return;
 
         $regex = $this->getUsableRegex();
@@ -227,7 +230,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * Get the regex string accepted by pcre functions
      * @return string
      */
-    private function getUsableRegex(): string {
+    private function getUsableRegex(): string
+    {
         return sprintf('#%s#%s', $this->source, implode('', $this->modifiers));
     }
 
@@ -237,7 +241,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * Get the last index
      * @return int
      */
-    public function getLastIndex(): int {
+    public function getLastIndex(): int
+    {
         return $this->index;
     }
 
@@ -246,7 +251,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param int $index
      * @return static
      */
-    public function setLastIndex(int $index): self {
+    public function setLastIndex(int $index): self
+    {
         $this->index = $index;
         return $this;
     }
@@ -258,7 +264,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param string $str
      * @return bool
      */
-    public function test(string $str): bool {
+    public function test(string $str): bool
+    {
         $this->setLastIndex(0);
         $result = $this->exec($str);
         $this->setLastIndex(0);
@@ -275,7 +282,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param string $str  The string against which to match the regular expression
      * @return array|null If the match fails, the exec() method returns null, and sets lastIndex to 0.
      */
-    public function exec(string $str): ?array {
+    public function exec(string $str): ?array
+    {
         $this->assertValidRegex();
         $matches = [];
         $arguments = [
@@ -325,18 +333,19 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @return string
      * @throws TypeError
      */
-    public function replace(string $str, string|Stringable|callable $replacement): string {
+    public function replace(string $str, string|Stringable|callable $replacement): string
+    {
         $this->assertValidRegex();
         if (
-                !is_callable($replacement) and
-                !is_string($replacement)
+                ! is_callable($replacement) and
+                ! is_string($replacement)
         ) {
             throw new TypeError(sprintf('Argument 2 passed to replace() must be of the type callable|string|Stringable, %s given.', get_debug_type($replacement)));
         }
 
         $replace = $replacement instanceof Stringable ? $replacement->__toString() : $replacement;
 
-        $method = !is_string($replace) ? 'preg_replace_callback' : 'preg_replace';
+        $method = ! is_string($replace) ? 'preg_replace_callback' : 'preg_replace';
         $arguments = [
             $this->getUsableRegex(),
             $replace,
@@ -356,7 +365,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param string $str
      * @return int The index of the first match between the regular expression and the given string, or -1 if no match was found.
      */
-    public function search(string $str): int {
+    public function search(string $str): int
+    {
         $this->assertValidRegex();
 
         $matches = [];
@@ -381,7 +391,8 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param int $limit
      * @return array
      */
-    public function split(string $str, int $limit = -1): array {
+    public function split(string $str, int $limit = -1): array
+    {
         $this->assertValidRegex();
         return $this->execute('preg_split', [$this->getUsableRegex(), $str, $limit], false);
     }
@@ -393,9 +404,10 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @throws RegExpException
      * @suppress PhanSuspiciousValueComparison
      */
-    public function matchAll(string $str): Traversable {
+    public function matchAll(string $str): Traversable
+    {
         $this->assertValidRegex();
-        if (!$this->isGlobal) {
+        if ( ! $this->isGlobal) {
             throw new RegExpException($this, self::class . '::' . __FUNCTION__ . '() must be called when using the global flag(' . self::PCRE_GLOBAL . ').');
         }
         $matches = [];
@@ -409,7 +421,7 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
         $this->setLastIndex(0);
         if ($this->execute('preg_match_all', $arguments, false) > 0) {
 
-            for ($i = 0; $i < count($matches); $i++) yield $i => $matches[$i];
+            for ($i = 0; $i < count($matches); $i ++ ) yield $i => $matches[$i];
         }
     }
 
@@ -418,10 +430,11 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
      * @param string $str
      * @return array|null
      */
-    public function match(string $str): ?array {
+    public function match(string $str): ?array
+    {
         $this->assertValidRegex();
         if (
-                !$this->isGlobal
+                ! $this->isGlobal
         ) return $this->exec($str);
 
         $this->setLastIndex(0);
@@ -443,13 +456,15 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
     ////////////////////////////   Magic Methods   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function __unserialize(array $data): void {
+    public function __unserialize(array $data): void
+    {
 
         $this->__construct($data['source'], $data['flags']);
     }
 
     /** {@inheritdoc} */
-    public function __serialize(): array {
+    public function __serialize(): array
+    {
 
         return [
             'source' => $this->source,
@@ -460,18 +475,21 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable {
     ////////////////////////////   Interfaces   ////////////////////////////
 
     /** {@inheritdoc} */
-    public function jsonSerialize(): mixed {
+    public function jsonSerialize(): mixed
+    {
         return $this->__toString();
     }
 
     /** {@inheritdoc} */
-    public function __toString(): string {
+    public function __toString(): string
+    {
         $regex = $this->getUsableRegex();
         if ($this->isGlobal) $regex .= self::PCRE_GLOBAL;
         return $regex;
     }
 
-    public function __debugInfo(): array {
+    public function __debugInfo(): array
+    {
         return [
             'pattern' => $this->__toString(),
             'source' => $this->source,

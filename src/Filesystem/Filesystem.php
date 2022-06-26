@@ -17,53 +17,7 @@ abstract class Filesystem implements Countable, Stringable
 
     protected ?SplFileInfo $info;
     protected string $path;
-
-    /**
-     * Scan files in a directory
-     * @param string $dirname
-     * @param bool $recursive
-     * @return FileList
-     */
-    public static function scanFiles(string $dirname, bool $recursive = false): FileList
-    {
-
-        static $ignore = ['.', '..'];
-
-        $result = new FileList();
-
-        if ( ! is_dir($dirname)) {
-            return $result;
-        }
-        $dirs = [];
-
-        foreach (scandir($dirname) as $file) {
-            if (in_array($file, $ignore)) {
-                continue;
-            }
-            $path = $dirname . DIRECTORY_SEPARATOR . $file;
-
-            if ( ! $recursive || ! is_dir($path)) {
-                $result->append($path);
-                continue;
-            }
-
-            if (is_dir($path)) {
-                $dirs[] = $path;
-            }
-        }
-
-
-        foreach ($dirs as $dir) {
-            $result->append(static::scanFiles($dir, $recursive));
-        }
-
-        return $result;
-    }
-
-    public static function scanFilesArray(string $dirname, bool $recursive = false): array
-    {
-        return self::scanFiles($dirname, $recursive)->keys();
-    }
+    protected ?string $absolute = null;
 
     public static function create(string $path): static
     {
@@ -78,10 +32,43 @@ abstract class Filesystem implements Countable, Stringable
             throw new InvalidArgumentException('Filename is empty.');
         }
 
+
         $this->path = normalize_path($path);
     }
 
+    /**
+     * Checks if path begins with (drive:)[/\]
+     */
+    protected static function isRelativePath(string $path): bool
+    {
+        return preg_match('#^(?:(?:\w+:)?[\/\\\]+)#', $path) > 0;
+    }
+
     abstract public function exists(): bool;
+
+    /**
+     * Check if path is relative
+     */
+    public function isRelative(): bool
+    {
+        return static::isRelativePath($this->path);
+    }
+
+    /**
+     * Get absolute path
+     */
+    public function getAbsolutePath(): string
+    {
+        return $this->absolute ??= normalize_path($this->isRelative() ? getcwd() . DIRECTORY_SEPARATOR . $this->path : $this->path);
+    }
+
+    /**
+     * Get Realpath
+     */
+    public function getRealpath(): string|false
+    {
+        return realpath($this->getAbsolutePath());
+    }
 
     /**
      * File Path
