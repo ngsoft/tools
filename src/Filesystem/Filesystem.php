@@ -18,6 +18,7 @@ abstract class Filesystem implements Countable, Stringable
     protected ?SplFileInfo $info;
     protected string $path;
     protected ?string $absolute = null;
+    protected ?bool $relative = null;
 
     public static function create(string $path): static
     {
@@ -33,7 +34,7 @@ abstract class Filesystem implements Countable, Stringable
         }
 
 
-        $this->path = normalize_path($path);
+        $this->path = self::getAbsolute($path);
     }
 
     /**
@@ -44,22 +45,32 @@ abstract class Filesystem implements Countable, Stringable
         return preg_match('#^(?:(?:\w+:)?[\/\\\]+)#', $path) > 0;
     }
 
-    abstract public function exists(): bool;
-
-    /**
-     * Check if path is relative
-     */
-    public function isRelative(): bool
-    {
-        return static::isRelativePath($this->path);
-    }
-
     /**
      * Get absolute path
      */
-    public function getAbsolutePath(): string
+    protected static function getAbsolute(string $path)
     {
-        return $this->absolute ??= normalize_path($this->isRelative() ? getcwd() . DIRECTORY_SEPARATOR . $this->path : $this->path);
+        return normalize_path(static::isRelativePath($path) ? getcwd() . DIRECTORY_SEPARATOR . $path : $path);
+    }
+
+    protected static function createDir(string $dirname): void
+    {
+
+        $dirname = static::getAbsolute($dirname);
+
+        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true)) {
+            throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
+        }
+    }
+
+    abstract public function exists(): bool;
+
+    /**
+     * Checks if file basename matches regular expression
+     */
+    public function matches(string $pattern, int $limit = 1): array|false
+    {
+        return preg_exec($pattern, $this->basename(), $limit);
     }
 
     /**
@@ -67,7 +78,7 @@ abstract class Filesystem implements Countable, Stringable
      */
     public function getRealpath(): string|false
     {
-        return realpath($this->getAbsolutePath());
+        return realpath($this->path);
     }
 
     /**
@@ -90,20 +101,6 @@ abstract class Filesystem implements Countable, Stringable
         return str_starts_with($this->basename(), '.');
     }
 
-    protected function createDir(string $dirname): void
-    {
-
-        // relative path
-        if ( ! preg_match('#^([a-z]\:|/)#i', $dirname)) {
-            $dirname = getcwd() . DIRECTORY_SEPARATOR . $dirname;
-        }
-
-        //absolute path
-        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true)) {
-            throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
-        }
-    }
-
     /**
      * Move/Rename file
      *
@@ -115,9 +112,10 @@ abstract class Filesystem implements Countable, Stringable
     {
 
         $success = false;
+
         if ($this->exists()) {
             $this->createDir(dirname($target));
-            $success = rename($this->path, $target);
+            $success = rename($this->path, self::getAbsolute($target));
         }
 
         return new static($target);

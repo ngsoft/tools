@@ -32,7 +32,7 @@ class File extends Filesystem implements IteratorAggregate
             string $path,
     )
     {
-        if (is_dir($path)) {
+        if (is_dir(self::getAbsolute($path))) {
             throw new InvalidArgumentException(sprintf('%s is a directory.', $path));
         }
 
@@ -57,7 +57,8 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function exists(): bool
     {
-        return is_file($this->path);
+        $real = $this->getRealpath();
+        return $real && is_file($real);
     }
 
     /**

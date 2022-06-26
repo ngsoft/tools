@@ -7,6 +7,7 @@ namespace NGSOFT\Filesystem;
 use FilesystemIterator,
     InvalidArgumentException,
     IteratorAggregate,
+    NGSOFT\Tools,
     RecursiveDirectoryIterator,
     RuntimeException,
     Throwable,
@@ -17,7 +18,8 @@ use function blank,
 use function NGSOFT\Tools\{
     map, some
 };
-use function str_ends_with,
+use function preg_valid,
+             str_ends_with,
              str_starts_with;
 
 /**
@@ -26,8 +28,10 @@ use function str_ends_with,
 class Directory extends Filesystem implements IteratorAggregate
 {
 
+    protected const GLOB_SEARCH = '*?[]';
+
     /** @var Directory[] */
-    private static array $pushd = [];
+    protected static array $pushd = [];
 
     /**
      * Scan files in a directory
@@ -41,6 +45,8 @@ class Directory extends Filesystem implements IteratorAggregate
         static $ignore = ['.', '..'];
 
         $result = new FileList();
+
+        $dirname = static::getAbsolute($dirname);
 
         if ( ! is_dir($dirname)) {
             return $result;
@@ -73,37 +79,56 @@ class Directory extends Filesystem implements IteratorAggregate
 
     public static function scanFilesArray(string $dirname, bool $recursive = false): array
     {
-        return self::scanFiles($dirname, $recursive)->keys();
+        return static::scanFiles($dirname, $recursive)->keys();
     }
 
     public static function cwd(): static
     {
-        return new static(realpath(getcwd()));
+        return new static(getcwd());
     }
 
-    public static function pushd(string|self $directory): static
+    /**
+     * Change the current active directory and stores the last position
+     */
+    public static function pushd(string|self $directory): static|false
     {
         if (is_string($directory)) {
             $directory = new static($directory);
         }
-        /** @var self $last */
-        if ($last = end(self::$pushd)) {
-            if ($last->getRealpath() === $directory->getRealpath()) {
-                return $last;
-            }
+
+        if ( ! $directory->exists()) {
+            return false;
         }
+
+        if ($directory->chdir()) {
+            static::$pushd[] = $directory;
+            return $directory;
+        }
+        return false;
     }
 
-    public static function popd()
+    /**
+     * Restore the last active directory position and returns it
+     */
+    public static function popd(): static|false
     {
+        if ($previous = array_pop(static::$pushd)) {
+            return $previous->chdir() ? $previous : false;
+        }
 
+        return false;
     }
 
     public function __construct(
             protected string $path
     )
     {
-        if (is_file($path)) {
+
+        if (blank($path)) {
+            $path = getcwd();
+        }
+
+        if (is_file(static::getAbsolute($path))) {
             throw new InvalidArgumentException(sprintf('%s is a regular file.', $path));
         }
         parent::__construct($path);
@@ -134,7 +159,7 @@ class Directory extends Filesystem implements IteratorAggregate
         $len = mb_strlen($directory);
 
         /** @var File $type */
-        foreach (self::scanFiles($directory, true) as $file => $type) {
+        foreach (static::scanFiles($directory, true) as $file => $type) {
             if ($relative = mb_substr($file, $len)) {
                 $path = $destination . $relative;
 
@@ -179,7 +204,8 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function exists(): bool
     {
-        return is_dir($this->path);
+        $real = $this->getRealpath();
+        return $real && is_dir($real);
     }
 
     /**
@@ -211,8 +237,6 @@ class Directory extends Filesystem implements IteratorAggregate
 
     /**
      * Remove dir
-     *
-     * @return bool
      */
     public function rmdir(): bool
     {
@@ -221,6 +245,14 @@ class Directory extends Filesystem implements IteratorAggregate
         }
 
         return $this->isEmpty() && rmdir($this->path);
+    }
+
+    /**
+     * Change dir
+     */
+    public function chdir(): bool
+    {
+        return $this->exists() && chdir($this->path);
     }
 
     protected function filesIterator(FileList $list, string|array $extensions = [], bool $hidden = false): FileList
@@ -253,9 +285,96 @@ class Directory extends Filesystem implements IteratorAggregate
         );
     }
 
-    public function search(string $query, bool $fileOnly = true): FileList
+    /**
+     * Search for a file using regex, glob or check if path ends with $query
+     */
+    public function search(string $query): FileList
     {
 
+
+        try {
+            Tools::errors_as_exceptions();
+
+            if (preg_valid($query)) {
+                $result = static::scanFiles($this->path)->filter(fn(Filesystem $path) => $path->matches($query));
+            } elseif (false !== strpbrk($query, static::GLOB_SEARCH)) {
+                $result = $this->glob($query);
+            } else { $result = static::scanFiles($this->path)->filter(fn(Filesystem $path) => str_ends_with($path->getPath(), $query)); }
+
+            return $result;
+        } catch (\Throwable) {
+            return FileList::create();
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    /**
+     * Search for a regular file using regex, glob or check if path ends with $query
+     */
+    public function searchFile(string $query): FileList
+    {
+        static $handler;
+        $handler ??= fn($file) => $file instanceof File;
+        return $this->search($query)->filter($handler);
+    }
+
+    /**
+     * Search for a directory using regex, glob or check if path ends with $query
+     */
+    public function searchDir(string $query): FileList
+    {
+        static $handler;
+        $handler ??= fn($file) => $file instanceof Directory;
+        return $this->search($query)->filter($handler);
+    }
+
+    /**
+     * Executes a glob search inside the directory
+     */
+    public function glob(string $pattern, int $flags = 0): FileList
+    {
+
+        $current = getcwd();
+        try {
+            Tools::errors_as_exceptions();
+            $list = new FileList();
+            if ($this->chdir()) {
+
+                $result = glob($pattern, $flags);
+                if ($result === false) {
+                    return $list;
+                }
+                $list->append($result);
+            }
+
+            return $list;
+        } finally {
+            restore_error_handler();
+            chdir($current);
+        }
+    }
+
+    /**
+     * Performs a glob search but returns only files
+     */
+    public function globFiles(string $pattern, int $flags = 0): FileList
+    {
+        static $handler;
+        $handler ??= fn($file) => $file instanceof File;
+
+        return $this->glob($pattern, $flags)->filter($handler);
+    }
+
+    /**
+     * Performs a glob search but returns only directories
+     */
+    public function globDirs(string $pattern, int $flags = 0): FileList
+    {
+        static $handler;
+        $handler ??= fn($file) => $file instanceof Directory;
+
+        return $this->glob($pattern, $flags)->filter($handler);
     }
 
     /**
@@ -267,7 +386,7 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function files(string|array $extensions = [], bool $hidden = false): FileList
     {
-        return $this->filesIterator(self::scanFiles($this->path), $extensions, $hidden);
+        return $this->filesIterator(static::scanFiles($this->path), $extensions, $hidden);
     }
 
     /**
@@ -278,7 +397,7 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function allFiles(string|array $extensions = [], bool $hidden = false): FileList
     {
-        return $this->filesIterator(self::scanFiles($this->path, true), $extensions, $hidden);
+        return $this->filesIterator(static::scanFiles($this->path, true), $extensions, $hidden);
     }
 
     /**
@@ -289,7 +408,7 @@ class Directory extends Filesystem implements IteratorAggregate
     public function directories(bool $recursive = false): FileList
     {
 
-        $list = self::scanFiles($this->path);
+        $list = static::scanFiles($this->path);
 
         if ($recursive) {
             $result = new FileList();
@@ -320,14 +439,14 @@ class Directory extends Filesystem implements IteratorAggregate
 
         $path = normalize_path($this->path . DIRECTORY_SEPARATOR . $target);
         if (is_dir($path)) {
-            return self::create($path);
+            return static::create($path);
         }
         return File::create($path);
     }
 
     public function getIterator(): Traversable
     {
-        yield from self::scanFiles($this->path);
+        yield from static::scanFiles($this->path);
     }
 
 }
