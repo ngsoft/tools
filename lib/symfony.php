@@ -33,7 +33,7 @@ declare(strict_types=1);
 
 namespace Symfony\Contracts\EventDispatcher {
 
-
+    // if symfony/event-dispatcher imported no need to load file
     if (interface_exists(EventDispatcherInterface::class)) {
         return;
     }
