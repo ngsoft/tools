@@ -30,13 +30,14 @@ trait EnumTrait
     /** {@inheritdoc} */
     final public static function __callStatic(string $name, array $arguments): mixed
     {
-        if (count($arguments) > 0) {
-            throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
-        }
+
         try {
+            if (count($arguments) > 0) {
+                throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
+            }
             return static::get($name);
-        } catch (Throwable) {
-            throw new BadMethodCallException(sprintf('Invalid method %s::%s()', static::class, $name));
+        } catch (Throwable $prev) {
+            throw new BadMethodCallException(sprintf('Invalid method %s::%s()', static::class, $name), previous: $prev);
         }
     }
 
@@ -136,6 +137,20 @@ trait EnumTrait
     {
         if ($enum instanceof self) {
             return $enum;
+        }
+
+        if (is_object($enum)) {
+            throw new InvalidArgumentException(sprintf('Cannot import enum(%s) from %s', static::class, get_class($enum)));
+        }
+
+        // not a backed enum
+        if ( ! method_exists(static::class, 'from')) {
+
+            if (is_int($enum)) {
+                throw new ValueError(sprintf('Cannot import enum(%s) with value %d', static::class, $enum));
+            }
+
+            return static::get($enum);
         }
 
         return self::from($enum);
