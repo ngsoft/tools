@@ -43,7 +43,6 @@ class Directory extends Filesystem implements IteratorAggregate
         if ( ! is_dir($dirname)) {
             return $result;
         }
-        $len = mb_strlen($dirname) + 1; // adds DIRECTORY_SEPARATOR
 
         foreach (scandir($dirname) as $file) {
             if (in_array($file, $ignore)) {
@@ -57,7 +56,7 @@ class Directory extends Filesystem implements IteratorAggregate
             }
 
             if (is_dir($absolute)) {
-                $result += self::scan($absolute, $recursive);
+                $result += static::scan($absolute, $recursive);
             }
         }
 
@@ -74,6 +73,9 @@ class Directory extends Filesystem implements IteratorAggregate
     public static function scanFiles(string $dirname, bool $recursive = false): FileList
     {
 
+
+        $dirname = static::getAbsolute($dirname);
+
         $len = mb_strlen($dirname) + 1;
 
         return FileList::create(
@@ -82,7 +84,7 @@ class Directory extends Filesystem implements IteratorAggregate
                                     $relative = mb_substr($absolute, $len);
                                     return $absolute;
                                 },
-                                self::scan($dirname, $recursive)
+                                static::scan($dirname, $recursive)
                         )
         );
     }
@@ -191,6 +193,12 @@ class Directory extends Filesystem implements IteratorAggregate
         return true;
     }
 
+    /** {@inheritdoc} */
+    protected function doCopy(string|Filesystem $target, bool &$success = null): static
+    {
+        return $this->copy($target, $success);
+    }
+
     /**
      * Copy Directory to another location
      *
@@ -201,18 +209,29 @@ class Directory extends Filesystem implements IteratorAggregate
     public function copy(string|self $target, bool &$success = null): static
     {
 
+
+
+        $dest = (string) $target;
+        $target = $target instanceof self ? $target : new static($dest);
         $success = false;
-        if ($this->exists()) {
-            $success = $this->copyDir($this->path, $target);
+
+        try {
+            Tools::errors_as_exceptions();
+
+            if ($this->exists()) {
+                $success = $this->copyDir($this->path, $dest);
+            }
+        } catch (\Throwable) {
+            $success = false;
+        } finally {
+            restore_error_handler();
         }
 
-        return $target instanceof self ? $target : new static($target);
+        return $target;
     }
 
     /**
      * Recursively delete a directory.
-     *
-     * @return bool
      */
     public function delete(): bool
     {
@@ -223,7 +242,7 @@ class Directory extends Filesystem implements IteratorAggregate
         $result = true;
 
         /** @var File|self $file */
-        foreach (self::scanFiles($this->path) as $file) {
+        foreach (static::scanFiles($this->path) as $file) {
             $result = $file->delete() && $result;
         }
         return $this->rmdir() && $result;

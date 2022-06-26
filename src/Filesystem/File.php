@@ -35,7 +35,7 @@ class File extends Filesystem implements IteratorAggregate
             string $path,
     )
     {
-        if (is_dir(self::getAbsolute($path))) {
+        if (is_dir(static::getAbsolute($path))) {
             throw new InvalidArgumentException(sprintf('%s is a directory.', $path));
         }
 
@@ -112,6 +112,12 @@ class File extends Filesystem implements IteratorAggregate
         }
     }
 
+    /** {@inheritdoc} */
+    protected function doCopy(string|Filesystem $target, bool &$success = null): static
+    {
+        return $this->copy($target, $success);
+    }
+
     /**
      * Copy File
      *
@@ -127,13 +133,22 @@ class File extends Filesystem implements IteratorAggregate
 
         $success = false;
 
-        if ($this->exists()) {
-            static::createDir(dirname($dest));
-            // no need to copy if files are the same
-            if ($target->hash() !== $this->hash()) {
-                $success = copy($this->path, $dest);
-            } else { $success = true; }
+        try {
+            Tools::errors_as_exceptions();
+
+            if ($this->exists()) {
+                static::createDir(dirname($dest));
+                // no need to copy if files are the same
+                if ($target->hash() !== $this->hash()) {
+                    $success = copy($this->path, $dest);
+                } else { $success = true; }
+            }
+        } catch (\Throwable) {
+            $success = false;
+        } finally {
+            restore_error_handler();
         }
+
 
         return $target;
     }
@@ -212,7 +227,7 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function touch(?int $mtime = null, ?int $atime = null): bool
     {
-        self::createDir($this->dirname());
+        static::createDir($this->dirname());
         return touch($this->path, $mtime, $atime);
     }
 

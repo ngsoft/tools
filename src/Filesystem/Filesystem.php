@@ -6,12 +6,15 @@ namespace NGSOFT\Filesystem;
 
 use Countable,
     InvalidArgumentException,
+    NGSOFT\Tools,
     RuntimeException,
     SplFileInfo,
     SplFileObject,
-    Stringable;
+    Stringable,
+    Throwable;
 use const DATE_DB;
 use function blank,
+             class_basename,
              preg_exec,
              str_contains,
              str_starts_with;
@@ -65,7 +68,7 @@ abstract class Filesystem implements Countable, Stringable
             throw new InvalidArgumentException('Filename is empty.');
         }
 
-        $this->path = self::getAbsolute($path);
+        $this->path = static::getAbsolute($path);
     }
 
     /**
@@ -154,7 +157,7 @@ abstract class Filesystem implements Countable, Stringable
     public function move(string|self $target, bool &$success = null): static
     {
 
-        $dest = self::getAbsolute($target);
+        $dest = static::getAbsolute($target);
 
         $target = $target instanceof self ? $target : new static($target);
 
@@ -168,16 +171,35 @@ abstract class Filesystem implements Countable, Stringable
             );
         }
 
-
         $success = false;
 
-        if ($this->exists()) {
-            $this->createDir(dirname($target));
-            $success = rename($this->path, $dest);
-        }
+        try {
+            Tools::errors_as_exceptions();
+            if ($this->exists()) {
+
+                $this->createDir(dirname($dest));
+                $success = rename($this->path, $dest);
+            }
+        } catch (Throwable) {
+            //cannot move so we merge
+            $this->doCopy($target, $success);
+            $success = $success && $this->delete();
+        } finally { restore_error_handler(); }
+
+
 
         return $target;
     }
+
+    /**
+     * Inheritance error on self if directly invoking copy()
+     */
+    abstract protected function doCopy(string|self $target, bool &$success = null): static;
+
+    /**
+     * Delete the file
+     */
+    abstract protected function delete(): bool;
 
     /**
      * Can Read
