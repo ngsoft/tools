@@ -35,12 +35,10 @@ class File extends Filesystem implements IteratorAggregate
             string $path,
     )
     {
-        if (is_dir(static::getAbsolute($path))) {
+        parent::__construct($path);
+        if (is_dir($this->path)) {
             throw new InvalidArgumentException(sprintf('%s is a directory.', $path));
         }
-
-
-        parent::__construct($path);
     }
 
     public function __destruct()
@@ -378,8 +376,8 @@ class File extends Filesystem implements IteratorAggregate
                 'ctime' => date(DATE_DB, $this->ctime()),
                 'mtime' => date(DATE_DB, $this->mtime()),
                 'crc32' => $this->hash(),
-                'locked' => $this->lock()->isAcquired(),
-                'lock' => $this->lock(),
+                    //     'locked' => $this->lock()->isAcquired(),
+                    //   'lock' => $this->lock(),
             ];
         }
         return $result;

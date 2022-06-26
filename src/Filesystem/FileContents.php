@@ -78,7 +78,6 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
 
     public function jsonSerialize(): mixed
     {
-
         return $this->__toString();
     }
 

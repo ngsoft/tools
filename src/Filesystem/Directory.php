@@ -132,18 +132,18 @@ class Directory extends Filesystem implements IteratorAggregate
     }
 
     public function __construct(
-            protected string $path
+            string $path = ''
     )
     {
 
         if (blank($path)) {
             $path = getcwd();
         }
+        parent::__construct($path);
 
-        if (is_file(static::getAbsolute($path))) {
+        if (is_file($this->path)) {
             throw new InvalidArgumentException(sprintf('%s is a regular file.', $path));
         }
-        parent::__construct($path);
     }
 
     protected function copyDir(string $directory, string|self $destination): bool
