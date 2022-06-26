@@ -231,12 +231,18 @@ class File extends Filesystem implements IteratorAggregate
 
     /**
      * Loads file as an Iterator
-     *
-     * @return FileContents
      */
     public function getContents(): FileContents
     {
         return new FileContents($this);
+    }
+
+    /**
+     * Creates file contents
+     */
+    public function createContents(): FileContents
+    {
+        return new FileContents($this, loaded: true);
     }
 
     /**

@@ -7,11 +7,10 @@ namespace NGSOFT\Filesystem;
 class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Stringable, \JsonSerializable
 {
 
-    protected bool $loaded = false;
-
     public function __construct(
             protected File $file,
-            protected array $lines = []
+            protected array $lines = [],
+            protected bool $loaded = false
     )
     {
         if ( ! empty($lines)) {
@@ -58,25 +57,29 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     /**
      * replaces / adds a line
      */
-    protected function writeLine(int|null $offset, string $value): void
+    protected function writeLine(string $value, int|null $offset = null): static
     {
         $this->load();
         if ( ! is_int($offset)) {
             $this->lines[] = $value;
-            return;
+            return $this;
         }
         $offset --;
         $this->lines[$offset] = $value;
+
+        return $this;
     }
 
     /**
      * Delete a line
      */
-    protected function removeLine(int $offset): void
+    protected function removeLine(int $offset): static
     {
         $this->load();
         $offset --;
         unset($this->lines[$offset]);
+
+        return $this;
     }
 
     /** {@inheritdoc} */
@@ -94,7 +97,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->writeLine($offset, $value);
+        $this->writeLine($value, $offset);
     }
 
     /** {@inheritdoc} */
@@ -144,6 +147,12 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     public function __unserialize(array $data): void
     {
         list($this->file) = $data;
+    }
+
+    public function __debugInfo(): array
+    {
+        $this->load();
+        return $this->lines;
     }
 
 }
