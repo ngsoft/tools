@@ -72,6 +72,21 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     }
 
     /**
+     * Run a callable for all the line and removes line that does not pass the test
+     */
+    public function filter(callable $callable): static
+    {
+        foreach ($this as $offset => $line) {
+            $number = $offset;
+            if ( ! $callable($line, $offset)) {
+                $this->removeLine($number);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Save file contents
      */
     public function save(): bool
@@ -133,7 +148,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     {
         $this->load();
 
-        $offset = max(1, is_int($offset) ? $offset : 1);
+        $offset = max(1, (int) $offset);
         $offset --;
         if (array_key_exists($offset, $this->lines)) {
             array_splice($this->lines, $offset, 0, $value);
@@ -198,6 +213,7 @@ class FileContents implements \IteratorAggregate, \ArrayAccess, \Countable, \Str
     public function getIterator(): \Traversable
     {
         $this->load();
+        // get a copy so the loop don't get messed up with unset() or removeLine()
         $copy = $this->lines;
         for ($i = 0; $i < count($copy); $i ++ ) {
             $index = $i + 1;
