@@ -128,7 +128,7 @@ function popd(): string|false
 
 /**
  * Pauses script execution for a given amount of time
- * uses sleep or usleep
+ * uses sleep or/and usleep
  *
  * @param int|float $seconds
  */

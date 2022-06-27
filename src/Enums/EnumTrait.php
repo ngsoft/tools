@@ -31,7 +31,18 @@ trait EnumTrait
     final public static function __callStatic(string $name, array $arguments): mixed
     {
 
+        // missing from  from \UnitEnum
+        // to use fromEnum
+        if ($name === 'from') {
+            $enum = $arguments[0] ?? 0;
+            if ( ! is_string($enum)) {
+                throw new ValueError(sprintf('Cannot import enum %s with value.', static::class));
+            }
+            return static::get($enum);
+        }
+
         try {
+
             if (count($arguments) > 0) {
                 throw new InvalidArgumentException(sprintf('Too many arguments for method %s::%s()', static::class, $name));
             }
@@ -139,21 +150,7 @@ trait EnumTrait
             return $enum;
         }
 
-        if (is_object($enum)) {
-            throw new InvalidArgumentException(sprintf('Cannot import enum(%s) from %s', static::class, get_class($enum)));
-        }
-
-        // not a backed enum
-        if ( ! method_exists(static::class, 'from')) {
-
-            if (is_int($enum)) {
-                throw new ValueError(sprintf('Cannot import enum(%s) with value %d', static::class, $enum));
-            }
-
-            return static::get($enum);
-        }
-
-        return self::from($enum);
+        return static::from($enum);
     }
 
 }
