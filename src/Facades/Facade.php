@@ -78,7 +78,7 @@ abstract class Facade
          * we extends the facade as it is abstract
          * with that we can Facade::setContainer() without static error
          */
-        return self::$innerFacade = self::$innerFacade ?? new class extends Facade{
+        return self::$innerFacade ??= new class extends Facade{
 
                     protected array $resovedInstances = [];
                     protected ?ContainerInterface $container = null;

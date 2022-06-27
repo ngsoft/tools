@@ -25,4 +25,4 @@ foreach ($scripts as $name) {
 
 
 // instanciating the container
-Facade::boot();
+//Facade::boot();
