@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
+use NGSOFT\Filesystem\File;
 use Psr\{
     Cache\CacheItemPoolInterface, SimpleCache\CacheInterface
 };
@@ -40,6 +41,22 @@ class LockFactory
             $seconds = $this->seconds;
         }
         return new FileLock($name, $seconds, $owner, rootpath: $rootpath);
+    }
+
+    /**
+     *
+     * @param string|File $file
+     * @param int $seconds
+     * @param string $owner
+     * @return FileSystemLock
+     */
+    public function createFileSystemLock(string|File $file, int $seconds, string $owner = ''): FileSystemLock
+    {
+        if ($seconds === 0) {
+            $seconds = $this->seconds;
+        }
+
+        return new FileSystemLock($file instanceof File ? $file : File::create($file), $seconds, $owner);
     }
 
     /**
