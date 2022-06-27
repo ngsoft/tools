@@ -9,19 +9,6 @@ use NGSOFT\{
 };
 use const SCRIPT_START;
 
-/**
- * @method static StopWatch getWatch(mixed $task = 'default')
- * @method static StopWatchResult read(mixed $task = 'default')
- * @method static bool start(mixed $task = 'default', int|float|null $startTime = NULL)
- * @method static bool resume(mixed $task = 'default')
- * @method static void reset(mixed $task = 'default')
- * @method static void resetAll()
- * @method static StopWatchResult pause(mixed $task = 'default', ?bool $success = NULL)
- * @method static StopWatchResult stop(mixed $task = 'default', ?bool $success = NULL)
- * @method static iterable getLaps(mixed $task = 'default')
- * @method static bool lap(mixed $task = 'default', ?string $label = NULL)
- * @see WatchFactory
- */
 class Timer extends Facade
 {
 
