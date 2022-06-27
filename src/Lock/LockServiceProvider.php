@@ -27,7 +27,7 @@ class LockServiceProvider implements ServiceProvider
             $seconds = $container->get('Config')['lock.seconds'] ?? $seconds;
         }
 
-        $container->setMultiple(array_fill_keys($this->provides(), new LockFactory($rootpath, $seconds)));
+        $container->setMany(array_fill_keys($this->provides(), new LockFactory($rootpath, $seconds)));
     }
 
 }

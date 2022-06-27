@@ -33,4 +33,9 @@ interface ContainerInterface extends PsrContainerInterface
      * Register a service
      */
     public function register(ServiceProvider $service): void;
+
+    /**
+     * Alias an entry to a different name
+     */
+    public function alias(string|iterable $alias, string $id): void;
 }
