@@ -165,7 +165,7 @@ if ( ! function_exists('preg_valid')) {
 if ( ! function_exists('preg_test')) {
 
     /**
-     * Test if subject mathes the pattern
+     * Test if subject matches the pattern
      */
     function preg_test(string $pattern, string $subject): bool
     {
@@ -214,7 +214,7 @@ if ( ! function_exists('wait')) {
     /**
      * Wait for a given amount of time
      *
-     * @param int $ms if 0 wait for .9 to 110 ms
+     * @param int $ms if 0 wait for 90 to 110 ms
      * @return void
      */
     function wait(int $ms = 0): void
@@ -234,16 +234,16 @@ if ( ! function_exists('until')) {
     /**
      * Execute callback until condition is met
      *
-     * @param callable $contition must returns non blank value for success
+     * @param callable $condition must returns non blank value for success
      * @param int $times maximum times the loop can run
      * @param int $waitMs time to wait between attempts
      * @return bool Success or failure
      */
-    function until(callable $contition, int $times = 1000, int $waitMs = 10): bool
+    function until(callable $condition, int $times = 1000, int $waitMs = 10): bool
     {
 
         while ($times > 0) {
-            if (filled($contition())) {
+            if (filled($condition())) {
                 return true;
             }
             wait($waitMs);
@@ -257,6 +257,9 @@ if ( ! function_exists('until')) {
 
 if ( ! function_exists('call_private_method')) {
 
+    /**
+     * Call a non static method inside an object ignoring its restrictions
+     */
     function call_private_method(object $instance, string $method, mixed ...$arguments): mixed
     {
         return Tools::callPrivateMethod($instance, $method, ...$arguments);
