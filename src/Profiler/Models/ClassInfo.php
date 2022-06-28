@@ -88,15 +88,10 @@ class ClassInfo extends BaseModel
      */
     public function getClassMethods(): array
     {
-
-        if ( ! $this->methods) {
-            $this->methods = map(function (\ReflectionMethod $method, &$key) {
-                $key = $method->getName();
-                return Method::create($method);
-            }, $this->getMethods());
-        }
-
-        return $this->methods;
+        return $this->methods ??= map(function (\ReflectionMethod $method, &$key) {
+            $key = $method->getName();
+            return Method::create($method);
+        }, $this->getMethods());
     }
 
     public function getClassProperty(string $name): ?Property
@@ -109,15 +104,10 @@ class ClassInfo extends BaseModel
      */
     public function getClassProperties(): array
     {
-
-        if ( ! $this->properties) {
-            $this->properties = map(function (\ReflectionProperty $prop, &$key) {
-                $key = $prop->getName();
-                return new Property($prop);
-            }, $this->getProperties());
-        }
-
-        return $this->properties;
+        return $this->properties ??= map(function (\ReflectionProperty $prop, &$key) {
+            $key = $prop->getName();
+            return new Property($prop);
+        }, $this->getProperties());
     }
 
 }

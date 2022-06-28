@@ -10,7 +10,7 @@ interface ContainerInterface extends PsrContainerInterface
 {
 
     /**
-     * Resolves an entry by its name. If given a class name, it will return a new instance of that class.
+     * Resolves an entry by its name. If given a class name, it will return a fresh instance of that class.
      */
     public function make(string $id, array $parameters = []): mixed;
 
@@ -37,5 +37,5 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Alias an entry to a different name
      */
-    public function alias(string|iterable $alias, string $id): void;
+    public function alias(string|array $alias, string $id): void;
 }
