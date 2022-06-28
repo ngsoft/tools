@@ -48,7 +48,8 @@ class Container implements ContainerInterface
         return
                 array_key_exists($id, $this->resolved) ||
                 array_key_exists($id, $this->services) ||
-                array_key_exists($id, $this->definitions);
+                array_key_exists($id, $this->definitions) ||
+                $this->canResolve($id);
     }
 
     public function get(string $id): mixed
@@ -77,7 +78,12 @@ class Container implements ContainerInterface
             return;
         }
 
-        $this->services += array_fill_keys(array_unique($service->provides()), $service);
+        foreach (array_unique($service->provides()) as $id) {
+            $id = $this->getAlias($id);
+            $this->services[$id] = $service;
+
+            unset($this->resolved[$id]);
+        }
     }
 
     public function set(string $id, mixed $value): void
@@ -86,6 +92,7 @@ class Container implements ContainerInterface
 
         if ($value instanceof Closure) {
             $this->definitions[$id] = $value;
+            unset($this->resolved[$id]);
             return;
         }
         $this->resolved[$id] = $value;
@@ -96,6 +103,11 @@ class Container implements ContainerInterface
         foreach ($definitions as $id => $value) {
             $this->set($id, $value);
         }
+    }
+
+    protected function canResolve(string $id): bool
+    {
+        return false;
     }
 
 }

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use NGSOFT\{
-    Container\Container, Facades\Facade
-};
+use NGSOFT\Facades\Facade;
 
 // Set the internal encoding
 mb_internal_encoding("UTF-8");
@@ -25,4 +23,4 @@ foreach ($scripts as $name) {
 
 
 // instanciating the container
-//Facade::boot();
+Facade::boot();
