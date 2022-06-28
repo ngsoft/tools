@@ -34,7 +34,7 @@ class Container implements ContainerInterface
 
     public function alias(string|array $alias, string $id): void
     {
-        $this->aliases += array_fill_keys(array_values(array_unique((array) $alias)), $id);
+        $this->aliases += array_fill_keys(array_unique((array) $alias), $id);
     }
 
     protected function getAlias(string $id): string
@@ -53,6 +53,11 @@ class Container implements ContainerInterface
 
     public function get(string $id): mixed
     {
+        $id = $this->getAlias($id);
+        if (array_key_exists($id, $this->resolved)) {
+            return $this->resolved[$id];
+        }
+
         return null;
     }
 
