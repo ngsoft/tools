@@ -85,7 +85,6 @@ class Container implements ContainerInterface
         return
                 array_key_exists($abstract, $this->resolved) ||
                 array_key_exists($abstract, $this->services) ||
-                array_key_exists($abstract, $this->definitions) ||
                 $this->canResolve($abstract);
     }
 
@@ -113,7 +112,7 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function call(callable|array|string $callable, array $parameters = []): mixed
     {
-        return null;
+        return $this->resolveCallable($callable, $parameters);
     }
 
     /** {@inheritdoc} */
@@ -196,6 +195,13 @@ class Container implements ContainerInterface
         }
     }
 
+    protected function resolveCallable(callable|string|array $callable, array $parameters): mixed
+    {
+
+
+        return null;
+    }
+
     protected function resolve(string $id, array $providedParams = []): mixed
     {
         $this->loadService($id);
@@ -236,7 +242,7 @@ class Container implements ContainerInterface
 
     protected function canResolve(string $id): bool
     {
-        return some(fn($resolver) => $resolver->canResolve(), $this->resolvers);
+        return some(fn($resolver) => $resolver->canResolve($id, $this->definitions[$id] ?? null), $this->resolvers);
     }
 
 }
