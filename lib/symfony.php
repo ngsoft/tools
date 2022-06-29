@@ -28,7 +28,7 @@ declare(strict_types=1);
  * Symfony Event dispatcher interfaces polyfill
  *
  *
- * @phan-file-suppress PhanTypeMismatchDeclaredParam, PhanTypeMismatchDeclaredReturn, PhanTemplateTypeNotDeclaredInFunctionParams
+ * @phan-file-suppress PhanTypeMismatchDeclaredParam, PhanTypeMismatchDeclaredReturn, PhanTemplateTypeNotDeclaredInFunctionParams, PhanRedefineClass
  */
 
 namespace Symfony\Contracts\EventDispatcher {
