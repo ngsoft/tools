@@ -33,16 +33,21 @@ class Container implements ContainerInterface
         $this->setMany($definitions);
     }
 
+    /** {@inheritdoc} */
     public function alias(string|array $alias, string $id): void
     {
         $this->aliases += array_fill_keys(array_unique((array) $alias), $id);
     }
 
+    /**
+     * Resolves alias
+     */
     protected function getAlias(string $id): string
     {
         return isset($this->aliases[$id]) ? $this->getAlias($this->aliases[$id]) : $id;
     }
 
+    /** {@inheritdoc} */
     public function has(string $id): bool
     {
         $id = $this->getAlias($id);
@@ -53,6 +58,7 @@ class Container implements ContainerInterface
                 $this->canResolve($id);
     }
 
+    /** {@inheritdoc} */
     public function get(string $id): mixed
     {
         $id = $this->getAlias($id);
@@ -63,16 +69,19 @@ class Container implements ContainerInterface
         return null;
     }
 
+    /** {@inheritdoc} */
     public function make(string $id, array $parameters = []): mixed
     {
         return null;
     }
 
+    /** {@inheritdoc} */
     public function call(callable|array|string $callable, array $parameters = []): mixed
     {
         return null;
     }
 
+    /** {@inheritdoc} */
     public function register(ServiceProvider $service): void
     {
         if (empty($service->provides())) {
@@ -87,6 +96,7 @@ class Container implements ContainerInterface
         }
     }
 
+    /** {@inheritdoc} */
     public function set(string $id, mixed $value): void
     {
 
@@ -100,6 +110,7 @@ class Container implements ContainerInterface
         $this->resolved[$id] = $value;
     }
 
+    /** {@inheritdoc} */
     public function setMany(iterable $definitions): void
     {
         foreach ($definitions as $id => $value) {
