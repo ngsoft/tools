@@ -20,6 +20,7 @@ class Container implements ContainerInterface
     protected array $services = [];
     protected array $definitions = [];
     protected array $resolved = [];
+    protected bool $locked = false;
 
     public function __construct(
             iterable $definitions = []
@@ -88,6 +89,7 @@ class Container implements ContainerInterface
 
     public function set(string $id, mixed $value): void
     {
+
         $id = $this->getAlias($id);
 
         if ($value instanceof Closure) {
@@ -107,7 +109,7 @@ class Container implements ContainerInterface
 
     protected function canResolve(string $id): bool
     {
-        return false;
+        return is_instanciable($id);
     }
 
 }
