@@ -6,11 +6,10 @@ namespace NGSOFT\Container;
 
 use Closure;
 use NGSOFT\{
-    Container\Exceptions\CircularDependencyException, Container\Exceptions\NotFound, Container\Exceptions\ResolverException, Container\Resolvers\ProvidedClosureResolver,
-    DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
+    Container\Exceptions\CircularDependencyException, Container\Exceptions\ContainerError, Container\Exceptions\NotFound, Container\Exceptions\ResolverException,
+    Container\Resolvers\ProvidedClosureResolver, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
-    Symfony\Component\Translation\Exception\LogicException,
     Throwable;
 use function is_instanciable;
 

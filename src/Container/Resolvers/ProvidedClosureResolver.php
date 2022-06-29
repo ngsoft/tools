@@ -25,10 +25,15 @@ class ProvidedClosureResolver implements ContainerResolver
         return $this->priority;
     }
 
-    public function resolve(ContainerInterface $container, string $id, mixed $value, array $providedParams = []): mixed
+    public function resolve(ContainerInterface $container, string $id, mixed $value, array &$providedParams = []): mixed
     {
         $closure = $this->closure;
         return $closure($container, $id, $value, $providedParams);
+    }
+
+    public function canResolve(string $id, mixed $value): bool
+    {
+        return $value !== null;
     }
 
 }

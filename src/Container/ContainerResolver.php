@@ -14,10 +14,15 @@ interface ContainerResolver
     /**
      * Resolves an entry from the container
      */
-    public function resolve(ContainerInterface $container, string $id, mixed $value, array $providedParams = []): mixed;
+    public function resolve(ContainerInterface $container, string $id, mixed $value, array &$providedParams = []): mixed;
 
     /**
      * Set the default priority
      */
     public function getDefaultPriority(): int;
+
+    /**
+     * Resolver can resolve ?
+     */
+    public function canResolve(string $id, mixed $value): bool;
 }
