@@ -11,7 +11,7 @@ use NGSOFT\{
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Throwable;
-use function is_instanciable;
+use function NGSOFT\Tools\some;
 
 class Container implements ContainerInterface
 {
@@ -227,7 +227,7 @@ class Container implements ContainerInterface
 
     protected function canResolve(string $id): bool
     {
-        return is_instanciable($id);
+        return some(fn($resolver) => $resolver->canResolve(), $this->resolvers);
     }
 
 }

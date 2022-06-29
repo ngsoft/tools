@@ -11,7 +11,7 @@ class NotFound extends ContainerError implements \Psr\Container\NotFoundExceptio
     {
         return new static(
                 sprintf(
-                        'No entry or class found for %s',
+                        'No entry or class found for [%s]',
                         $id
                 ),
                 previous: $previous
