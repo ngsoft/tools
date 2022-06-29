@@ -12,7 +12,6 @@ class NullServiceProvider implements ServiceProvider
 
     public function __construct(string|array $provides = [])
     {
-
         $this->provides = array_values((array) $provides);
     }
 
