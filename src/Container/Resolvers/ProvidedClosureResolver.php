@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
-class ProvidedClosureResolver implements \NGSOFT\Container\ContainerResolver
+use Closure;
+use NGSOFT\Container\{
+    ContainerInterface, ContainerResolver
+};
+
+class ProvidedClosureResolver implements ContainerResolver
 {
 
     public function __construct(
@@ -20,7 +25,7 @@ class ProvidedClosureResolver implements \NGSOFT\Container\ContainerResolver
         return $this->priority;
     }
 
-    public function resolve(\NGSOFT\Container\ContainerInterface $container, string $id, mixed $value): mixed
+    public function resolve(ContainerInterface $container, string $id, mixed $value): mixed
     {
         $closure = $this->closure;
         return $closure($container, $id, $value);
