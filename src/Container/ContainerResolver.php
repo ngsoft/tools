@@ -14,7 +14,7 @@ interface ContainerResolver
     /**
      * Resolves an entry from the container
      */
-    public function resolve(ContainerInterface $container, string $id, mixed $value): mixed;
+    public function resolve(ContainerInterface $container, string $id, mixed $value, array $providedParams = []): mixed;
 
     /**
      * Set the default priority

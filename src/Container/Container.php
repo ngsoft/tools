@@ -190,7 +190,7 @@ class Container implements ContainerInterface
         }
     }
 
-    protected function resolve(string $id): mixed
+    protected function resolve(string $id, array $providedParams = []): mixed
     {
         $this->loadService($id);
         $abstract = $this->getAlias($id);
@@ -206,11 +206,11 @@ class Container implements ContainerInterface
 
         $this->resolving[$abstract] = $this->resolving[$id] = true;
 
-        $resolved = null;
+        $resolved = $this->definitions[$abstract] ?? null;
 
         /** @var ContainerResolver $resolver */
         foreach ($this->resolvers as $resolver) {
-            $resolved = $resolver->resolve($this, $abstract, $this->definitions[$abstract] ?? null);
+            $resolved = $resolver->resolve($this, $abstract, $resolved, $providedParams);
         }
 
         unset($this->resolving[$id], $this->resolving[$abstract]);
