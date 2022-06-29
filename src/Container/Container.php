@@ -39,9 +39,6 @@ class Container implements ContainerInterface
 
     /** @var PrioritySet<ContainerResolver> */
     protected PrioritySet $resolvers;
-
-    /** @var Closure[] */
-    protected array $resolverClosures = [];
     protected bool $locked = false;
 
     public function __construct(
@@ -127,9 +124,8 @@ class Container implements ContainerInterface
         }
 
         foreach (array_unique($service->provides()) as $id) {
-            $abstract = $this->getAlias($id);
-            $this->services[$abstract] = $service;
-            unset($this->resolved[$abstract]);
+            $this->services[$id] = $service;
+            unset($this->resolved[$id]);
         }
     }
 
@@ -161,12 +157,18 @@ class Container implements ContainerInterface
     public function addResolutionHandler(ContainerResolver|Closure $handler, int $priority = ContainerResolver::PRIORITY_MEDIUM): static
     {
 
-        if (in_array($handler, $this->resolverClosures, true) || $this->resolvers->has($handler)) {
+        static $closures = [];
+
+        $instanceId = spl_object_id($this);
+
+        $closures[$instanceId] ??= [];
+
+        if (in_array($handler, $closures[$instanceId], true) || $this->resolvers->has($handler)) {
             throw ResolverException::notTwice($handler);
         }
 
         if ($handler instanceof Closure) {
-            $this->resolverClosures[] = $handler;
+            $closures[$instanceId] [] = $handler;
             $handler = new ProvidedClosureResolver($handler, $priority);
         }
 
@@ -218,7 +220,7 @@ class Container implements ContainerInterface
             $resolved = $resolver->resolve($this, $abstract, $resolved, $providedParams);
         }
 
-        unset($this->resolving[$id], $this->resolving[$abstract]);
+        unset($this->resolving[$abstract]);
 
         if (is_null($resolved)) {
             throw new ResolverException(

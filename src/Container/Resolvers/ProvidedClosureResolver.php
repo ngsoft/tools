@@ -20,17 +20,23 @@ class ProvidedClosureResolver implements ContainerResolver
 
     }
 
+    /** {@inheritdoc} */
     public function getDefaultPriority(): int
     {
         return $this->priority;
     }
 
+    /** {@inheritdoc} */
     public function resolve(ContainerInterface $container, string $id, mixed $value, array &$providedParams = []): mixed
     {
         $closure = $this->closure;
         return $closure($container, $id, $value, $providedParams);
     }
 
+    /**
+     * {@inheritdoc}
+     * @phan-suppress PhanUnusedPublicMethodParameter
+     */
     public function canResolve(string $id, mixed $value): bool
     {
         return $value !== null;
