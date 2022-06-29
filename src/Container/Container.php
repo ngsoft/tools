@@ -96,7 +96,8 @@ class Container implements ContainerInterface
     public function get(string $id): mixed
     {
         try {
-            return $this->resolved[$id] ??= $this->resolve($id);
+
+            return $this->resolved[$this->getAlias($id)] ??= $this->resolve($id);
         } catch (Throwable $prev) {
             throw NotFound::for($id, $prev);
         }
@@ -105,7 +106,11 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function make(string $id, array $parameters = []): mixed
     {
-        return null;
+        try {
+            return $this->resolve($id, $parameters);
+        } catch (Throwable $prev) {
+            throw NotFound::for($id, $prev);
+        }
     }
 
     /** {@inheritdoc} */
@@ -203,7 +208,8 @@ class Container implements ContainerInterface
             );
         }
 
-        $this->resolving[$abstract] = $this->resolving[$id] = true;
+
+        $this->resolving[$abstract] = true;
 
         $resolved = $this->definitions[$abstract] ?? null;
 
@@ -213,10 +219,11 @@ class Container implements ContainerInterface
         }
 
         unset($this->resolving[$id], $this->resolving[$abstract]);
+
         if (is_null($resolved)) {
             throw new ResolverException(
                             sprintf(
-                                    'Cannot resolve %s',
+                                    'Cannot resolve [%s]',
                                     $id
                             )
             );

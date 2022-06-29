@@ -59,7 +59,7 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
 
             foreach ($this->priorities as $offset => $priority) {
 
-                $sorted[$priority] = $sorted[$priority] ?? [];
+                $sorted[$priority] ??= [];
                 $sorted[$priority] [] = $offset;
             }
 
