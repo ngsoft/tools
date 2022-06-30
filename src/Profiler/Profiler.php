@@ -94,7 +94,8 @@ class Profiler
 
             if (
                     (is_string($class) || is_object($class)) &&
-                    is_string($method) && method_exists($class, $method)
+                    is_string($method) &&
+                    method_exists($class, $method)
             ) {
                 return new ReflectionMethod($class, $method);
             }
