@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace NGSOFT\Profiler;
 
-use Closure;
-use NGSOFT\Profiler\Models\{
-    CallableInfo, ClassInfo, Method, Parameter, Property
+use Closure,
+    ErrorException;
+use NGSOFT\{
+    Profiler\Models\CallableInfo, Profiler\Models\ClassInfo, Profiler\Models\Method, Profiler\Models\Parameter, Profiler\Models\Property, Tools
 };
 use ReflectionClass,
+    ReflectionException,
     ReflectionFunction,
     ReflectionMethod,
     ReflectionParameter,
     ReflectionProperty;
-use function get_debug_type;
+use function get_debug_type,
+             str_contains;
 
 /**
  * Profiler Factory
@@ -65,20 +68,39 @@ class Profiler
         return $reflector instanceof ReflectionMethod ? $this->getMethod($reflector) : $this->getFunction($reflector);
     }
 
-    protected function getCallableReflector(callable $callable): ReflectionMethod|ReflectionFunction
+    public function getCallableReflector(callable|array|string $callable): ReflectionMethod|ReflectionFunction
     {
+
+        $orig = $callable;
 
         if ($callable instanceof Closure) {
             return new ReflectionFunction($callable);
         }
 
-        if (is_array($callable)) {
+
+        if (is_string($callable)) {
+            // MyClass::myMethod(), static function can be callable
+            // but can't use ReflectionFuntion
+            if (str_contains($callable, '::')) {
+                $callable = explode('::', $callable);
+            } elseif (is_callable($callable)) {
+                return new ReflectionFunction($callable);
+            }
+        }
+
+
+        if (is_array($callable) && count($callable) === 2) {
             list($class, $method) = $callable;
-            if ( ! method_exists($class, $method)) {
-                throw NotCallable::fromInvalidCallable($callable);
+
+            if (
+                    (is_string($class) || is_object($class)) &&
+                    is_string($method) && method_exists($class, $method)
+            ) {
+                return new ReflectionMethod($class, $method);
             }
 
-            return new ReflectionMethod($class, $method);
+
+            throw NotCallable::fromInvalidCallable($callable);
         }
 
 
@@ -86,7 +108,8 @@ class Profiler
             return new ReflectionMethod($callable, '__invoke');
         }
 
-        throw new NotCallable(sprintf('%s is not a callable', is_string($callable) ? $callable : get_debug_type($callable) ));
+
+        throw new NotCallable(sprintf('%s is not a callable', is_string($orig) ? $orig : get_debug_type($orig) ));
     }
 
 }

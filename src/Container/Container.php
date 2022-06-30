@@ -61,7 +61,7 @@ class Container implements ContainerInterface
 
         if (in_array($id, $alias)) {
             throw new ContainerError(sprintf(
-                                    '%s is aliased to itself.',
+                                    '[%s] is aliased to itself.',
                                     $id
             ));
         }
@@ -210,7 +210,7 @@ class Container implements ContainerInterface
         if (isset($this->resolving[$abstract])) {
             throw new CircularDependencyException(
                             sprintf(
-                                    'Container is already resolving %s, cannot resolve it twice in the same loop.',
+                                    'Container is already resolving [%s], cannot resolve it twice in the same loop.',
                                     $id
                             )
             );
@@ -242,6 +242,10 @@ class Container implements ContainerInterface
 
     protected function canResolve(string $id): bool
     {
+        if (isset($this->resolving[$id])) {
+            return false;
+        }
+
         return some(fn($resolver) => $resolver->canResolve($id, $this->definitions[$id] ?? null), $this->resolvers);
     }
 
