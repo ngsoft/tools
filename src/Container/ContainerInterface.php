@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Psr\Container\ContainerInterface as PsrContainerInterface;
+use Closure,
+    Psr\Container\ContainerInterface as PsrContainerInterface;
 
 interface ContainerInterface extends PsrContainerInterface
 {
@@ -17,7 +18,7 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Call the given function using the given parameters.
      */
-    public function call(callable|array|string $callable, array $parameters = []): mixed;
+    public function call(Closure|array|string $callable, array $parameters = []): mixed;
 
     /**
      * Add a definition to the container

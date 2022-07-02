@@ -68,7 +68,7 @@ class Profiler
         return $reflector instanceof ReflectionMethod ? $this->getMethod($reflector) : $this->getFunction($reflector);
     }
 
-    public function getCallableReflector(callable|array|string $callable): ReflectionMethod|ReflectionFunction
+    public function getCallableReflector(Closure|array|string $callable): ReflectionMethod|ReflectionFunction
     {
 
         $orig = $callable;

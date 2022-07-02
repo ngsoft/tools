@@ -39,6 +39,7 @@ class Container implements ContainerInterface
 
     /** @var PrioritySet<ContainerResolver> */
     protected PrioritySet $resolvers;
+    protected ParameterResolver $parameterResolver;
     protected bool $locked = false;
 
     public function __construct(
@@ -46,6 +47,7 @@ class Container implements ContainerInterface
     )
     {
 
+        $this->parameterResolver = new ParameterResolver();
         $this->resolvers = new PrioritySet();
 
         $this->set(static::class, $this);
@@ -110,7 +112,7 @@ class Container implements ContainerInterface
     }
 
     /** {@inheritdoc} */
-    public function call(callable|array|string $callable, array $parameters = []): mixed
+    public function call(Closure|array|string $callable, array $parameters = []): mixed
     {
         return $this->resolveCallable($callable, $parameters);
     }
@@ -195,7 +197,7 @@ class Container implements ContainerInterface
         }
     }
 
-    protected function resolveCallable(callable|string|array $callable, array $parameters): mixed
+    protected function resolveCallable(Closure|string|array $callable, array $parameters): mixed
     {
 
 
