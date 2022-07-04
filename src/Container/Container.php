@@ -248,6 +248,10 @@ class Container implements ContainerInterface
             return false;
         }
 
+        if ($this->parameterResolver->canResolve($id, $this->definitions[$id] ?? null)) {
+            return true;
+        }
+
         return some(fn($resolver) => $resolver->canResolve($id, $this->definitions[$id] ?? null), $this->resolvers);
     }
 
