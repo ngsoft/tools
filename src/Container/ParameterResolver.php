@@ -56,7 +56,7 @@ class ParameterResolver
                 }
             }
         } catch (Throwable $prev) {
-            throw new ResolverException(sprintf('Invalid attribute %s', $inject), previous: $prev);
+            throw new ResolverException(sprintf('Invalid attribute %s', $inject ?? '#[Inject]'), previous: $prev);
         }
 
         return $providedParameters;
