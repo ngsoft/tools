@@ -45,7 +45,10 @@ class Container implements ContainerInterface
 
         $this->parameterResolver = new ParameterResolver($this);
 
+        $this->set(__CLASS__, $this);
+        // if extended
         $this->set(static::class, $this);
+
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
 
         $this->setMany($definitions);
@@ -137,13 +140,12 @@ class Container implements ContainerInterface
     {
 
         $abstract = $this->getAlias($id);
+        unset($this->resolved[$abstract]);
 
         if ($value instanceof Closure) {
             $this->definitions[$abstract] = $value;
-            unset($this->resolved[$abstract]);
             return;
         }
-
 
         $this->resolved[$abstract] = $value;
     }
@@ -207,18 +209,23 @@ class Container implements ContainerInterface
             );
         }
 
+        $resolved = null;
 
-        $resolving[$abstract] = true;
+        if ($this->canResolve($abstract)) {
 
-        $resolved = $this->definitions[$abstract] ?? null;
+            $resolving[$abstract] = true;
+            $def = $this->definitions[$abstract] ?? null;
 
-        if ($resolved instanceof \Closure) {
-            $resolved = $this->parameterResolver->resolve($resolved, $providedParams);
-        } elseif (is_instanciable($abstract)) {
-            $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
+            if ($def instanceof \Closure) {
+                $resolved = $this->parameterResolver->resolve($def, $providedParams);
+            } elseif (is_instanciable($abstract)) {
+                $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
+            }
+
+            unset($resolving[$abstract]);
         }
 
-        unset($resolving[$abstract]);
+
 
         if (is_null($resolved)) {
             throw new ResolverException(
