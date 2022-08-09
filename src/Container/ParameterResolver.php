@@ -9,15 +9,15 @@ use NGSOFT\Container\{
     Attribute\Inject, Exceptions\ResolverException
 };
 use Psr\Container\ContainerExceptionInterface,
+    ReflectionAttribute,
     ReflectionClass,
     ReflectionException,
     ReflectionFunction,
     ReflectionIntersectionType,
     ReflectionMethod,
     ReflectionParameter,
-    ReflectionAttribute;
+    Throwable;
 use function is_instanciable,
-             NGSOFT\Tools\map,
              str_starts_with;
 
 class ParameterResolver
@@ -33,6 +33,33 @@ class ParameterResolver
     public function canResolve(string $id, mixed $value): bool
     {
         return is_instanciable($id) || $value !== null;
+    }
+
+    protected function parseAttributes(ReflectionMethod|ReflectionParameter $reflector, array $providedParameters): array
+    {
+
+        try {
+            /** @var ReflectionAttribute $attribute */
+            /** @var Inject $inject */
+            foreach ($reflector->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                $inject = $attribute->newInstance();
+                if ($reflector instanceof ReflectionParameter) {
+                    if ( ! empty($inject->name)) {
+                        $providedParameters[$reflector->getName()] ??= $this->container->get($inject->name);
+                    }
+
+                    continue;
+                }
+
+                foreach ($inject->parameters as $index => $id) {
+                    $providedParameters[$index] ??= $this->container->get($id);
+                }
+            }
+        } catch (Throwable $prev) {
+            throw new ResolverException('Invalid attribute #[Inject]', previous: $prev);
+        }
+
+        return $providedParameters;
     }
 
     public function resolve(string|array|object $callable, array $providedParameters = []): mixed
@@ -66,6 +93,8 @@ class ParameterResolver
                 [$class, $method] = $callable;
                 $className = is_object($class) ? get_class($class) : $class;
                 $reflector = new ReflectionMethod($class, $method);
+
+                $providedParameters = $this->parseAttributes($reflector, $providedParameters);
             }
 
             if ( ! isset($reflector)) {
@@ -79,7 +108,7 @@ class ParameterResolver
         /** @var ReflectionParameter[] $reflParams */
         $reflParams = $reflector->getParameters();
 
-        $names = map(fn($p) => $p->getName(), $reflParams);
+        $names = array_map(fn($p) => $p->getName(), $reflParams);
 
         foreach (array_keys($providedParameters) as $name) {
             if (is_string($name)) {
@@ -96,22 +125,7 @@ class ParameterResolver
 
             $name = $names[$index];
 
-            foreach ($reflParam->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-                /** @var Inject $inject */
-                try {
-                    $inject = $attribute->newInstance();
-                    if ( ! empty($inject->name)) {
-                        $provided[$name] = $this->container->get($inject->name);
-                    }
-                } catch (\Throwable) {
-                    throw new ResolverException(
-                                    sprintf(
-                                            'Invalid attribute #[Inject] for Attribute #%s ($%s)',
-                                            $index, $name
-                                    )
-                    );
-                }
-            }
+            $provided = $this->parseAttributes($reflParam, $provided);
 
             $nullable = $reflParam->allowsNull();
 
