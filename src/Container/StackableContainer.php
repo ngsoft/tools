@@ -14,12 +14,12 @@ use Psr\Container\{
 use Stringable;
 use function get_debug_type;
 
-class StackableContainer implements ContainerInterface, Stringable
+final class StackableContainer implements ContainerInterface, Stringable
 {
 
     use StringableObject;
 
-    protected ContainerInterface $container;
+    protected ?ContainerInterface $container = null;
     protected ?self $next = null;
 
     public function __construct(
