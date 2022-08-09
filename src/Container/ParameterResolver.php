@@ -38,11 +38,9 @@ class ParameterResolver
             'array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed',
             'void', 'never', 'null', 'false',
         ];
-        $success = false;
 
         $class = $method = null;
         $className = null;
-        $isClosure = false;
 
         try {
 
@@ -54,10 +52,9 @@ class ParameterResolver
                 if ( ! ($reflector = $reflector->getConstructor())) {
                     return new $class();
                 }
-            } elseif ($isClosure = $callable instanceof Closure) {
+            } elseif ($callable instanceof Closure) {
                 $reflector = new \ReflectionFunction($callable);
             } elseif (is_object($callable)) {
-                $class = $callable;
                 $callable = [$callable, '__invoke'];
             }
 
@@ -130,10 +127,6 @@ class ParameterResolver
                 continue;
             }
 
-
-
-            $types[$name] = [];
-
             if ($type = $reflParam->getType()) {
                 if ($type instanceof ReflectionIntersectionType) {
                     throw new ResolverException(
@@ -180,23 +173,23 @@ class ParameterResolver
                             sprintf(
                                     'Cannot resolve %s%s() parameter #%d %s $%s',
                                     $className ? "$className::" : '',
-                                    $method ? $method : ($class ? '__construct' : Closure),
+                                    $method ? $method : ($class ? '__construct' : Closure::class),
                                     $index, $type ?? 'mixed', $name
                             )
             );
         }
 
 
-        if ($isClosure) {
+        if ($reflector instanceof \ReflectionFunction) {
             return $reflector->invokeArgs($params);
         }
 
         if ( ! isset($method)) {
-            return new $class(...$params);
+            return (new \ReflectionClass($class))->newInstanceArgs($params);
         }
 
         if ( ! is_object($class)) {
-            $class = $this->container->get($class);
+            $class = $this->container->get($className);
         }
 
         return $reflector->invokeArgs($class, $params);

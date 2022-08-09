@@ -42,15 +42,11 @@ class Container implements ContainerInterface
             iterable $definitions = []
     )
     {
-
         $this->parameterResolver = new ParameterResolver($this);
-
         $this->set(__CLASS__, $this);
         // if extended
         $this->set(static::class, $this);
-
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
-
         $this->setMany($definitions);
     }
 
@@ -65,8 +61,6 @@ class Container implements ContainerInterface
                                     $id
             ));
         }
-
-
         $this->aliases += array_fill_keys($alias, $id);
     }
 
@@ -91,8 +85,6 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-
-
         try {
             $this->loadService($id);
             return $this->resolved[$this->getAlias($id)] ??= $this->resolve($id);
@@ -224,8 +216,6 @@ class Container implements ContainerInterface
 
             unset($resolving[$abstract]);
         }
-
-
 
         if (is_null($resolved)) {
             throw new ResolverException(
