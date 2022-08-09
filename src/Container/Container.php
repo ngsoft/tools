@@ -7,7 +7,7 @@ namespace NGSOFT\Container;
 use Closure;
 use NGSOFT\{
     Container\Exceptions\CircularDependencyException, Container\Exceptions\ContainerError, Container\Exceptions\NotFound, Container\Exceptions\ResolverException,
-    Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\ContainerResolver, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Throwable;
@@ -37,12 +37,14 @@ class Container implements ContainerInterface
     /** @var mixed[] */
     protected array $resolved = [];
     protected ParameterResolver $parameterResolver;
+    protected PrioritySet $containerResolvers;
 
     public function __construct(
             iterable $definitions = []
     )
     {
         $this->parameterResolver = new ParameterResolver($this);
+        $this->containerResolvers = PrioritySet::create();
         $this->set(__CLASS__, $this);
         // if extended
         $this->set(static::class, $this);
@@ -150,6 +152,20 @@ class Container implements ContainerInterface
         }
     }
 
+    /**
+     * Add an handler to manage entry resolution
+     *
+     * @param ContainerResolver $resolver
+     * @param int|null $priority
+     */
+    public function addContainerResolver(ContainerResolver $resolver, ?int $priority = null)
+    {
+        if ( ! $priority) {
+            $priority = $resolver->getDefaultPriority();
+        }
+        $this->containerResolvers->add($resolver, $priority);
+    }
+
     protected function loadService(string $id): void
     {
 
@@ -224,6 +240,11 @@ class Container implements ContainerInterface
                                     $id
                             )
             );
+        }
+
+        /** @var ContainerResolver $resolver */
+        foreach ($this->containerResolvers as $resolver) {
+            $resolved = $resolver->resolve($resolved);
         }
 
         return $resolved;
