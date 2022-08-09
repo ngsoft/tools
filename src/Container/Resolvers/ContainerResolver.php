@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
+use NGSOFT\Container\ContainerInterface;
+
 abstract class ContainerResolver
 {
 
@@ -25,4 +27,12 @@ abstract class ContainerResolver
      * Resolves an entry from the container
      */
     abstract public function resolve(mixed $value): mixed;
+
+    public function __construct(
+            protected ContainerInterface $container
+    )
+    {
+
+    }
+
 }
