@@ -203,7 +203,7 @@ class Container implements ContainerInterface
         if (isset($resolving[$abstract])) {
             throw new CircularDependencyException(
                             sprintf(
-                                    'Container is already resolving [%s], cannot resolve it twice in the same loop.',
+                                    'Container is already resolving [%s].',
                                     $id
                             )
             );

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure,
-    NGSOFT\Container\Exceptions\ResolverException,
+use Closure;
+use NGSOFT\Container\Exceptions\{
+    CircularDependencyException, ResolverException
+};
+use Psr\Container\ContainerExceptionInterface,
     ReflectionClass,
     ReflectionException,
     ReflectionFunction,
@@ -60,7 +63,7 @@ class ParameterResolver
             }
 
             /** @var ReflectionMethod|ReflectionFunction $reflector */
-            $names = $types = $defaults = $params = [];
+            $names = $types = $defaults = $params = $nullable = [];
             $variadic = null;
             $index = 0;
             /** @var ReflectionParameter $reflectParam */
@@ -76,16 +79,13 @@ class ParameterResolver
 
                     $type = (string) $reflectParam->getType();
 
-                    if ($type[0] === '?') {
-                        $type = substr($type, 1) . '|null';
-                    }
-
                     $types[$name] = preg_split('#[\|]+#', $type);
                 }
 
                 if ($reflectParam->isDefaultValueAvailable()) {
                     $defaults[$name] = $reflectParam->getDefaultValue();
                 } elseif ($reflectParam->allowsNull()) {
+                    $nullable[$name] = true;
                     $defaults[$name] = null;
                 }
 
@@ -140,11 +140,24 @@ class ParameterResolver
                 }
 
                 // here we try to get value from container
-                foreach ($types[$name] as $type) {
+                $tcount = count($types[$name]);
+                foreach ($types[$name] as $index => $type) {
+
+                    if ($type[0] === '?') {
+                        $nullable[$name] = true;
+
+                        $type = substr($type, 1);
+                    }
+
+                    var_dump($type);
 
                     if ($type === 'self' && $class) {
                         $type = is_string($class) ? $class : get_class($class);
                     } elseif (in_array($type, $builtin)) {
+                        continue;
+                    }
+
+                    if ( ! $this->canResolve($type, null)) {
                         continue;
                     }
 
@@ -153,8 +166,10 @@ class ParameterResolver
                         $value = $this->container->get($type);
                         $params[] = $value;
                         continue 2;
-                    } catch (ContainerExceptionInterface) {
-
+                    } catch (ContainerExceptionInterface $err) {
+                        if (($tcount === $index + 1) && ! isset($nullable[$name]) && $err instanceof CircularDependencyException) {
+                            throw $err;
+                        }
                     }
                 }
 
@@ -171,7 +186,7 @@ class ParameterResolver
                 }
 
 
-                throw new ResolverException('Cannot resolve parameter #' . $index . ': ' . $name);
+                throw new ResolverException('Cannot resolve parameter #' . $index . ': $' . $name);
             }
 
             if (isset($class)) {
