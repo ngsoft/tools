@@ -89,8 +89,6 @@ class ParameterResolver
             }
 
 
-            var_dump($names, $types, $defaults);
-
             foreach (array_keys($providedParameters) as $name) {
                 if (is_string($name) && ! in_array($name, $names)) {
                     throw new ResolverException('Invalid parameter name: ' . $nameorindex);
@@ -136,7 +134,9 @@ class ParameterResolver
                 // here we try to get value from container
                 foreach ($types[$name] as $type) {
 
-                    if (in_array($type, $builtin)) {
+                    if ($type === 'self' && $class) {
+                        $type = is_string($class) ? $class : get_class($class);
+                    } elseif (in_array($type, $builtin)) {
                         continue;
                     }
 
@@ -163,7 +163,7 @@ class ParameterResolver
                 }
 
 
-                throw new ResolverException('Cannot resolve parameter: ' . $name);
+                throw new ResolverException('Cannot resolve parameter #' . $index . ': ' . $name);
             }
 
             if (isset($class)) {

@@ -37,7 +37,6 @@ class Container implements ContainerInterface
     /** @var mixed[] */
     protected array $resolved = [];
     protected ParameterResolver $parameterResolver;
-    protected bool $locked = false;
 
     public function __construct(
             iterable $definitions = []
@@ -114,26 +113,7 @@ class Container implements ContainerInterface
     {
 
         try {
-
-            // Class@method()
-            // Class::method()
-            if (is_string($callable)) {
-                $cm = preg_split('#[:@]+#', $callable);
-                switch (count($cm)) {
-                    case 2:
-                        $callable = $cm;
-                        break;
-                    case 1:
-                        $callable = $cm[0];
-                        break;
-                    default :
-                        throw new ContainerError('Invalid Callable: ' . $callable);
-                }
-            }
-
-
-            $result = $this->parameterResolver->resolve($callable, $parameters);
-            return $result;
+            return $this->resolveCall($callable, $parameters);
         } catch (Throwable $prev) {
             throw new ContainerError('Cannot call callable: ' . ! is_string($callable) ? var_export($callable, true) : $callable, previous: $prev);
         }
@@ -191,10 +171,30 @@ class Container implements ContainerInterface
         }
     }
 
+    protected function resolveCall(Closure|array|string $callable, array $providedParams): mixed
+    {
+        // Class@method(), Class::method()
+        if (is_string($callable)) {
+            $cm = preg_split('#[:@]+#', $callable);
+            switch (count($cm)) {
+                case 2:
+                    $callable = $cm;
+                    break;
+                case 1:
+                    $callable = $cm[0];
+                    break;
+                default :
+                    throw new ContainerError('Invalid Callable: ' . $callable);
+            }
+        }
+
+        return $this->parameterResolver->resolve($callable, $providedParams);
+    }
+
     protected function resolve(string $id, array $providedParams = []): mixed
     {
 
-        static $resolving = [];
+        $resolving = &$this->resolving;
 
         $abstract = $this->getAlias($id);
 
