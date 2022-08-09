@@ -26,7 +26,7 @@ class Container implements ContainerInterface
     protected array $services = [];
 
     /** @var bool[] */
-    protected array $registered = [];
+    protected array $loadedServices = [];
 
     /** @var Closure[] */
     protected array $definitions = [];
@@ -150,65 +150,31 @@ class Container implements ContainerInterface
         }
     }
 
-    /**
-     * Add a resolution handler
-     */
-    public function addResolutionHandler(ContainerResolver|Closure $handler, int $priority = ContainerResolver::PRIORITY_MEDIUM): static
-    {
-
-        static $closures = [];
-
-        $instanceId = spl_object_id($this);
-
-        $closures[$instanceId] ??= [];
-
-        if (in_array($handler, $closures[$instanceId], true) || $this->resolvers->has($handler)) {
-            throw ResolverException::notTwice($handler);
-        }
-
-        if ($handler instanceof Closure) {
-            $closures[$instanceId] [] = $handler;
-            $handler = new ProvidedClosureResolver($handler, $priority);
-        }
-
-
-        if ($priority === ContainerResolver::PRIORITY_MEDIUM) {
-            $priority = $handler->getDefaultPriority();
-        }
-
-        $this->resolvers->add($handler, $priority);
-
-        return $this;
-    }
-
     protected function loadService(string $id): void
     {
 
-        if ( ! isset($this->registered[$id])) {
+        if (
+                ! isset($this->loadedServices[$id]) &&
+                $provider = $this->services[$id] ?? null
+        ) {
 
-            if (isset($this->services[$id])) {
-
-                $this->services[$id]->register($this);
-                foreach ($this->services[$id]->provides() as $service) {
-                    $this->registered[$service] = true;
-                }
+            $provider->register($this);
+            foreach ($provider->provides() as $service) {
+                $this->loadedServices[$service] = true;
             }
         }
     }
 
-    protected function resolveCallable(Closure|string|array $callable, array $parameters): mixed
-    {
-
-
-        return null;
-    }
-
     protected function resolve(string $id, array $providedParams = []): mixed
     {
+
+        static $resolving = [];
+
         $this->loadService($id);
+
         $abstract = $this->getAlias($id);
 
-        if (isset($this->resolving[$abstract])) {
+        if (isset($resolving[$abstract])) {
             throw new CircularDependencyException(
                             sprintf(
                                     'Container is already resolving [%s], cannot resolve it twice in the same loop.',
@@ -218,16 +184,17 @@ class Container implements ContainerInterface
         }
 
 
-        $this->resolving[$abstract] = true;
+        $resolving[$abstract] = true;
 
         $resolved = $this->definitions[$abstract] ?? null;
 
-        /** @var ContainerResolver $resolver */
-        foreach ($this->resolvers as $resolver) {
-            $resolved = $resolver->resolve($this, $abstract, $resolved, $providedParams);
+        if ($resolved instanceof \Closure) {
+            $resolved = $this->parameterResolver->resolve($resolved, $providedParams);
+        } elseif (is_instanciable($abstract)) {
+            $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
         }
 
-        unset($this->resolving[$abstract]);
+        unset($resolving[$abstract]);
 
         if (is_null($resolved)) {
             throw new ResolverException(
@@ -243,15 +210,7 @@ class Container implements ContainerInterface
 
     protected function canResolve(string $id): bool
     {
-        if (isset($this->resolving[$id])) {
-            return false;
-        }
-
-        if ($this->parameterResolver->canResolve($id, $this->definitions[$id] ?? null)) {
-            return true;
-        }
-
-        return some(fn($resolver) => $resolver->canResolve($id, $this->definitions[$id] ?? null), $this->resolvers);
+        return $this->parameterResolver->canResolve($id, $this->definitions[$id] ?? null);
     }
 
 }

@@ -24,7 +24,7 @@ class Timer extends Facade
 
         $accessor = static::getFacadeAccessor();
 
-        return new SimpleServiceProvider(self::getFacadeAccessor(),
+        return new SimpleServiceProvider($accessor,
                 static function (ContainerInterface $container) use ($accessor) {
                     $instance = new WatchFactory();
                     $instance->start('global', SCRIPT_START);
