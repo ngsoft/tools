@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace NGSOFT\Facades;
 
 use BadMethodCallException;
-use NGSOFT\Container\{
-    Container, ContainerInterface, NullServiceProvider, ServiceProvider
+use NGSOFT\{
+    Container\Container, Container\NullServiceProvider, Container\ServiceProvider, Facades\Facade\InnerFacade
 };
 use RuntimeException;
-use function class_basename,
-             NGSOFT\Filesystem\require_all_once;
+use function class_basename;
 
 abstract class Facade
 {
@@ -78,80 +77,7 @@ abstract class Facade
          * we extends the facade as it is abstract
          * with that we can Facade::setContainer() without static error
          */
-        return self::$innerFacade ??= new class extends Facade{
-
-                    protected array $resovedInstances = [];
-                    protected ?ContainerInterface $container = null;
-                    private array $providers = [];
-
-                    /**
-                     * Starts the container
-                     */
-                    final public function boot(): void
-                    {
-                        $this->getContainer();
-                    }
-
-                    final public function registerServiceProvider(string $accessor, ServiceProvider $provider): void
-                    {
-                        if ( ! isset($this->providers[$accessor])) {
-                            $this->providers[$accessor] = $provider;
-                            $this->getContainer()->register($provider);
-                        }
-                    }
-
-                    protected function getNewContainer(): ContainerInterface
-                    {
-                        $class = self::DEFAULT_CONTAINER_CLASS;
-                        return $this->registerFacades(new $class());
-                    }
-
-                    final public function getResovedInstance(string $name): mixed
-                    {
-                        return $this->resovedInstances[$name] ?? null;
-                    }
-
-                    final public function setResolvedInstance(string $name, object $instance): void
-                    {
-                        $this->resovedInstances[$name] = $instance;
-                    }
-
-                    final public function getContainer(): ContainerInterface
-                    {
-                        return $this->container = $this->container ?? $this->getNewContainer();
-                    }
-
-                    private function registerFacades(ContainerInterface $container): ContainerInterface
-                    {
-                        if (empty($this->providers)) {
-                            require_all_once(__DIR__);
-                            foreach (implements_class(Facade::class, false) as $class) {
-                                if (str_contains($class, '@anonymous')) {
-                                    continue;
-                                }
-                                $accessor = $class::getFacadeAccessor();
-                                $this->providers[$accessor] = $class::getServiceProvider();
-                            }
-                        }
-
-                        foreach ($this->providers as $provider) {
-
-                            $container->register($provider);
-                        }
-
-                        return $container;
-                    }
-
-                    final public function setContainer(ContainerInterface $container): void
-                    {
-                        $this->container = $this->registerFacades($container);
-                    }
-
-                    protected static function getFacadeAccessor(): string
-                    {
-                        return 'Facade';
-                    }
-                };
+        return self::$innerFacade ??= new InnerFacade();
     }
 
     /**

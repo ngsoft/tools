@@ -28,4 +28,9 @@ class ParameterResolver
 
     }
 
+    public function resolveClassName(string|object $class)
+    {
+
+    }
+
 }
