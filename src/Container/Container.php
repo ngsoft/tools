@@ -118,7 +118,7 @@ class Container implements ContainerInterface
         try {
             return $this->resolveCall($callable, $parameters);
         } catch (Throwable $prev) {
-            throw new ContainerError('Cannot call callable: ' . ! is_string($callable) ? var_export($callable, true) : $callable, previous: $prev);
+            throw new ContainerError('Cannot call callable: ' . (is_string($callable) ? $callable : var_export($callable, true)), previous: $prev);
         }
     }
 

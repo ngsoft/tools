@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure;
-use NGSOFT\Container\Exceptions\{
-    CircularDependencyException, ResolverException
-};
-use Psr\Container\ContainerExceptionInterface,
+use Closure,
+    NGSOFT\Container\Exceptions\ResolverException,
+    Psr\Container\ContainerExceptionInterface,
     ReflectionClass,
     ReflectionException,
     ReflectionFunction,
@@ -32,7 +30,11 @@ class ParameterResolver
         return is_instanciable($id) || $value !== null;
     }
 
-    public function resolve(string|array|Closure $callable, array $providedParameters = []): mixed
+    /**
+     *
+     * @phan-suppress PhanTypeMismatchArgumentInternalReal,PhanParamTooFewInternal
+     */
+    public function resolve(string|array|Closure $callable, array $providedParameters = [], bool &$success = null): mixed
     {
 
         static $builtin = [
@@ -41,8 +43,11 @@ class ParameterResolver
             'void', 'never', 'null', 'false',
         ];
 
+        $success = false;
+
         try {
-            $reflector = $class = $method = $resolved = null;
+
+            $class = $method = null;
             $isClosure = $callable instanceof \Closure;
             if (is_string($callable)) {
                 $class = $callable;
@@ -59,7 +64,7 @@ class ParameterResolver
                 [$class, $method] = $callable;
                 $reflector = new ReflectionMethod($class, $method);
             } else {
-                throw new ResolverException('Invalid callable ' . var_export($callable));
+                throw new ResolverException('Invalid callable ' . var_export($callable, true));
             }
 
             /** @var ReflectionMethod|ReflectionFunction $reflector */
@@ -76,10 +81,7 @@ class ParameterResolver
                     if ($type instanceof ReflectionIntersectionType && ! isset($providedParameters[$name]) && ! isset($providedParameters[$index])) {
                         throw new ResolverException('Cannot resolve intersection type param: ' . $name);
                     }
-
-                    $type = (string) $reflectParam->getType();
-
-                    $types[$name] = preg_split('#[\|]+#', $type);
+                    $types[$name] = preg_split('#[\|]+#', (string) $reflectParam->getType());
                 }
 
                 if ($reflectParam->isDefaultValueAvailable()) {
@@ -99,7 +101,7 @@ class ParameterResolver
 
             foreach (array_keys($providedParameters) as $name) {
                 if (is_string($name) && ! in_array($name, $names)) {
-                    throw new ResolverException('Invalid parameter name: ' . $nameorindex);
+                    throw new ResolverException('Invalid parameter name: ' . $name);
                 }
             }
 
@@ -140,16 +142,13 @@ class ParameterResolver
                 }
 
                 // here we try to get value from container
-                $tcount = count($types[$name]);
-                foreach ($types[$name] as $index => $type) {
+
+                foreach ($types[$name] as $type) {
 
                     if ($type[0] === '?') {
                         $nullable[$name] = true;
-
                         $type = substr($type, 1);
                     }
-
-                    var_dump($type);
 
                     if ($type === 'self' && $class) {
                         $type = is_string($class) ? $class : get_class($class);
@@ -157,19 +156,14 @@ class ParameterResolver
                         continue;
                     }
 
-                    if ( ! $this->canResolve($type, null)) {
-                        continue;
-                    }
+
 
                     try {
-
                         $value = $this->container->get($type);
                         $params[] = $value;
                         continue 2;
-                    } catch (ContainerExceptionInterface $err) {
-                        if (($tcount === $index + 1) && ! isset($nullable[$name]) && $err instanceof CircularDependencyException) {
-                            throw $err;
-                        }
+                    } catch (ContainerExceptionInterface) {
+
                     }
                 }
 
@@ -185,34 +179,48 @@ class ParameterResolver
                     continue;
                 }
 
+                if (isset($nullable[$name])) {
+                    $params[$index] = null;
+                    continue;
+                }
 
                 throw new ResolverException('Cannot resolve parameter #' . $index . ': $' . $name);
             }
 
+
+
+
             if (isset($class)) {
 
-
+                /** @var ReflectionMethod $reflector */
                 if ( ! isset($method)) {
-                    $resolved = (new ReflectionClass($class))->newInstanceArgs($params);
+                    $success = true;
+                    return (new ReflectionClass($class))->newInstanceArgs($params);
                 } else {
+
                     if ($reflector->isStatic()) {
                         if (is_object($class)) {
                             $class = get_class($class);
                         }
+                        $success = true;
                         return $class::{$method}(...$params);
                     }
 
                     if ( ! is_object($class)) {
                         $class = $this->container->get($class);
                     }
-                    $resolved = $reflector->invokeArgs($class, $params);
+                    $success = true;
+                    return $reflector->invokeArgs($class, $params);
                 }
-            } else { $resolved = $reflector->invokeArgs($params); }
-        } catch (ReflectionException $prev) {
-            throw new ResolverException('Cannot resolve ' . is_string($callable) ? $callable : var_export($callable, true), previous: $prev);
-        }
+            } else {
+                /** @var ReflectionFunction $reflector */
+                $success = true;
 
-        return $resolved;
+                return $reflector->invokeArgs($params);
+            }
+        } catch (ReflectionException $prev) {
+            throw new ResolverException('Cannot resolve ' . (is_string($callable) ? $callable : var_export($callable, true)), previous: $prev);
+        }
     }
 
 }
