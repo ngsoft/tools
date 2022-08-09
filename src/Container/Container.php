@@ -44,7 +44,7 @@ class Container implements ContainerInterface
     )
     {
 
-        $this->parameterResolver = new ParameterResolver();
+        $this->parameterResolver = new ParameterResolver($this);
 
         $this->set(static::class, $this);
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
@@ -185,6 +185,7 @@ class Container implements ContainerInterface
     {
 
         if ( ! isset($this->registered[$id])) {
+
             if (isset($this->services[$id])) {
 
                 $this->services[$id]->register($this);
