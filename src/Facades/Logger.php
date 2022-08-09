@@ -25,6 +25,7 @@ class Logger extends Facade
         return new SimpleServiceProvider([self::getFacadeAccessor(), LoggerInterface::class],
                 function (ContainerInterface $container) {
 
+                    var_dump($container->has(LoggerInterface::class));
                     if ( ! $container->has(LoggerInterface::class)) {
                         $container->set(LoggerInterface::class, new NullLogger);
                     }

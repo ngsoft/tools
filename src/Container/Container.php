@@ -86,6 +86,7 @@ class Container implements ContainerInterface
     public function has(string $id): bool
     {
         $abstract = $this->getAlias($id);
+
         return
                 array_key_exists($abstract, $this->resolved) ||
                 array_key_exists($abstract, $this->services) ||
