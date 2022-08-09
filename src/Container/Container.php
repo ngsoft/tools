@@ -113,14 +113,8 @@ class Container implements ContainerInterface
     public function call(Closure|array|string $callable, array $parameters = []): mixed
     {
 
-
-
-
         try {
-
-
             if (is_string($callable)) {
-
                 $cm = preg_split('#[:@]+#', $callable);
                 switch (count($cm)) {
                     case 2:
