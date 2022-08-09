@@ -73,7 +73,14 @@ class ParameterResolver
                     if ($type instanceof ReflectionIntersectionType && ! isset($providedParameters[$name]) && ! isset($providedParameters[$index])) {
                         throw new ResolverException('Cannot resolve intersection type param: ' . $name);
                     }
-                    $types[$name] = preg_split('#[\|]+#', (string) $reflectParam->getType());
+
+                    $type = (string) $reflectParam->getType();
+
+                    if ($type[0] === '?') {
+                        $type = substr($type, 1) . '|null';
+                    }
+
+                    $types[$name] = preg_split('#[\|]+#', $type);
                 }
 
                 if ($reflectParam->isDefaultValueAvailable()) {
@@ -87,6 +94,7 @@ class ParameterResolver
                 }
                 $index ++;
             }
+
 
 
             foreach (array_keys($providedParameters) as $name) {
