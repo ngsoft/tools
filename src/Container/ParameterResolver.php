@@ -41,12 +41,13 @@ class ParameterResolver
         $success = false;
 
         $class = $method = null;
+        $className = null;
         $isClosure = false;
 
         try {
 
             if (is_string($callable)) {
-                $reflector = new ReflectionClass($class = $callable);
+                $reflector = new ReflectionClass($className = $class = $callable);
                 if ( ! $reflector->isInstantiable()) {
                     throw new ReflectionException();
                 }
@@ -56,11 +57,13 @@ class ParameterResolver
             } elseif ($isClosure = $callable instanceof Closure) {
                 $reflector = new \ReflectionFunction($callable);
             } elseif (is_object($callable)) {
+                $class = $callable;
                 $callable = [$callable, '__invoke'];
             }
 
             if (is_array($callable) && count($callable) === 2) {
                 [$class, $method] = $callable;
+                $className = is_object($class) ? get_class($class) : $class;
                 $reflector = new ReflectionMethod($class, $method);
             }
 
@@ -175,8 +178,10 @@ class ParameterResolver
 
             throw new ResolverException(
                             sprintf(
-                                    'Cannot resolve %s parameter %s %d#%s',
-                                    var_export($callable, true), $type ?? 'mixed', $index, $name
+                                    'Cannot resolve %s%s() parameter #%d %s $%s',
+                                    $className ? "$className::" : '',
+                                    $method ? $method : ($class ? '__construct' : Closure),
+                                    $index, $type ?? 'mixed', $name
                             )
             );
         }

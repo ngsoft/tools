@@ -18,7 +18,7 @@ interface ContainerInterface extends PsrContainerInterface
     /**
      * Call the given function using the given parameters.
      */
-    public function call(Closure|array|string $callable, array $parameters = []): mixed;
+    public function call(object|array|string $callable, array $parameters = []): mixed;
 
     /**
      * Add a definition to the container

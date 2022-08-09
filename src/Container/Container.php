@@ -112,7 +112,7 @@ class Container implements ContainerInterface
     }
 
     /** {@inheritdoc} */
-    public function call(Closure|array|string $callable, array $parameters = []): mixed
+    public function call(object|array|string $callable, array $parameters = []): mixed
     {
 
         try {
@@ -173,7 +173,7 @@ class Container implements ContainerInterface
         }
     }
 
-    protected function resolveCall(Closure|array|string $callable, array $providedParams): mixed
+    protected function resolveCall(object|array|string $callable, array $providedParams): mixed
     {
         // Class@method(), Class::method()
         if (is_string($callable)) {
