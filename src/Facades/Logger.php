@@ -22,8 +22,7 @@ class Logger extends Facade
     protected static function getServiceProvider(): ServiceProvider
     {
 
-
-        return new SimpleServiceProvider(self::getFacadeAccessor(),
+        return new SimpleServiceProvider([self::getFacadeAccessor(), LoggerInterface::class],
                 function (ContainerInterface $container) {
 
                     if ( ! $container->has(LoggerInterface::class)) {

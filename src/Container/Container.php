@@ -7,7 +7,7 @@ namespace NGSOFT\Container;
 use Closure;
 use NGSOFT\{
     Container\Exceptions\CircularDependencyException, Container\Exceptions\ContainerError, Container\Exceptions\NotFound, Container\Exceptions\ResolverException,
-    Container\Resolvers\ContainerResolver, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\ContainerResolver, Container\Resolvers\InjectProperties, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Throwable;
@@ -15,6 +15,10 @@ use function is_instanciable;
 
 class Container implements ContainerInterface
 {
+
+    protected const RESOLVERS = [
+        InjectProperties::class
+    ];
 
     use StringableObject,
         Unserializable;
@@ -45,6 +49,10 @@ class Container implements ContainerInterface
     {
         $this->parameterResolver = new ParameterResolver($this);
         $this->containerResolvers = PrioritySet::create();
+        foreach (self::RESOLVERS as $resolver) {
+            $this->addContainerResolver(new $resolver($this));
+        }
+
         $this->set(__CLASS__, $this);
         // if extended
         $this->set(static::class, $this);

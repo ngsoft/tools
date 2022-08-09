@@ -16,7 +16,7 @@ final class Inject
     public array $parameters = [];
 
     public function __construct(
-            string|array $name
+            string|array $name = ''
     )
     {
 

@@ -73,6 +73,8 @@ class InjectProperties extends ContainerResolver
 
                                 $dep = preg_replace('#^\?#', '', $dep);
 
+                                var_dump($dep);
+
                                 if ($dep === 'self') {
                                     $dep = $reflProp->getDeclaringClass()->getName();
                                 } elseif (in_array($dep, $builtin)) {
