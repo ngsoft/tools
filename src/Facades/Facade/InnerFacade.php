@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace NGSOFT\Facades\Facade;
 
 use NGSOFT\{
-    Container\ContainerInterface, Container\ServiceProvider, Facades\Facade
+    Container\ContainerInterface, Container\ServiceProvider
 };
 use function implements_class,
              NGSOFT\Filesystem\require_all_once,
              str_contains;
 
-final class InnerFacade extends Facade
+final class InnerFacade extends \NGSOFT\Facades\Facade
 {
 
     protected array $resovedInstances = [];
@@ -63,8 +63,10 @@ final class InnerFacade extends Facade
     private function registerFacades(ContainerInterface $container): ContainerInterface
     {
         if (empty($this->providers)) {
-            require_all_once(__DIR__);
-            foreach (implements_class(Facade::class, false) as $class) {
+            var_dump(require_all_once(dirname(__DIR__)));
+            foreach (implements_class(\NGSOFT\Facades\Facade::class, false) as $class) {
+
+
                 if ($class === __CLASS__) {
                     continue;
                 }
@@ -74,8 +76,8 @@ final class InnerFacade extends Facade
             }
         }
 
-        foreach ($this->providers as $provider) {
 
+        foreach ($this->providers as $provider) {
             $container->register($provider);
         }
 
@@ -85,6 +87,7 @@ final class InnerFacade extends Facade
     final public function setContainer(ContainerInterface $container): void
     {
         $this->container = $this->registerFacades($container);
+        var_dump($this);
     }
 
     protected static function getFacadeAccessor(): string

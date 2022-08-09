@@ -130,6 +130,7 @@ function require_all(string|iterable $files, array $data = [], bool $once = fals
         $files = [$files];
     }
     $result = [];
+
     foreach ($files as $file) {
 
         if ( ! is_string($file)) {

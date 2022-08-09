@@ -579,6 +579,7 @@ final class Tools
                 }
             }
         }
+
         return $result[$instanciable];
     }
 
