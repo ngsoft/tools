@@ -15,6 +15,9 @@ use Psr\Container\ContainerExceptionInterface,
     ReflectionProperty,
     Traversable;
 
+/**
+ * Scans for #[Inject] attribute on the loaded class properties
+ */
 class InjectProperties extends ContainerResolver
 {
 
@@ -72,8 +75,6 @@ class InjectProperties extends ContainerResolver
 
                                 $dep = preg_replace('#^\?#', '', $dep);
 
-                                var_dump($dep);
-
                                 if ($dep === 'self') {
                                     $dep = $reflProp->getDeclaringClass()->getName();
                                 } elseif (in_array($dep, $builtin)) {
@@ -108,6 +109,7 @@ class InjectProperties extends ContainerResolver
 
     public function getDefaultPriority(): int
     {
+        // loads first
         return 1024;
     }
 
