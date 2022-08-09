@@ -22,11 +22,9 @@ final class InnerFacade extends Facade
      */
     final public function boot(array $definitions = []): void
     {
-        static $booted = false;
-        if ( ! $booted) {
-            $container = $this->getContainer();
-            $container->setMany($definitions);
-            $booted = true;
+
+        if ( ! $this->container) {
+            $this->getContainer()->setMany($definitions);
         }
     }
 
@@ -86,7 +84,6 @@ final class InnerFacade extends Facade
     final public function setContainer(ContainerInterface $container): void
     {
         $this->container = $this->registerFacades($container);
-        var_dump($this);
     }
 
     protected static function getFacadeAccessor(): string
