@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure,
-    NGSOFT\Container\Exceptions\ResolverException,
-    Psr\Container\ContainerExceptionInterface,
+use Closure;
+use NGSOFT\Container\{
+    Attribute\Inject, Exceptions\ResolverException
+};
+use Psr\Container\ContainerExceptionInterface,
     ReflectionClass,
     ReflectionException,
     ReflectionFunction,
     ReflectionIntersectionType,
     ReflectionMethod,
-    ReflectionParameter;
+    ReflectionParameter,
+    ReflectionAttribute;
 use function is_instanciable,
              NGSOFT\Tools\map,
              str_starts_with;
@@ -92,6 +95,23 @@ class ParameterResolver
         foreach ($reflParams as $index => $reflParam) {
 
             $name = $names[$index];
+
+            foreach ($reflParam->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                /** @var Inject $inject */
+                try {
+                    $inject = $attribute->newInstance();
+                    if ( ! empty($inject->name)) {
+                        $provided[$name] = $this->container->get($inject->name);
+                    }
+                } catch (\Throwable) {
+                    throw new ResolverException(
+                                    sprintf(
+                                            'Invalid attribute #[Inject] for Attribute #%s ($%s)',
+                                            $index, $name
+                                    )
+                    );
+                }
+            }
 
             $nullable = $reflParam->allowsNull();
 
