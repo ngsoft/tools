@@ -8,6 +8,9 @@ use Psr\Log\{
     LoggerAwareInterface, LoggerInterface
 };
 
+/**
+ * Injects Logger
+ */
 class LoggerAwareResolver extends ContainerResolver
 {
 
