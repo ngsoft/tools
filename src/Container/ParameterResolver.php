@@ -55,17 +55,19 @@ class ParameterResolver
             } elseif (count($callable) === 2) {
                 [$class, $method] = $callable;
                 $reflector = new ReflectionMethod($class, $method);
+            } else {
+                throw new ResolverException('Invalid callable ' . var_export($callable));
             }
 
             /** @var ReflectionMethod|ReflectionFunction $reflector */
-            $names = $types = $defaults = $params = $nullable = [];
+            $names = $types = $defaults = $params = [];
             $variadic = null;
             $index = 0;
             /** @var ReflectionParameter $reflectParam */
             foreach ($reflector->getParameters() as $reflectParam) {
                 $names[$index] = $name = $reflectParam->getName();
 
-                $types[$name] = ['null'];
+                $types[$name] = [];
 
                 if ($type = $reflectParam->getType()) {
                     if ($type instanceof ReflectionIntersectionType && ! isset($providedParameters[$name]) && ! isset($providedParameters[$index])) {
@@ -76,10 +78,8 @@ class ParameterResolver
 
                 if ($reflectParam->isDefaultValueAvailable()) {
                     $defaults[$name] = $reflectParam->getDefaultValue();
-                }
-
-                if ($reflectParam->allowsNull()) {
-                    $nullable[$name] = $name;
+                } elseif ($reflectParam->allowsNull()) {
+                    $defaults[$name] = null;
                 }
 
                 if ($reflectParam->isVariadic()) {
@@ -88,6 +88,8 @@ class ParameterResolver
                 $index ++;
             }
 
+
+            var_dump($names, $types, $defaults);
 
             foreach (array_keys($providedParameters) as $name) {
                 if (is_string($name) && ! in_array($name, $names)) {
@@ -100,6 +102,7 @@ class ParameterResolver
             foreach ($names as $index => $name) {
 
                 if ($name === $variadic) {
+
                     $variadicValue = [];
 
                     if (isset($provided[$name])) {
@@ -125,13 +128,12 @@ class ParameterResolver
                     unset($provided[$name]);
                     continue;
                 } elseif (array_key_exists($index, $provided)) {
-
                     $params[$index] = $provided[$index];
                     unset($provided[$index]);
                     continue;
                 }
-                // here we try to get value from container
 
+                // here we try to get value from container
                 foreach ($types[$name] as $type) {
 
                     if (in_array($type, $builtin)) {
@@ -148,16 +150,18 @@ class ParameterResolver
                     }
                 }
 
+
+                // definition using container without type
+                if ($index === 0 && empty($types[$name]) && $isClosure && count($names) === 1) {
+                    $params[] = $this->container;
+                    continue;
+                }
+
                 if (array_key_exists($name, $defaults)) {
                     $params[$index] = $defaults[$name];
                     continue;
                 }
 
-
-                if (isset($nullable[$name])) {
-                    $params[$index] = null;
-                    continue;
-                }
 
                 throw new ResolverException('Cannot resolve parameter: ' . $name);
             }
@@ -181,8 +185,8 @@ class ParameterResolver
                     $resolved = $reflector->invokeArgs($class, $params);
                 }
             } else { $resolved = $reflector->invokeArgs($params); }
-        } catch (ReflectionException) {
-            $resolved = null;
+        } catch (ReflectionException $prev) {
+            throw new ResolverException('Cannot resolve ' . is_string($callable) ? $callable : var_export($callable, true), previous: $prev);
         }
 
         return $resolved;

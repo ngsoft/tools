@@ -114,6 +114,9 @@ class Container implements ContainerInterface
     {
 
         try {
+
+            // Class@method()
+            // Class::method()
             if (is_string($callable)) {
                 $cm = preg_split('#[:@]+#', $callable);
                 switch (count($cm)) {
@@ -129,7 +132,8 @@ class Container implements ContainerInterface
             }
 
 
-            return $this->parameterResolver->resolve($callable, $parameters);
+            $result = $this->parameterResolver->resolve($callable, $parameters);
+            return $result;
         } catch (Throwable $prev) {
             throw new ContainerError('Cannot call callable: ' . ! is_string($callable) ? var_export($callable, true) : $callable, previous: $prev);
         }
