@@ -36,9 +36,6 @@ class Container implements ContainerInterface
 
     /** @var mixed[] */
     protected array $resolved = [];
-
-    /** @var PrioritySet<ContainerResolver> */
-    protected PrioritySet $resolvers;
     protected ParameterResolver $parameterResolver;
     protected bool $locked = false;
 
@@ -48,7 +45,6 @@ class Container implements ContainerInterface
     {
 
         $this->parameterResolver = new ParameterResolver();
-        $this->resolvers = new PrioritySet();
 
         $this->set(static::class, $this);
         $this->alias([PsrContainerInterface::class, ContainerInterface::class, 'Container'], static::class);
@@ -141,6 +137,8 @@ class Container implements ContainerInterface
             unset($this->resolved[$abstract]);
             return;
         }
+
+
         $this->resolved[$abstract] = $value;
     }
 

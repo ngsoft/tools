@@ -21,9 +21,14 @@ final class InnerFacade extends Facade
     /**
      * Starts the container
      */
-    final public function boot(): void
+    final public function boot(array $definitions = []): void
     {
-        $this->getContainer();
+        static $booted = false;
+        if ( ! $booted) {
+            $container = $this->getContainer();
+            $container->setMany($definitions);
+            $booted = true;
+        }
     }
 
     final public function registerServiceProvider(string $accessor, ServiceProvider $provider): void
@@ -60,7 +65,11 @@ final class InnerFacade extends Facade
         if (empty($this->providers)) {
             require_all_once(__DIR__);
             foreach (implements_class(Facade::class, false) as $class) {
+                if ($class === __CLASS__) {
+                    continue;
+                }
                 $accessor = $class::getFacadeAccessor();
+
                 $this->providers[$accessor] = $class::getServiceProvider();
             }
         }
