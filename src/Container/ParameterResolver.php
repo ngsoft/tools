@@ -218,6 +218,13 @@ class ParameterResolver
             }
 
 
+            // legacy support for Closure without type on first parameter (injects Container)
+            if ($reflector instanceof ReflectionFunction && $index === 0 && ! $type) {
+                $params[$index] = $this->container;
+                continue;
+            }
+
+
             if ($nullable) {
                 $params[$index] = null;
                 continue;
