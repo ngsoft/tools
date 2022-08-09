@@ -70,7 +70,6 @@ class InjectProperties extends ContainerResolver
                         if ( ! empty($inject->name)) {
                             foreach (explode('|', $inject->name) as $dep) {
 
-
                                 $dep = preg_replace('#^\?#', '', $dep);
 
                                 var_dump($dep);
@@ -95,8 +94,8 @@ class InjectProperties extends ContainerResolver
 
                         throw new ResolverException(
                                         sprintf(
-                                                'Cannot use #[Inject] on %s::$%s, invalid type',
-                                                get_class($value), $name
+                                                'Cannot use %s on %s::$%s',
+                                                $inject, get_class($value), $name
                                         )
                         );
                     }

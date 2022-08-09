@@ -89,7 +89,7 @@ class Container implements ContainerInterface
 
         return
                 array_key_exists($abstract, $this->resolved) ||
-                array_key_exists($abstract, $this->services) ||
+                array_key_exists($abstract, $this->definitions) ||
                 $this->canResolve($abstract);
     }
 
@@ -134,7 +134,7 @@ class Container implements ContainerInterface
 
         foreach (array_unique($service->provides()) as $id) {
             $this->services[$id] = $service;
-            unset($this->resolved[$id]);
+            unset($this->resolved[$id], $this->loadedServices[$id]);
         }
     }
 
@@ -180,10 +180,11 @@ class Container implements ContainerInterface
                 $provider = $this->services[$id] ?? null
         ) {
 
-            $provider->register($this);
             foreach ($provider->provides() as $service) {
                 $this->loadedServices[$service] = true;
             }
+
+            $provider->register($this);
         }
     }
 

@@ -9,7 +9,7 @@ use Attribute,
 use function get_debug_type;
 
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::TARGET_PARAMETER)]
-final class Inject
+final class Inject implements \Stringable
 {
 
     public string $name = '';
@@ -36,6 +36,24 @@ final class Inject
                 $this->parameters[$index] = $id;
             }
         } else { $this->name = $name; }
+    }
+
+    public function __toString(): string
+    {
+
+        $param = "'{$this->name}'";
+        if (count($this->parameters)) {
+            $param = '[';
+            foreach ($this->parameters as $index => $id) {
+                $param .= sprintf("'%s'=>'%s',", (string) $index, $id);
+            }
+            $param .= ']';
+        }
+
+
+
+
+        return sprintf('#[%s(%s)]', class_basename(static::class), $param);
     }
 
 }

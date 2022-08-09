@@ -43,20 +43,20 @@ class ParameterResolver
             /** @var Inject $inject */
             foreach ($reflector->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
                 $inject = $attribute->newInstance();
-                if ($reflector instanceof ReflectionParameter) {
-                    if ( ! empty($inject->name)) {
-                        $providedParameters[$reflector->getName()] ??= $this->container->get($inject->name);
+                if ($reflector instanceof ReflectionMethod) {
+                    foreach ($inject->parameters as $index => $id) {
+                        $providedParameters[$index] ??= $this->container->get($id);
                     }
 
                     continue;
                 }
 
-                foreach ($inject->parameters as $index => $id) {
-                    $providedParameters[$index] ??= $this->container->get($id);
+                if ( ! empty($inject->name)) {
+                    $providedParameters[$reflector->getName()] ??= $this->container->get($inject->name);
                 }
             }
         } catch (Throwable $prev) {
-            throw new ResolverException('Invalid attribute #[Inject]', previous: $prev);
+            throw new ResolverException(sprintf('Invalid attribute %s', $inject), previous: $prev);
         }
 
         return $providedParameters;
