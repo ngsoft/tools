@@ -85,6 +85,7 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function has(string $id): bool
     {
+        $this->loadService($id);
         $abstract = $this->getAlias($id);
 
         return
