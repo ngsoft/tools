@@ -60,9 +60,6 @@ final class InnerFacade extends Facade
         if (empty($this->providers)) {
             require_all_once(__DIR__);
             foreach (implements_class(Facade::class, false) as $class) {
-                if (str_contains($class, '@anonymous')) {
-                    continue;
-                }
                 $accessor = $class::getFacadeAccessor();
                 $this->providers[$accessor] = $class::getServiceProvider();
             }
