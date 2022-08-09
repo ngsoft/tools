@@ -7,7 +7,8 @@ namespace NGSOFT\Container;
 use Closure;
 use NGSOFT\{
     Container\Exceptions\CircularDependencyException, Container\Exceptions\ContainerError, Container\Exceptions\NotFound, Container\Exceptions\ResolverException,
-    Container\Resolvers\ContainerResolver, Container\Resolvers\InjectProperties, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
+    Container\Resolvers\ContainerResolver, Container\Resolvers\InjectProperties, Container\Resolvers\LoggerAwareResolver, DataStructure\PrioritySet, Traits\StringableObject,
+    Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Throwable;
@@ -17,7 +18,8 @@ class Container implements ContainerInterface
 {
 
     protected const RESOLVERS = [
-        InjectProperties::class
+        InjectProperties::class,
+        LoggerAwareResolver::class
     ];
 
     use StringableObject,
