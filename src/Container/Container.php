@@ -7,11 +7,11 @@ namespace NGSOFT\Container;
 use Closure;
 use NGSOFT\{
     Container\Exceptions\CircularDependencyException, Container\Exceptions\ContainerError, Container\Exceptions\NotFound, Container\Exceptions\ResolverException,
-    Container\Resolvers\ProvidedClosureResolver, DataStructure\PrioritySet, Traits\StringableObject, Traits\Unserializable
+    Traits\StringableObject, Traits\Unserializable
 };
 use Psr\Container\ContainerInterface as PsrContainerInterface,
     Throwable;
-use function NGSOFT\Tools\some;
+use function is_instanciable;
 
 class Container implements ContainerInterface
 {
@@ -89,8 +89,10 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        try {
 
+
+        try {
+            $this->loadService($id);
             return $this->resolved[$this->getAlias($id)] ??= $this->resolve($id);
         } catch (Throwable $prev) {
             throw NotFound::for($id, $prev);
@@ -110,7 +112,33 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function call(Closure|array|string $callable, array $parameters = []): mixed
     {
-        return $this->resolveCallable($callable, $parameters);
+
+
+
+
+        try {
+
+
+            if (is_string($callable)) {
+
+                $cm = preg_split('#[:@]+#', $callable);
+                switch (count($cm)) {
+                    case 2:
+                        $callable = $cm;
+                        break;
+                    case 1:
+                        $callable = $cm[0];
+                        break;
+                    default :
+                        throw new ContainerError('Invalid Callable: ' . $callable);
+                }
+            }
+
+
+            return $this->parameterResolver->resolve($callable, $parameters);
+        } catch (Throwable $prev) {
+            throw new ContainerError('Cannot call callable: ' . ! is_string($callable) ? var_export($callable, true) : $callable, previous: $prev);
+        }
     }
 
     /** {@inheritdoc} */
@@ -169,8 +197,6 @@ class Container implements ContainerInterface
     {
 
         static $resolving = [];
-
-        $this->loadService($id);
 
         $abstract = $this->getAlias($id);
 
