@@ -151,8 +151,8 @@ function require_all(string|iterable $files, array $data = [], bool $once = fals
             continue;
         }
 
-        foreach (list_files_recursive($file, 'php') as $file) {
-            $result[$file] = require_file($file, $data, $once);
+        foreach (list_files_recursive($file, 'php') as $path => $file) {
+            $result[$file] = require_file($path, $data, $once);
         }
     }
 
