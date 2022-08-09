@@ -14,7 +14,8 @@ use Closure,
     ReflectionMethod,
     ReflectionParameter;
 use function is_instanciable,
-             NGSOFT\Tools\map;
+             NGSOFT\Tools\map,
+             str_starts_with;
 
 class ParameterResolver
 {
@@ -67,7 +68,7 @@ class ParameterResolver
             if ( ! isset($reflector)) {
                 throw new ReflectionException();
             }
-        } catch (\ReflectionException) {
+        } catch (ReflectionException) {
             throw ResolverException::invalidCallable($callable);
         }
 
@@ -95,36 +96,46 @@ class ParameterResolver
             $nullable = $reflParam->allowsNull();
 
             if ($reflParam->isVariadic()) {
-                $params[$name] = [];
+
+                if (empty($provided)) {
+                    continue;
+                }
+
 
                 if (array_key_exists($name, $provided)) {
 
                     foreach ((array) $provided[$name] as $value) {
-                        $params[$name][] = $value;
+                        $params[] = $value;
                     }
                     continue;
                 }
 
                 while ($value = array_shift($provided)) {
-                    $params[$name][] = $value;
+                    $params[] = $value;
                 }
                 continue;
             }
 
             if (array_key_exists($name, $provided)) {
-                $params[$name] = $provided[$name];
+                $params[$index] = $provided[$name];
                 unset($provided[$name]);
                 continue;
             }
 
             if (array_key_exists($index, $provided)) {
-                $params[$name] = $provided[$index];
+                $params[$index] = $provided[$index];
                 unset($provided[$index]);
                 continue;
             }
 
-            if ( ! $reflParam->canBePassedByValue() && $reflParam->isDefaultValueAvailable()) {
-                continue;
+            // Values passed by reference not working excepts if ignoring param when param as default value
+            if ( ! $reflParam->canBePassedByValue()) {
+
+                throw new ResolverException(
+                                sprintf('Cannot resolve Argument #%d (&$%s) that can only be passed by reference.',
+                                        $index, $name
+                                )
+                );
             }
 
             if ($type = $reflParam->getType()) {
@@ -136,21 +147,23 @@ class ParameterResolver
                                     )
                     );
                 }
-                foreach (explode('|', (string) $type) as $dep) {
 
+                // a small hack to get union/named type as array
+                foreach (explode('|', (string) $type) as $dep) {
+                    // ?ClassName
                     if (str_starts_with($dep, '?')) {
                         $dep = substr($dep, 1);
                         $nullable = true;
                     }
-
-                    if ($dep === 'self' && $class) {
-                        $dep = is_string($class) ? $class : get_class($class);
+                    // careful there on Circular dependency when instanciating
+                    if ($dep === 'self') {
+                        $dep = $reflParam->getDeclaringClass()->getName();
                     } elseif (in_array($dep, $builtin)) {
                         continue;
                     }
 
                     try {
-                        $params[$name] = $this->container->get($dep);
+                        $params[$index] = $this->container->get($dep);
                         continue 2;
                     } catch (ContainerExceptionInterface) {
 
@@ -161,37 +174,55 @@ class ParameterResolver
 
 
             if ($reflParam->isDefaultValueAvailable()) {
-                continue;
+
+                try {
+                    $params[$index] = $reflParam->getDefaultValue();
+                    continue;
+                } catch (ReflectionException) {
+
+                }
             }
 
+
             if ($nullable) {
-                $params[$name] = null;
+                $params[$index] = null;
                 continue;
             }
 
             throw new ResolverException(
                             sprintf(
-                                    'Cannot resolve %s%s() parameter #%d %s $%s',
+                                    'Cannot resolve %s%s() Argument #%d ($%s) of type %s',
                                     $className ? "$className::" : '',
                                     $method ? $method : ($class ? '__construct' : Closure::class),
-                                    $index, $type ?? 'mixed', $name
+                                    $index, $name, $type ?? 'mixed'
                             )
             );
         }
 
 
-        if ($reflector instanceof \ReflectionFunction) {
+        // Closure(...$params)
+        if ($reflector instanceof ReflectionFunction) {
             return $reflector->invokeArgs($params);
         }
 
+
+
+
+        // new Classname(...$params)
         if ( ! isset($method)) {
-            return (new \ReflectionClass($class))->newInstanceArgs($params);
+            return (new ReflectionClass($class))->newInstanceArgs($params);
         }
 
+        // static method
+        if ($reflector->isStatic()) {
+            return $className::{$method}(...array_values($params));
+        }
+
+        // [Classname, Method]
         if ( ! is_object($class)) {
             $class = $this->container->get($className);
         }
-
+        // $instance->method(...$params)
         return $reflector->invokeArgs($class, $params);
     }
 
