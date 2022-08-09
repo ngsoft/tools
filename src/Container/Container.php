@@ -153,12 +153,9 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Add an handler to manage entry resolution
-     *
-     * @param ContainerResolver $resolver
-     * @param int|null $priority
+     * Adds an handler to manage entry resolution (afyer params have been resolved)
      */
-    public function addContainerResolver(ContainerResolver $resolver, ?int $priority = null)
+    public function addContainerResolver(ContainerResolver $resolver, ?int $priority = null): void
     {
         if ( ! $priority) {
             $priority = $resolver->getDefaultPriority();
