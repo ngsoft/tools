@@ -33,7 +33,6 @@ class StackableContainer implements ContainerInterface, Stringable
             throw new InvalidArgumentException('No container supplied');
         }
 
-
         foreach (array_values($containers) as $index => $container) {
             if ( ! ($container instanceof ContainerInterface)) {
                 throw new InvalidArgumentException(sprintf('Invalid $containers[%d] type: %s expected, %s given', $index, ContainerInterface::class, get_debug_type($container)));
