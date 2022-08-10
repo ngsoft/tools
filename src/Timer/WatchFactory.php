@@ -10,7 +10,7 @@ use Generator,
 class WatchFactory
 {
 
-    protected const DEFAULT_WATCH = 'default';
+    public const DEFAULT_WATCH = 'default';
 
     protected Map $map;
 

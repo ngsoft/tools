@@ -138,9 +138,13 @@ class FacadeUtils
             $params = [];
             /** @var ReflectionParameter $rParam */
             foreach ($rMethod->getParameters() as $rParam) {
+                $type = $rParam->getType() ?? 'mixed';
+
+                $type = preg_replace('#self#', $rParam->getDeclaringClass()->getName(), (string) $type);
+
                 $param = sprintf(
                         '%s %s$%s',
-                        self::getFullyQualifiedClassName($rParam->getType() ?? 'mixed'),
+                        self::getFullyQualifiedClassName($type),
                         $rParam->canBePassedByValue() ? ($rParam->isVariadic() ? '...' : '') : '&', // so passed by reference
                         $rParam->getName()
                 );
@@ -149,7 +153,7 @@ class FacadeUtils
 
 
                     if ($rParam->isDefaultValueConstant()) {
-                        $param .= sprintf(' = %s', self::getFullyQualifiedClassName($rParam->getDefaultValueConstantName()));
+                        $param .= sprintf(' = %s', preg_replace('#self#', self::getFullyQualifiedClassName($rParam->getDeclaringClass()->getName()), $rParam->getDefaultValueConstantName()));
                     } else { $param .= sprintf(' = %s', self::var_exporter($rParam->getDefaultValue())); }
                 }
 
