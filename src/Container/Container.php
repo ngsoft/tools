@@ -262,4 +262,25 @@ class Container implements ContainerInterface
         return $this->parameterResolver->canResolve($id, $this->definitions[$id] ?? null);
     }
 
+    public function __debugInfo()
+    {
+
+        $entries = [];
+
+        foreach (array_keys($this->resolved) as $id) {
+
+            $value = $this->resolved[$id];
+            if (is_object($value)) {
+                $entries[$id] = sprintf('object(%s)#%d', get_class($value), spl_object_id($value));
+                continue;
+            }
+
+            $entries[$id] = get_debug_type($value);
+        }
+
+        $entries['aliases'] = $this->aliases;
+
+        return $entries;
+    }
+
 }
