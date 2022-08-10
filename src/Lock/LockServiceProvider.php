@@ -21,7 +21,6 @@ class LockServiceProvider implements ServiceProvider
 
         $rootpath = '';
         $seconds = 0;
-
         if ($container->has('Config')) {
             $rootpath = $container->get('Config')['lock.rootpath'] ?? $rootpath;
             $seconds = $container->get('Config')['lock.seconds'] ?? $seconds;
