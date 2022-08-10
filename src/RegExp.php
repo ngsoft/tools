@@ -22,8 +22,7 @@ use function get_debug_type,
 /**
  * @property int $lastIndex
  */
-#[HasProperties(lazy: false)]
-class RegExp extends PropertyAble implements Stringable, JsonSerializable
+class RegExp implements Stringable, JsonSerializable
 {
 
     /**
@@ -96,20 +95,12 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable
     public readonly bool $global;
     public readonly bool $ignoreCase;
     public readonly bool $multiline;
+    public int $lastIndex = 0;
 
     /** @var string[] */
     private array $modifiers = [];
-
-    /** @var bool */
     private bool $isGlobal = false;
-
-    /** @var int */
-    private int $index = 0;
-
-    /** @var bool */
     private $tested = false;
-
-    /** @var string */
     private $last = '';
 
     /**
@@ -170,8 +161,6 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable
 
         $this->tested = false;
         $this->assertValidRegex();
-
-        $this->defineProperty('lastIndex', ['get' => [$this, 'getLastIndex'], 'set' => [$this, 'setLastIndex']]);
 
         $this->global = $this->isGlobal;
 
@@ -243,7 +232,7 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable
      */
     public function getLastIndex(): int
     {
-        return $this->index;
+        return $this->lastIndex;
     }
 
     /**
@@ -253,7 +242,7 @@ class RegExp extends PropertyAble implements Stringable, JsonSerializable
      */
     public function setLastIndex(int $index): self
     {
-        $this->index = $index;
+        $this->lastIndex = $index;
         return $this;
     }
 
