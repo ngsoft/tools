@@ -6,11 +6,9 @@ namespace NGSOFT;
 
 use ErrorException,
     InvalidArgumentException,
-    JsonSerializable;
-use NGSOFT\{
-    Attributes\HasProperties, Exceptions\RegExpException, Tools\PropertyAble
-};
-use Stringable,
+    JsonSerializable,
+    NGSOFT\Exceptions\RegExpException,
+    Stringable,
     Traversable,
     TypeError;
 use function get_debug_type,
@@ -410,7 +408,7 @@ class RegExp implements Stringable, JsonSerializable
         $this->setLastIndex(0);
         if ($this->execute('preg_match_all', $arguments, false) > 0) {
 
-            for ($i = 0; $i < count($matches); $i ++ ) yield $i => $matches[$i];
+            for ($i = 0; $i < count($matches); $i ++) yield $i => $matches[$i];
         }
     }
 
