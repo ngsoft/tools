@@ -90,10 +90,7 @@ class Container implements ContainerInterface
         $this->loadService($id);
         $abstract = $this->getAlias($id);
 
-        return
-                array_key_exists($abstract, $this->resolved) ||
-                array_key_exists($abstract, $this->definitions) ||
-                $this->canResolve($abstract);
+        return array_key_exists($abstract, $this->resolved) || array_key_exists($abstract, $this->definitions);
     }
 
     /** {@inheritdoc} */
