@@ -36,6 +36,10 @@ class SimpleServiceProvider implements ServiceProvider
             return;
         }
 
+        if (is_string($entry) && is_instanciable($entry)) {
+            $entry = $container->make($entry);
+        }
+
         $container->setMany(array_fill_keys($this->provides(), $entry));
     }
 
