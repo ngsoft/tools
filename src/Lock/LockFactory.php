@@ -44,6 +44,7 @@ class LockFactory
     }
 
     /**
+     * Create a .lock file inside the dame directory as the provided file
      *
      * @param string|File $file
      * @param int $seconds
