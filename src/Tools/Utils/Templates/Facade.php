@@ -8,12 +8,13 @@ namespace <?= $namespace ?>;
 <?php endif; ?>
 use NGSOFT\Container\{
     ServiceProvider,
-    SimpleServiceProvider,
-    NullServiceProvider
+    <?php if(filled($constructor)): ?>SimpleServiceProvider,
+    <?php else: ?>NullServiceProvider
+    <?php endif; ?>
 };
 
 /**
- * Facade::get('<?= $class ?>')
+ * <?= $class ?> Facade
  */
 class <?= $class ?> extends Facade
 {
