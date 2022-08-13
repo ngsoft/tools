@@ -197,6 +197,10 @@ if ( ! function_exists('preg_exec')) {
                 $limit = count($matches);
             }
 
+            if ($limit === 1) {
+                return $matches[0];
+            }
+
             while (count($matches) > $limit) {
                 array_pop($matches);
             }
