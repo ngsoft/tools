@@ -169,6 +169,7 @@ if ( ! function_exists('preg_test')) {
      */
     function preg_test(string $pattern, string $subject): bool
     {
+        preg_valid($pattern, true);
         return preg_match($pattern, $subject) > 0;
     }
 
@@ -182,19 +183,18 @@ if ( ! function_exists('preg_exec')) {
      * @param string $pattern the regular expression
      * @param string $subject the subject
      * @param int $limit maximum number of results if set to 0, all results are returned
-     * @return array|false
+     * @return array
      */
-    function preg_exec(string $pattern, string $subject, int $limit = 1): array|false
+    function preg_exec(string $pattern, string $subject, int $limit = 1): array
     {
+        preg_valid($pattern, true);
+
         $limit = max(0, $limit);
 
         if (preg_match_all($pattern, $subject, $matches, PREG_SET_ORDER) > 0) {
 
             if ($limit === 0) {
                 $limit = count($matches);
-            }
-            if ($limit === 1) {
-                return $matches[0];
             }
 
             while (count($matches) > $limit) {
@@ -203,7 +203,7 @@ if ( ! function_exists('preg_exec')) {
             return $matches;
         }
 
-        return false;
+        return [];
     }
 
 }
