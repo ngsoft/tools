@@ -68,6 +68,18 @@ function filter(callable $callback, iterable $iterable): array
 }
 
 /**
+ * Searches an iterable until element is found
+ *
+ * @param callable $callback
+ * @param iterable $iterable
+ * @return null|mixed
+ */
+function search_iterable(callable $callback, iterable $iterable): mixed
+{
+    return Tools::search($callback, $iterable);
+}
+
+/**
  * Uses callback for each elements of the array and returns the value
  *
  * @param callable $callback

@@ -186,6 +186,23 @@ final class Tools
     }
 
     /**
+     * Searches an iterable until element is found
+     *
+     * @param callable $callback
+     * @param iterable $iterable
+     * @return null|mixed
+     */
+    public static function search(callable $callback, iterable $iterable): mixed
+    {
+        foreach ($iterable as $key => $value) {
+            if ($callback($value, $key, $iterable)) {
+                return $value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Same as the original except callback accepts more arguments and works with string keys
      * @param callable $callback accepts $value, $key, $array
      * @param iterable $iterable
