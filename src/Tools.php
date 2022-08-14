@@ -505,8 +505,10 @@ final class Tools
 
         $length = max(0, $length);
 
-        if ($length === 0 || mb_strlen($string) >= $length) {
-            $length = mb_strlen($length);
+        $strlen = mb_strlen($string);
+
+        if ($length === 0 || $strlen < $length) {
+            $length = ! $length ? $strlen : $length;
             return [$string];
         }
         $result = [];
