@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace NGSOFT\Traits;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
+use NGSOFT\Container\Attribute\Inject,
+    Psr\EventDispatcher\EventDispatcherInterface;
 
 trait DispatcherAware
 {
 
+    #[Inject]
     protected ?EventDispatcherInterface $eventDispatcher = null;
 
     /**
