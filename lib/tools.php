@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\Tools;
 
 use ArrayAccess,
-    NGSOFT\Tools;
+    NGSOFT\Tools,
+    Stringable;
 use const NAMESPACE_SEPARATOR;
 
 if (defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'MICROSECOND')) {
