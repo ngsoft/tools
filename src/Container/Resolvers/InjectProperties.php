@@ -87,22 +87,15 @@ class InjectProperties extends ContainerResolver
                                     $reflProp->setValue($value, $entry);
                                     continue 2;
                                 } catch (ContainerExceptionInterface) {
-                                    Logger::debug(sprintf(
-                                                    'Cannot inject [%s] in object(%s)#%d::$%s',
-                                                    $dep, get_class($value), spl_object_id($value),
-                                                    $reflProp->getName()
-                                    ));
+
                                 }
                             }
                         }
-
-
-                        throw new ResolverException(
-                                        sprintf(
-                                                'Cannot use %s on %s::$%s',
-                                                $inject, get_class($value), $name
-                                        )
-                        );
+                        Logger::debug(sprintf(
+                                        'Cannot use %s on object(%s)#%d::$%s',
+                                        $inject, get_class($value), spl_object_id($value),
+                                        $name
+                        ));
                     }
                 }
             }
