@@ -49,10 +49,6 @@ final class Inject implements \Stringable
             }
             $param .= ']';
         }
-
-
-
-
         return sprintf('#[%s(%s)]', class_basename(static::class), $param);
     }
 

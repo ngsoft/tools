@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container\Resolvers;
 
-use NGSOFT\Container\{
-    Attribute\Inject, Exceptions\ResolverException
+use NGSOFT\{
+    Container\Attribute\Inject, Container\Exceptions\ResolverException, Facades\Logger
 };
 use Psr\Container\ContainerExceptionInterface,
     ReflectionAttribute,
@@ -87,7 +87,11 @@ class InjectProperties extends ContainerResolver
                                     $reflProp->setValue($value, $entry);
                                     continue 2;
                                 } catch (ContainerExceptionInterface) {
-
+                                    Logger::debug(sprintf(
+                                                    'Cannot inject [%s] in object(%s)#%d::$%s',
+                                                    $dep, get_class($value), spl_object_id($value),
+                                                    $reflProp->getName()
+                                    ));
                                 }
                             }
                         }
