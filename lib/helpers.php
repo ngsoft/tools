@@ -212,6 +212,21 @@ if ( ! function_exists('preg_exec')) {
 
 }
 
+if ( ! function_exists('in_range')) {
+
+    /**
+     * Checks if number is in range
+     */
+    function in_range(int $number, int $min, int $max, bool $inclusive = true)
+    {
+        return
+                $inclusive ?
+                ($number >= $min && $number <= $max) :
+                ($number > $min && $number < $max);
+    }
+
+}
+
 
 if ( ! function_exists('wait')) {
 
