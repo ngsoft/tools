@@ -488,6 +488,23 @@ final class Tools
     }
 
     /**
+     * Get the size of the longest word on a string
+     */
+    public static function getWordSize(string|Stringable $string): int
+    {
+
+        $string = (string) $string;
+        $len = 0;
+        foreach (preg_split('#[\h\v]+#', $message) as $word) {
+            if (($wlen = mb_strlen($word)) > $len) {
+                $len = $wlen;
+            }
+        }
+
+        return $len;
+    }
+
+    /**
      * Split the string at the given length without cutting words
      *
      * @param string|Stringable $string
@@ -515,13 +532,13 @@ final class Tools
         $words = preg_split('#[\h\v]+#', $string);
 
         // get the longer word length
-        $maxLength = max($length, ...array_map(fn($word) => mb_strlen($word), $words));
+        $maxLength = max($length, self::getWordSize($string));
 
         if ($maxLength > $length) {
             $length = $maxLength;
         }
-        $line = '';
 
+        $line = '';
         foreach ($words as $index => $word) {
 
             $lineLength = mb_strlen($line);

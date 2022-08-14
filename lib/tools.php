@@ -81,6 +81,14 @@ function search_iterable(callable $callback, iterable $iterable): mixed
 }
 
 /**
+ * Get the size of the longest word on a string
+ */
+function str_word_size(string|Stringable $string): int
+{
+    return Tools::getWordSize($string);
+}
+
+/**
  * Split the string at the given length without cutting words
  *
  * @param string|Stringable $string
