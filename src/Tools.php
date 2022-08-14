@@ -497,7 +497,7 @@ final class Tools
     public static function splitString(string|Stringable $string, &$length = null): array
     {
 
-        $string = (string) $string;
+        $string = preg_replace('#[\v\h]+#', ' ', (string) $string);
 
         if ( ! is_int($length)) {
             $length = 0;
