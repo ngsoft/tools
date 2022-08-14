@@ -138,7 +138,9 @@ class ParameterResolver
 
                 if (array_key_exists($name, $provided)) {
 
-                    foreach ((array) $provided[$name] as $value) {
+                    $providedParams = is_array($provided[$name]) ? $provided[$name] : [$provided[$name]];
+
+                    foreach ($providedParams as $value) {
                         $params[] = $value;
                     }
                     continue;

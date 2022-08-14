@@ -82,8 +82,12 @@ function search_iterable(callable $callback, iterable $iterable): mixed
 
 /**
  * Split the string at the given length without cutting words
+ *
+ * @param string|Stringable $string
+ * @param int &$length
+ * @return array
  */
-function split_string(string|Stringable $string, int $length = null): array
+function split_string(string|Stringable $string, &$length = null): array
 {
     return Tools::splitString($string, $length);
 }

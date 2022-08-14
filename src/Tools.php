@@ -489,15 +489,24 @@ final class Tools
 
     /**
      * Split the string at the given length without cutting words
+     *
+     * @param string|Stringable $string
+     * @param int &$length
+     * @return array
      */
-    public static function splitString(string|Stringable $string, int $length = null): array
+    public static function splitString(string|Stringable $string, &$length = null): array
     {
 
         $string = (string) $string;
 
-        $length ??= 0;
+        if ( ! is_int($length)) {
+            $length = 0;
+        }
+
+        $length = max(0, $length);
 
         if ($length === 0 || mb_strlen($string) >= $length) {
+            $length = mb_strlen($length);
             return [$string];
         }
         $result = [];

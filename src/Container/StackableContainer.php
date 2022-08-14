@@ -27,7 +27,9 @@ final class StackableContainer implements ContainerInterface, Stringable
     )
     {
 
-        $containers = (array) $containers;
+        if ( ! is_array($containers)) {
+            $containers = [$containers];
+        }
 
         if (empty($containers)) {
             throw new InvalidArgumentException('No container supplied');
