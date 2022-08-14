@@ -512,7 +512,7 @@ final class Tools
             return [$string];
         }
         $result = [];
-        $words = preg_split('#\h+#', $string);
+        $words = preg_split('#[\h\v]+#', $string);
 
         // get the longer word length
         $maxLength = max($length, ...array_map(fn($word) => mb_strlen($word), $words));
