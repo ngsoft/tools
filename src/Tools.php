@@ -495,7 +495,7 @@ final class Tools
 
         $string = (string) $string;
         $len = 0;
-        foreach (preg_split('#[\h\v]+#', $message) as $word) {
+        foreach (preg_split('#[\h\v]+#', $string) as $word) {
             if (($wlen = mb_strlen($word)) > $len) {
                 $len = $wlen;
             }
