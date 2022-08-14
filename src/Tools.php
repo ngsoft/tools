@@ -518,7 +518,7 @@ final class Tools
         $maxLength = max($length, ...array_map(fn($word) => mb_strlen($word), $words));
 
         if ($maxLength > $length) {
-            $length = $maxLength + 1;
+            $length = $maxLength;
         }
         $line = '';
 
