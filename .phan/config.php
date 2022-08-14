@@ -24,7 +24,6 @@ return [
         'src',
         'lib',
         'vendor',
-        '.phan/stubs',
         $stubs,
     ],
     // A directory list that defines files that will be excluded
