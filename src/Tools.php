@@ -12,9 +12,11 @@ use ArrayAccess,
     ReflectionClassConstant,
     ReflectionException,
     ReflectionMethod,
-    RuntimeException;
+    RuntimeException,
+    Stringable;
 use const SCRIPT_START;
-use function mb_substr,
+use function mb_strlen,
+             mb_substr,
              set_default_error_handler;
 
 /**
@@ -483,6 +485,49 @@ final class Tools
         }
 
         return $string;
+    }
+
+    /**
+     * Split the string at the given length without cutting words
+     */
+    public static function splitString(string|Stringable $string, int $length = null): array
+    {
+
+        $string = (string) $string;
+
+        $length ??= 0;
+
+        if ($length === 0 || mb_strlen($string) >= $length) {
+            return [$string];
+        }
+        $result = [];
+        $words = preg_split('#\s+#', $string);
+
+        // get the longer word length
+        $maxLength = max($length, ...array_map(fn($word) => mb_strlen($word), $words));
+
+        if ($maxLength > $length) {
+            $length = $maxLength + 1;
+        }
+        $line = '';
+
+        foreach ($words as $index => $word) {
+
+            $lineLength = mb_strlen($line);
+
+            if ($lineLength === 0) {
+                $line = $word;
+            } elseif ($lineLength + mb_strlen($word) + 1 > $length) {
+                $result[] = $line;
+                $line = $word;
+            } else { $line .= " {$word}"; }
+
+            if ( ! isset($words[$index + 1])) {
+                $result[] = $line;
+            }
+        }
+
+        return $result;
     }
 
     ////////////////////////////   Time   ////////////////////////////

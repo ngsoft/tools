@@ -80,6 +80,14 @@ function search_iterable(callable $callback, iterable $iterable): mixed
 }
 
 /**
+ * Split the string at the given length without cutting words
+ */
+function split_string(string|Stringable $string, int $length = null): array
+{
+    return Tools::splitString($string, $length);
+}
+
+/**
  * Uses callback for each elements of the array and returns the value
  *
  * @param callable $callback
