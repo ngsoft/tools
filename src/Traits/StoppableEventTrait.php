@@ -26,6 +26,7 @@ trait StoppableEventTrait
 
     /**
      * Stop propagation for event
+     * @phan-suppress PhanTypeMismatchReturn
      */
     public function stopPropagation(): static
     {
