@@ -39,6 +39,7 @@ return [
     //       should be added to the `directory_list` as
     //       to `exclude_analysis_directory_list`.
     "exclude_analysis_directory_list" => [
+        'src/Tools/Utils/Templates/',
         'vendor/',
         '.phan/stubs',
         $stubs,

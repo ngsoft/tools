@@ -26,8 +26,6 @@ trait StoppableEventTrait
 
     /**
      * Stop propagation for event
-     *
-     * @return void
      */
     public function stopPropagation(): static
     {
