@@ -163,6 +163,25 @@ final class Tools
     }
 
     /**
+     * Iterate iterable
+     */
+    public static function iterateAll(iterable $iterable): array
+    {
+
+        $result = [];
+
+        foreach ($iterable as $index => $value) {
+            if ( ! is_string($index)) {
+                $result[] = $value;
+                continue;
+            }
+            $result[$index] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
      * Filters elements of an iterable using a callback function
      *
      * @param callable $callback accepts $value, $key, $array

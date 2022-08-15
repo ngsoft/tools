@@ -24,6 +24,14 @@ const MONTH = 2628000;
 const YEAR = 31536000;
 
 /**
+ * Iterate iterable
+ */
+function iterate_all(iterable $iterable): array
+{
+    return Tools::iterateAll($iterable);
+}
+
+/**
  * Tests if at least one element in the iterable passes the test implemented by the provided function.
  * @param callable $callback
  * @param iterable $iterable
