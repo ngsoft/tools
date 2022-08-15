@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use InvalidArgumentException;
+use Countable,
+    InvalidArgumentException,
+    IteratorAggregate,
+    NGSOFT\Traits\StringableObject,
+    Stringable,
+    Traversable;
 
-class ClassIterator implements \IteratorAggregate, \Countable, \Stringable
+/**
+ * Call same methods in multiple instances
+ */
+class ClassIterator implements IteratorAggregate, Countable, Stringable
 {
 
-    use \NGSOFT\Traits\StringableObject;
+    use StringableObject;
 
     protected array $instances = [];
 
@@ -33,7 +41,7 @@ class ClassIterator implements \IteratorAggregate, \Countable, \Stringable
         return count($this->instances);
     }
 
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
         $instances = $this->instances;
         yield from $instances;
@@ -80,7 +88,7 @@ class ClassIterator implements \IteratorAggregate, \Countable, \Stringable
     /**
      * Call Method in all the instances
      */
-    public function call(string $method, mixed ...$arguments): \Traversable
+    public function call(string $method, mixed ...$arguments): Traversable
     {
 
         foreach ($this as $instance) {
@@ -92,7 +100,7 @@ class ClassIterator implements \IteratorAggregate, \Countable, \Stringable
     /**
      * Call Method in all the instances
      */
-    public function apply(string $method, array $arguments = []): \Traversable
+    public function apply(string $method, array $arguments = []): Traversable
     {
 
         foreach ($this as $instance) {
