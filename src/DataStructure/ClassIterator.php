@@ -21,6 +21,14 @@ class ClassIterator implements IteratorAggregate, Countable, Stringable
 
     protected array $instances = [];
 
+    public function create(
+            string $className,
+            iterable $instances = []
+    )
+    {
+        return new static($className, $instances);
+    }
+
     public function __construct(
             protected string $className,
             iterable $instances = []
