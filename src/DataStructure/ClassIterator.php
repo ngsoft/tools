@@ -44,11 +44,13 @@ class ClassIterator implements IteratorAggregate, Countable, Stringable
         }
     }
 
+    /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->instances);
     }
 
+    /** {@inheritdoc} */
     public function getIterator(): Traversable
     {
         $instances = $this->instances;
@@ -61,6 +63,23 @@ class ClassIterator implements IteratorAggregate, Countable, Stringable
         if ( ! is_subclass_of($instance, $this->className)) {
             throw new InvalidArgumentException(sprintf('Instance of %s does not implements %s', get_class($instance), $this->className));
         }
+    }
+
+    /**
+     * Get a new instance that fills the conditions
+     */
+    public function filter(callable $callback): static
+    {
+
+        $result = new static($this->className);
+
+        foreach ($this as $instance) {
+            if ($callback($instance)) {
+                $result->push($instance);
+            }
+        }
+
+        return $result;
     }
 
     public function push(object $instance): void
