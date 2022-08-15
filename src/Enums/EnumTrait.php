@@ -87,14 +87,14 @@ trait EnumTrait
     /**
      * Checks if current Enum is one of the inputs
      *
-     * @param Enum|BackedEnum|int|string $input
+     * @param object|int|string $input
      * @return bool
      */
-    final public function is(self|int|string ...$input): bool
+    final public function is(object|int|string ...$input): bool
     {
 
         $compare = function ($input) {
-            if ($input instanceof self) {
+            if (is_object($input)) {
                 return static::class === $input::class && $input->getValue() === $this->getValue();
             }
             return $input === $this->getValue();
@@ -141,7 +141,7 @@ trait EnumTrait
      * Compatibility layer between real BackedEnum and polyfilled one
      * usage: MyEnum::fromEnum(MyEnum::MY_CASE)
      *
-     * @param self|int|string $enum
+     * @param object|int|string $enum
      * @return static
      */
     final public static function fromEnum(self|int|string $enum): static
