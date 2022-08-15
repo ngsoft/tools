@@ -98,11 +98,7 @@ class ClassIterator implements IteratorAggregate, Countable, Stringable
      */
     public function call(string $method, mixed ...$arguments): Traversable
     {
-
-        foreach ($this as $instance) {
-
-            yield $instance->{$method}(...$arguments);
-        }
+        yield from $this->apply($method, $arguments);
     }
 
     /**
