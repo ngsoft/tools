@@ -675,13 +675,9 @@ final class Tools
 
         $result = &$cache[$parentClass];
 
-        $method = interface_exists($parentClass) ? 'class_implements' : 'class_parents';
-
         foreach ($iterator as $class) {
-            if ($class === $parentClass) {
-                continue;
-            }
-            if (in_array($parentClass, $method($class))) {
+
+            if (is_a($class, $parentClass, true)) {
                 $result[0][$class] = $class;
                 if ((new \ReflectionClass($class))->isInstantiable()) {
                     $result[1][$class] = $class;

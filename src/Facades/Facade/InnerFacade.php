@@ -64,7 +64,7 @@ final class InnerFacade extends Facade
             foreach (implements_class(Facade::class, false) as $class) {
 
 
-                if ($class === __CLASS__) {
+                if ($class === __CLASS__ || $class === Facade::class) {
                     continue;
                 }
                 $accessor = $class::getFacadeAccessor();
