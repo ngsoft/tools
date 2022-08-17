@@ -149,7 +149,7 @@ if ( ! function_exists('preg_valid')) {
     {
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             return preg_match($pattern, '') !== false; // must be >=0 to be correct
         } catch (ErrorException $error) {
             if ($exception) {

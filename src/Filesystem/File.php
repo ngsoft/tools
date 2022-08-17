@@ -101,7 +101,7 @@ class File extends Filesystem implements IteratorAggregate
     public function unlink(): bool
     {
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             return ! $this->exists() || unlink($this->path);
         } catch (Throwable) {
             return false;
@@ -132,7 +132,7 @@ class File extends Filesystem implements IteratorAggregate
         $success = false;
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
 
             if ($this->exists()) {
                 static::createDir(dirname($dest));
@@ -324,7 +324,7 @@ class File extends Filesystem implements IteratorAggregate
         while ($retry < 3) {
 
             try {
-                Tools::errors_as_exceptions();
+                set_default_error_handler();
 
                 $tmpfile = $this->tmpFile ??= $this->tmpFiles[] = $this->dirname() . DIRECTORY_SEPARATOR . uniqid('', true);
 

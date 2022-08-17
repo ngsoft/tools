@@ -19,6 +19,7 @@ use function NGSOFT\Tools\{
     map, some
 };
 use function preg_valid,
+             set_default_error_handler,
              str_ends_with,
              str_starts_with;
 
@@ -216,7 +217,7 @@ class Directory extends Filesystem implements IteratorAggregate
         $success = false;
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
 
             if ($this->exists()) {
                 $success = $this->copyDir($this->path, $dest);
@@ -361,7 +362,7 @@ class Directory extends Filesystem implements IteratorAggregate
     {
         if ($this->exists()) {
             try {
-                Tools::errors_as_exceptions();
+                set_default_error_handler();
 
                 if (preg_valid($pattern)) {
                     return static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->matches($pattern));
@@ -386,7 +387,7 @@ class Directory extends Filesystem implements IteratorAggregate
 
         $current = getcwd();
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             $list = new FileList();
 
             if ($this->chdir()) {
