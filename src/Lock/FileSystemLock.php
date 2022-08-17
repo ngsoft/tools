@@ -49,7 +49,7 @@ class FileSystemLock extends BaseLockStore
         );
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             return $this->file->write($contents);
         } finally {
             restore_error_handler();

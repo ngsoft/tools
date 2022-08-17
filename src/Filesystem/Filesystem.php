@@ -185,7 +185,7 @@ abstract class Filesystem implements Countable, Stringable
         $success = false;
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             if ($this->exists()) {
                 $this->createDir(dirname($dest));
                 $success = rename($this->path, $dest);

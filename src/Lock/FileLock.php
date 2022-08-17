@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\Lock;
 
 use InvalidArgumentException,
-    NGSOFT\Tools,
     Stringable,
     Throwable;
-use function NGSOFT\Tools\safe;
+use function NGSOFT\Tools\safe,
+             set_default_error_handler;
 
 /**
  * Uses php files to create locks
@@ -57,7 +57,7 @@ class FileLock extends BaseLockStore
     {
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             return require $this->getFilename();
         } catch (Throwable) {
             return false;
@@ -70,7 +70,7 @@ class FileLock extends BaseLockStore
         $dirname = dirname($filename);
         try {
 
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             $contents = sprintf(
                     "<?php\nreturn [%u => %f, %u => %s];",
                     static::KEY_UNTIL, $until,

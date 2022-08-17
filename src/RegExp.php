@@ -15,6 +15,7 @@ use function get_debug_type,
              mb_str_split,
              mb_strlen,
              mb_substr,
+             set_default_error_handler,
              str_starts_with;
 
 /**
@@ -181,7 +182,7 @@ class RegExp implements Stringable, JsonSerializable
     private function execute(callable $callback, array $arguments, mixed $expectedErrorReturnValue): mixed
     {
 
-        Tools::errors_as_exceptions();
+        set_default_error_handler();
         try {
             $result = call_user_func_array($callback, $arguments);
         } catch (ErrorException $error) {

@@ -91,7 +91,7 @@ class SQLiteLock extends BaseLockStore
     protected function prepare(string $query, array $bindings = []): PDOStatement|false
     {
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
             $prepared = $this->driver->prepare($query);
             foreach ($bindings as $index => $value) {
                 if (is_string($index) && ! str_starts_with($index, ':')) {
@@ -111,7 +111,7 @@ class SQLiteLock extends BaseLockStore
     {
 
         try {
-            Tools::errors_as_exceptions();
+            set_default_error_handler();
 
             $statement = $this->prepare(
                     sprintf(
