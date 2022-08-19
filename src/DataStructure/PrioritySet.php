@@ -226,7 +226,14 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
     /** {@inheritdoc} */
     public function __clone(): void
     {
-        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
+
+        $this->sorted = [];
+        $indexes = array_keys($this->storage);
+        foreach ($indexes as $index) {
+            if (is_object($this->storage[$index])) {
+                $this->storage[$index] = clone $this->storage[$index];
+            }
+        }
     }
 
 }
