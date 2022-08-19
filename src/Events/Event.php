@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Event;
+namespace NGSOFT\Events;
 
 /**
  * A base Stoppable Event
