@@ -181,7 +181,12 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     /** {@inheritdoc} */
     public function __clone(): void
     {
-        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
+        foreach ($this->getIndexes() as $offset) {
+
+            if (is_object($this->storage[$offset])) {
+                $this->storage[$offset] = clone $this->storage[$offset];
+            }
+        }
     }
 
 }
