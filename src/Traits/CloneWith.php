@@ -19,7 +19,7 @@ trait CloneWith
     protected function cloneWith(array $properties = []): static
     {
 
-        $clone = clone $this;
+        $clone = $this->getClone();
 
         $propertyList = array_keys(get_object_vars($this));
 
