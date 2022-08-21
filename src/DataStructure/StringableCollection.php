@@ -134,15 +134,37 @@ class StringableCollection implements Stringable, IteratorAggregate, JsonSeriali
     {
         $method = preg_valid($separator) ? 'preg_split' : 'explode';
 
-        return new static(...$method($separator, (string) $this));
+        $strings = [];
+
+        foreach ($this->entries() as $string) {
+            $strings = array_merge($strings, $method($separator, $string));
+        }
+
+        return new static(...$strings);
     }
 
     /**
-     * Joins the stringable in the collection and returns the result as a string
+     * Joins the stringables in the collection and returns the result as a string
      */
     public function join(string $separator): string
     {
         return implode($separator, Tools::map(fn($string) => $string, $this->entries()));
+    }
+
+    /**
+     * Returns a new Stringable with the text replaced
+     */
+    public function replace(string $search, string $replace): static
+    {
+        $method = preg_valid($search) ? 'preg_replace' : 'str_replace';
+
+        $strings = [];
+
+        foreach ($this->entries() as $string) {
+            $strings[] = $method($search, $replace, $string);
+        }
+
+        return new static(...$strings);
     }
 
     /**

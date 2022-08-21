@@ -10,7 +10,7 @@ use InvalidArgumentException,
 use function is_stringable;
 
 /**
- * Transfor a scalar to its stringable representation
+ * Transform a scalar to its stringable representation
  */
 class Text implements Stringable
 {
