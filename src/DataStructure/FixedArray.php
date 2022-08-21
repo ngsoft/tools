@@ -27,8 +27,8 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
 
     public const DEFAULT_CAPACITY = 8;
 
-    private array $storage = [];
-    private int $size;
+    protected array $storage = [];
+    protected int $size;
 
     /**
      * Creates a new Fixed Array
@@ -82,12 +82,12 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
         return true;
     }
 
-    private function getIndexes(): Generator
+    protected function getIndexes(): Generator
     {
         foreach (array_keys($this->storage) as $offset) { yield $offset; }
     }
 
-    private function append(int|string|null $key, mixed $value): void
+    protected function append(int|string|null $key, mixed $value): void
     {
         if (null !== $key) {
             unset($this->storage[$key]);
@@ -96,7 +96,7 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
         $this->enforceCapacity();
     }
 
-    private function enforceCapacity(): void
+    protected function enforceCapacity(): void
     {
         foreach ($this->getIndexes() as $offset) {
             if ($this->count() > $this->size) {

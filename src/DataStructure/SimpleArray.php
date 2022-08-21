@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    Countable,
-    IteratorAggregate,
-    JsonSerializable,
-    OutOfBoundsException,
-    Stringable;
+use OutOfBoundsException;
 use function get_debug_type;
 
 class SimpleArray extends Collection
@@ -28,7 +23,7 @@ class SimpleArray extends Collection
     public function unshift(mixed ...$values): int
     {
         foreach ($values as $value) {
-            if ($value instanceof self) $value = $value->storage;
+            if ($value instanceof self) { $value = $value->storage; }
             array_unshift($this->storage, $value);
         }
         if (count($values)) {
@@ -43,7 +38,7 @@ class SimpleArray extends Collection
     public function push(mixed ...$values): int
     {
         foreach ($values as $value) {
-            if ($value instanceof self) $value = $value->storage;
+            if ($value instanceof self) { $value = $value->storage; }
             array_push($this->storage, $value);
         }
 
