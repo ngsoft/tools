@@ -14,8 +14,8 @@ abstract class Tuple implements ArrayAccess
 {
 
     /**
-     * Override this function to select named values to export as a list
-     * 
+     * Override this function to select named values to expand as a list
+     *
      *
      * eg: ['property1'=>$var1, 'property2'=>$var2]=$tuple;
      * or: [$var1,$var2]=$tuple;
@@ -24,6 +24,7 @@ abstract class Tuple implements ArrayAccess
      */
     protected function getList(): array
     {
+        // works with protected|public properties (not private)
         return get_object_vars($this);
     }
 
