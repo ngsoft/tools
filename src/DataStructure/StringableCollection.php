@@ -8,7 +8,9 @@ use IteratorAggregate,
     LogicException,
     NGSOFT\Traits\CloneWith,
     Stringable,
-    Traversable;
+    Traversable,
+    ValueError;
+use function get_debug_type;
 
 /**
  * A Stringable collection of stringable
@@ -66,17 +68,67 @@ class StringableCollection implements Stringable, IteratorAggregate
         return array_pop($this->storage);
     }
 
-    /**
-     * @phan-suppress PhanUnusedProtectedMethodParameter
-     */
-    protected function _append(mixed $offset, mixed $value): void
+    protected function test(Stringable $value, callable $callback): bool|Stringable
     {
-        $this->storage[] = $value;
+
+        $string = (string) $value;
+
+        $result = $callback($string, $value);
+
+        if (is_bool($result)) {
+            return $result;
+        }
+
+        if ($result === $string || $result === $value || $result === null) {
+            return $value;
+        }
+
+        if (is_scalar($result)) {
+            return new Text($result);
+        }
+
+        if ($result instanceof Stringable === false) {
+            throw new ValueError(sprintf('Invalid return type %s for callback, not an instance of %s', get_debug_type($result), Stringable::class));
+        }
+
+        return $result;
     }
 
-    protected function createNew(): static
+    /**
+     * Applies the callback to the elements of the storage and returns a copy
+     */
+    public function map(callable $callback): static
     {
-        return new static();
+        $result = new static();
+
+        foreach ($this->entries() as $_value) {
+
+            $value = $this->test($_value, $callback);
+
+            if ($value instanceof Stringable) {
+                $result->append($value);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns a copy with all the elements that passes the test
+     */
+    public function filter(callable $callback): static
+    {
+        $result = new static();
+
+        foreach ($this->entries() as $value) {
+
+            if (false === $this->test($value, $callback)) {
+                continue;
+            }
+            $result->append($value);
+        }
+
+        return $result;
     }
 
     public function entries(Sort $sort = Sort::ASC): iterable

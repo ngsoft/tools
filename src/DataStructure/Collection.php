@@ -240,19 +240,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     }
 
     /**
-     * Required by trait
-     */
-    protected function createNew(): static
-    {
-        return $this->getNewInstance();
-    }
-
-    protected function _append(mixed $offset, mixed $value): void
-    {
-        $this->offsetSet($offset, $value);
-    }
-
-    /**
      * Exports to json
      */
     public function toJson(int $flags = JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR): string
@@ -313,6 +300,65 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         foreach ($indexes as $offset) {
             yield $offset;
         }
+    }
+
+    /**
+     * Applies the callback to the elements of the storage and returns a copy
+     */
+    public function map(callable $callback): static
+    {
+        $result = $this->getNewInstance();
+
+        foreach ($this->entries() as $offset => $value) {
+
+            $newValue = $callback($value, $offset, $this);
+
+            if ($newValue === null) {
+                $newValue = $value;
+            }
+
+            if ( ! is_string($offset)) {
+                $offset = null;
+            }
+
+            $result->offsetSet($offset, $newValue);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns a copy with all the elements that passes the test
+     */
+    public function filter(callable $callback): static
+    {
+        $result = $this->getNewInstance();
+
+        foreach ($this->entries() as $offset => $value) {
+
+            if ( ! $callback($value, $offset, $this)) {
+                continue;
+            }
+            if ( ! is_string($offset)) {
+                $offset = null;
+            }
+
+            $result->offsetSet($offset, $value);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Checks if value in the storage
+     */
+    public function has(mixed $value): bool
+    {
+
+        if ($value instanceof self) {
+            $value = $value->storage;
+        }
+        return in_array($value, $this->storage, true);
     }
 
     /**

@@ -20,16 +20,6 @@ trait CollectionTrait
     abstract public function entries(Sort $sort = Sort::ASC): iterable;
 
     /**
-     * Create a new instance
-     */
-    abstract protected function createNew(): static;
-
-    /**
-     * Appends a value to the storage
-     */
-    abstract protected function _append(mixed $offset, mixed $value): void;
-
-    /**
      * Exports to array
      */
     public function toArray(): array
@@ -46,61 +36,6 @@ trait CollectionTrait
     {
         $array = [];
         $this->storage = &$array;
-    }
-
-    /**
-     * Applies the callback to the elements of the storage and returns a copy
-     */
-    public function map(callable $callback): static
-    {
-        $result = $this->createNew();
-
-        foreach ($this->entries() as $offset => $value) {
-
-            $newValue = $callback($value, $offset, $this);
-
-            if ($newValue === null) {
-                $newValue = $value;
-            }
-
-
-            $result->_append(is_string($offset) ? $offset : null, $newValue);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Returns a copy with all the elements that passes the test
-     */
-    public function filter(callable $callback): static
-    {
-        $result = $this->createNew();
-
-        foreach ($this->entries() as $offset => $value) {
-
-            if ( ! $callback($value, $offset, $this)) {
-                continue;
-            }
-            if ( ! is_string($offset)) {
-                $offset = null;
-            }
-            $result->_append($offset, $value);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Checks if value in the storage
-     */
-    public function has(mixed $value): bool
-    {
-
-        if ($value instanceof self) {
-            $value = $value->storage;
-        }
-        return in_array($value, $this->storage, true);
     }
 
     /**
