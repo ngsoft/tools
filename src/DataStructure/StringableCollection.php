@@ -132,7 +132,9 @@ class StringableCollection implements Stringable, IteratorAggregate, JsonSeriali
      */
     public function split(string $separator): static
     {
-        return new static(...explode($separator, (string) $this));
+        $method = preg_valid($separator) ? 'preg_split' : 'explode';
+
+        return new static(...$method($separator, (string) $this));
     }
 
     /**
@@ -233,13 +235,7 @@ class StringableCollection implements Stringable, IteratorAggregate, JsonSeriali
     protected function build(): string
     {
 
-        $result = '';
-
-        foreach ($this as $stringable) {
-            $result .= (string) $stringable;
-        }
-
-        return $result;
+        return $this->join('');
     }
 
     public function jsonSerialize(): mixed
