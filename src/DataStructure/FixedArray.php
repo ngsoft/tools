@@ -99,7 +99,9 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     private function enforceCapacity(): void
     {
         foreach ($this->getIndexes() as $offset) {
-            if ($this->count() > $this->size) { unset($this->storage[$offset]); } else { break; }
+            if ($this->count() > $this->size) {
+                unset($this->storage[$offset]);
+            } else { break; }
         }
     }
 
