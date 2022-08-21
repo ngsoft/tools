@@ -247,6 +247,11 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
         return $this->getNewInstance();
     }
 
+    protected function _append(mixed $offset, mixed $value): void
+    {
+        $this->offsetSet($offset, $value);
+    }
+
     /**
      * Exports to json
      */
