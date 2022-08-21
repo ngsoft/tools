@@ -7,11 +7,13 @@ namespace NGSOFT\DataStructure;
 use Countable,
     InvalidArgumentException,
     JsonSerializable,
-    NGSOFT\Traits\CloneWith,
     Stringable;
 use function get_debug_type,
              is_stringable,
-             mb_strlen;
+             mb_strlen,
+             mb_strpos,
+             mb_substr,
+             preg_valid;
 
 /**
  * Transform a scalar to its stringable representation
@@ -19,10 +21,9 @@ use function get_debug_type,
 class Text implements Stringable, Countable, JsonSerializable
 {
 
-    use CloneWith;
-
     protected string $text;
     protected int $length;
+    protected array $offsets = [];
 
     public function __construct(mixed $text = '')
     {
@@ -39,20 +40,94 @@ class Text implements Stringable, Countable, JsonSerializable
         $this->length = mb_strlen($this->text);
     }
 
-    public function indexOf(string|Stringable $needle, int $offset = 0): int
+    protected function buildOffsetMap(): void
     {
 
-        $needle = (string) $needle;
-        if (preg_valid($needle)) {
-            if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
-                return $matches[0][1];
+        if (empty($this->offsets)) {
+
+            // UTF-8 offset map
+
+            $this->offsets = [[], []];
+
+            $offsets = &$this->offsets;
+
+            for ($i = 0; $i < $this->length; $i ++ ) {
+                $char = mb_substr($this->text, $i, 1);
+                for ($j = 0; $j < strlen($char); $j ++ ) {
+                    $offsets[0][] = $i;
+                    $offsets[1][$i] ??= count($offsets[0]) - 1;
+                }
             }
+        }
+    }
+
+    protected function getUtfOffset(int $offset): ?int
+    {
+
+        if ($offset <= 0) {
+            return $offset;
+        }
+
+        if ($this->isEmpty()) {
+            return null;
+        }
+        $this->buildOffsetMap();
+        return $this->offsets[0][$offset] ?? null;
+    }
+
+    protected function getNonUtfOffset(int $offset): ?int
+    {
+        if ($offset <= 0) {
+            return $offset;
+        }
+
+        if ($this->isEmpty()) {
+            return null;
+        }
+        $this->buildOffsetMap();
+        return $this->offsets[1][$offset] ?? null;
+    }
+
+    public function indexOf(string|Stringable $needle, int $offset = 0): int
+    {
+        $needle = (string) $needle;
+
+        if ($this->isEmpty()) {
+            return $needle === '' && $offset === 0 ? 0 : -1;
+        }
+
+        if ($offset >= $this->length) {
             return -1;
         }
 
-        $pos = mb_strpos($this->text, $needle, $offset);
+        if (preg_valid($needle)) {
 
-        return $pos ?: -1;
+            //translate char into byte offset
+
+            if (is_null($offset = $this->getNonUtfOffset($offset))) {
+                return -1;
+            }
+
+            if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
+                // translate byte into char offset
+                return $this->getUtfOffset($matches[0][1]) ?? -1;
+            }
+        } elseif (is_int($pos = mb_strpos($this->text, $needle, $offset))) {
+            return $pos;
+        }
+
+        return -1;
+    }
+
+    public function lastIndexOf(string|Stringable $needle, int $offset = 0)
+    {
+        $result = -1;
+        while (-1 !== $pos = $this->indexOf($needle, $offset)) {
+            $result = $pos;
+            $offset = $pos + 1;
+        }
+
+        return $result;
     }
 
     public function count(): int
@@ -75,6 +150,11 @@ class Text implements Stringable, Countable, JsonSerializable
         return $this->text;
     }
 
+    public function __clone()
+    {
+        $this->offsets = [];
+    }
+
     public function __toString(): string
     {
         return $this->text;
@@ -82,12 +162,12 @@ class Text implements Stringable, Countable, JsonSerializable
 
     public function __serialize(): array
     {
-        return [$this->text, $this->length];
+        return [$this->text, $this->length, $this->offsets];
     }
 
     public function __unserialize(array $data): void
     {
-        @list($this->text, $this->length) = $data;
+        list($this->text, $this->length, $this->offsets) = $data;
     }
 
 }
