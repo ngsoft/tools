@@ -12,7 +12,7 @@ use function is_stringable;
 /**
  * Transfor a scalar to its stringable representation
  */
-class Text implements Stringable, \Countable
+class Text implements Stringable
 {
 
     protected string $text;
@@ -31,11 +31,6 @@ class Text implements Stringable, \Countable
         }
 
         $this->text = (string) $text;
-    }
-
-    public function count(): int
-    {
-        return mb_strlen($this->text);
     }
 
     public function __toString(): string

@@ -16,7 +16,7 @@ use function get_debug_type;
  * A Stringable collection of stringable
  *
  */
-class StringableCollection implements Stringable, IteratorAggregate
+class StringableCollection implements Stringable, IteratorAggregate, \JsonSerializable
 {
 
     use CloneWith,
@@ -164,9 +164,24 @@ class StringableCollection implements Stringable, IteratorAggregate
         return $result;
     }
 
+    public function jsonSerialize(): mixed
+    {
+        return (string) $this;
+    }
+
     public function __toString(): string
     {
         return $this->cache ??= $this->build();
+    }
+
+    public function __serialize(): array
+    {
+        return $this->storage;
+    }
+
+    public function __unserialize(array $data)
+    {
+        $this->storage = $data;
     }
 
 }
