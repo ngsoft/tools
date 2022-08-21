@@ -24,7 +24,7 @@ class Text implements Stringable, Countable, JsonSerializable
     protected string $text;
     protected int $length;
 
-    public function __construct(mixed $text)
+    public function __construct(mixed $text = '')
     {
         if ( ! is_stringable($text) || is_null($text)) {
             throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($text)));
@@ -37,6 +37,22 @@ class Text implements Stringable, Countable, JsonSerializable
 
         $this->text = (string) $text;
         $this->length = mb_strlen($this->text);
+    }
+
+    public function indexOf(string|Stringable $needle, int $offset = 0): int
+    {
+
+        $needle = (string) $needle;
+        if (preg_valid($needle)) {
+            if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
+                return $matches[0][1];
+            }
+            return -1;
+        }
+
+        $pos = mb_strpos($this->text, $needle, $offset);
+
+        return $pos ?: -1;
     }
 
     public function count(): int

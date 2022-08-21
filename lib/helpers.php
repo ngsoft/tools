@@ -147,10 +147,9 @@ if ( ! function_exists('preg_valid')) {
      */
     function preg_valid(string $pattern, bool $exception = false): bool
     {
-
         try {
             set_default_error_handler();
-            return preg_match($pattern, '') !== false; // must be >=0 to be correct
+            return $pattern !== ltrim($pattern, '%#/') && preg_match($pattern, '') !== false; // must be >=0 to be correct
         } catch (ErrorException $error) {
             if ($exception) {
                 $msg = str_replace('_match', '_valid', $error->getMessage());
