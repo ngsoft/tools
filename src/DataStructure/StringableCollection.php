@@ -4,27 +4,41 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use IteratorAggregate,
+use Countable,
+    IteratorAggregate,
+    JsonSerializable,
     LogicException,
-    NGSOFT\Traits\CloneWith,
+    NGSOFT\Tools,
     Stringable,
     Traversable,
     ValueError;
-use function get_debug_type;
+use function get_debug_type,
+             mb_strlen;
 
 /**
  * A Stringable collection of stringable
  *
  */
-class StringableCollection implements Stringable, IteratorAggregate, \JsonSerializable
+class StringableCollection implements Stringable, IteratorAggregate, JsonSerializable, Countable
 {
 
-    use CloneWith,
-        CollectionTrait;
+    use CollectionTrait;
 
     /** @var Stringable[] */
     protected array $storage = [];
     protected ?string $cache = null;
+
+    public static function create(string|Stringable|int|float ...$stringables): static
+    {
+        return new static(...$stringables);
+    }
+
+    public function __construct(
+            string|Stringable|int|float ...$stringables
+    )
+    {
+        $this->append(...$stringables);
+    }
 
     /**
      * Append value to the stack
@@ -60,6 +74,51 @@ class StringableCollection implements Stringable, IteratorAggregate, \JsonSerial
     }
 
     /**
+     * Insert new values beforre the existing ones
+     */
+    public function prepend(string|Stringable|int|float ...$stringables): static
+    {
+
+        $this->cache = null;
+
+        $new = [];
+        foreach ($stringables as $stringable) {
+
+            if ($this === $stringable) {
+                throw new LogicException(sprintf('Cannot %s the same instance of %s into itself(infinite recursion).', __FUNCTION__, static::class));
+            }
+
+
+            if ($stringable instanceof Stringable === false) {
+                $stringable = new Text($stringable);
+            }
+
+            $new[] = $stringable;
+        }
+
+        array_unshift($this->storage, ...$new);
+
+        return $this;
+    }
+
+    /**
+     * Alias of prepend
+     */
+    public function unshift(string|Stringable|int|float ...$stringables): static
+    {
+        return $this->prepend(...$stringables);
+    }
+
+    /**
+     * Removes and returns the first element
+     */
+    public function shift(): ?Stringable
+    {
+        $this->cache = null;
+        return array_shift($this->storage);
+    }
+
+    /**
      * Pops and returns the last element
      */
     public function pop(): ?Stringable
@@ -68,6 +127,25 @@ class StringableCollection implements Stringable, IteratorAggregate, \JsonSerial
         return array_pop($this->storage);
     }
 
+    /**
+     * Returns a new  collection using a delimitter
+     */
+    public function split(string $separator): static
+    {
+        return new static(...explode($separator, (string) $this));
+    }
+
+    /**
+     * Joins the stringable in the collection and returns the result as a string
+     */
+    public function join(string $separator): string
+    {
+        return implode($separator, Tools::map(fn($string) => $string, $this->entries()));
+    }
+
+    /**
+     * map and filter test
+     */
     protected function test(Stringable $value, string $string, callable $callback): bool|Stringable
     {
 
@@ -167,6 +245,16 @@ class StringableCollection implements Stringable, IteratorAggregate, \JsonSerial
     public function jsonSerialize(): mixed
     {
         return (string) $this;
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->count() === 0;
+    }
+
+    public function count(): int
+    {
+        return mb_strlen((string) $this);
     }
 
     public function __toString(): string
