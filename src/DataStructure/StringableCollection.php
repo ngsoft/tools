@@ -40,6 +40,12 @@ class StringableCollection implements Stringable, IteratorAggregate, JsonSeriali
         $this->append(...$stringables);
     }
 
+    public function clear(): void
+    {
+        $this->storage = [];
+        $this->cache = null;
+    }
+
     /**
      * Append value to the stack
      */
