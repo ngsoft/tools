@@ -240,6 +240,14 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     }
 
     /**
+     * Required by trait
+     */
+    protected function createNew(): static
+    {
+        return $this->getNewInstance();
+    }
+
+    /**
      * Exports to json
      */
     public function toJson(int $flags = JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR): string

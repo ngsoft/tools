@@ -6,6 +6,9 @@ namespace NGSOFT\DataStructure;
 
 use NGSOFT\Tools;
 
+/**
+ * @phan-file-suppress PhanTypeMismatchReturn
+ */
 trait CollectionTrait
 {
 
@@ -20,6 +23,16 @@ trait CollectionTrait
      * Create a new instance
      */
     abstract protected function createNew(): static;
+
+    protected function _append(mixed $offset, mixed $value): void
+    {
+
+        if ($this instanceof \ArrayAccess) {
+            $this[$offset] = $value;
+        } elseif (is_null($offset)) {
+            $this->storage[] = $value;
+        } else { $this->storage[$offset] = $value; }
+    }
 
     /**
      * Exports to array
@@ -66,7 +79,11 @@ trait CollectionTrait
      */
     public function filter(callable $callback): static
     {
-        $result = $this->createNew();
+        $storage = $result = $this->createNew();
+
+        if ($storage instanceof \ArrayAccess === false) {
+            $storage = &$result->storage;
+        }
 
         foreach ($this->entries() as $offset => $value) {
 
@@ -77,7 +94,10 @@ trait CollectionTrait
                 $offset = null;
             }
 
-            $result->offsetSet($offset, $value);
+
+            if ($offset === null) {
+                $storage[] = $value;
+            } else { $storage[$offset] = $value; }
         }
 
         return $result;

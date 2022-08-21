@@ -12,6 +12,7 @@ use IteratorAggregate,
 
 /**
  * A Stringable collection of stringable
+ * 
  */
 class StringableCollection implements Stringable, IteratorAggregate
 {
