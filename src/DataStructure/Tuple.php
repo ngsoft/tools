@@ -9,6 +9,7 @@ use ArrayAccess,
 
 /**
  * Transforms any class that extends it as a tuple
+ * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
 abstract class Tuple implements ArrayAccess
 {

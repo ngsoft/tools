@@ -16,7 +16,7 @@ use function NGSOFT\Tools\some;
 /**
  * A trait to use with Enum/BackedEnum
  *
- * @phan-file-suppress PhanTypeMismatchReturn,PhanTypeMismatchDeclaredParam, PhanUndeclaredProperty
+ * @phan-file-suppress PhanTypeMismatchReturn,PhanTypeMismatchDeclaredParam, PhanUndeclaredProperty, PhanTypeInvalidTraitParam
  */
 trait EnumTrait
 {
