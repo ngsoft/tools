@@ -27,17 +27,22 @@ class Text implements Stringable, Countable, JsonSerializable
 
     public function __construct(mixed $text = '')
     {
+        $this->_setText($text);
+    }
+
+    protected function _setText(mixed $text): static
+    {
         if ( ! is_stringable($text) || is_null($text)) {
             throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($text)));
         }
 
         if (is_scalar($text) && ! is_string($text)) {
-            $this->text = json_encode($text, flags: JSON_THROW_ON_ERROR);
-            return;
+            $text = json_encode($text, flags: JSON_THROW_ON_ERROR);
         }
-
         $this->text = (string) $text;
         $this->length = mb_strlen($this->text);
+
+        return $this;
     }
 
     protected function buildOffsetMap(): void
@@ -55,7 +60,7 @@ class Text implements Stringable, Countable, JsonSerializable
                 $char = mb_substr($this->text, $i, 1);
                 for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
-                    $offsets[1][$i] ??= count($offsets[0]) - 1;
+                    $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
             }
         }
