@@ -68,10 +68,9 @@ class StringableCollection implements Stringable, IteratorAggregate
         return array_pop($this->storage);
     }
 
-    protected function test(Stringable $value, callable $callback): bool|Stringable
+    protected function test(Stringable $value, string $string, callable $callback): bool|Stringable
     {
 
-        $string = (string) $value;
 
         $result = $callback($string, $value);
 
@@ -101,13 +100,15 @@ class StringableCollection implements Stringable, IteratorAggregate
     {
         $result = new static();
 
-        foreach ($this->entries() as $_value) {
+        foreach ($this->entries() as $_value => $_str) {
 
-            $value = $this->test($_value, $callback);
+            $value = $this->test($_value, $_str, $callback);
 
-            if ($value instanceof Stringable) {
-                $result->append($value);
+            if (is_bool($value)) {
+                throw new ValueError('Invalid return type bool for callable');
             }
+
+            $result->append($value);
         }
 
         return $result;
@@ -120,9 +121,9 @@ class StringableCollection implements Stringable, IteratorAggregate
     {
         $result = new static();
 
-        foreach ($this->entries() as $value) {
+        foreach ($this->entries() as $value => $str) {
 
-            if (false === $this->test($value, $callback)) {
+            if (false === $this->test($value, $str, $callback)) {
                 continue;
             }
             $result->append($value);
@@ -141,13 +142,14 @@ class StringableCollection implements Stringable, IteratorAggregate
         }
 
         foreach ($keys as $offset) {
-            yield $this->storage[$offset];
+            $value = $this->storage[$offset];
+            yield $value => (string) $value;
         }
     }
 
     public function getIterator(): Traversable
     {
-        yield from $this->entries();
+        yield from $this->storage;
     }
 
     protected function build(): string
