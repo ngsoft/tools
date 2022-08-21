@@ -168,6 +168,14 @@ class StringableCollection implements Stringable, IteratorAggregate, JsonSeriali
     }
 
     /**
+     * Get the total length of the stringables
+     */
+    public function getLength(): int
+    {
+        return mb_strlen((string) $this);
+    }
+
+    /**
      * map and filter test
      */
     protected function test(Stringable $value, string $string, callable $callback): bool|Stringable
@@ -272,7 +280,7 @@ class StringableCollection implements Stringable, IteratorAggregate, JsonSeriali
 
     public function count(): int
     {
-        return mb_strlen((string) $this);
+        return count($this->storage);
     }
 
     public function __toString(): string
