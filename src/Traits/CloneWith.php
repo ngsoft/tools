@@ -16,7 +16,17 @@ trait CloneWith
 
         $clone = clone $this;
 
+        $propertyList = array_keys(get_object_vars($this));
+
         foreach ($properties as $prop => $value) {
+
+            if (is_int($prop)) {
+                $prop = $propertyList[$prop] ?? null;
+            }
+
+            if ( ! $prop || ! property_exists($clone, $prop)) {
+                continue;
+            }
 
             $clone->{$prop} = $value;
         }
