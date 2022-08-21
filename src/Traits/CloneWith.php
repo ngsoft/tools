@@ -11,6 +11,11 @@ namespace NGSOFT\Traits;
 trait CloneWith
 {
 
+    protected function getClone(): static
+    {
+        return clone $this;
+    }
+
     protected function cloneWith(array $properties = []): static
     {
 
