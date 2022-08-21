@@ -24,15 +24,10 @@ trait CollectionTrait
      */
     abstract protected function createNew(): static;
 
-    protected function _append(mixed $offset, mixed $value): void
-    {
-
-        if ($this instanceof \ArrayAccess) {
-            $this[$offset] = $value;
-        } elseif (is_null($offset)) {
-            $this->storage[] = $value;
-        } else { $this->storage[$offset] = $value; }
-    }
+    /**
+     * Appends a value to the storage
+     */
+    abstract protected function _append(mixed $offset, mixed $value): void;
 
     /**
      * Exports to array
@@ -68,7 +63,8 @@ trait CollectionTrait
                 $newValue = $value;
             }
 
-            $result->offsetSet(is_string($offset) ? $offset : null, $newValue);
+
+            $result->_append(is_string($offset) ? $offset : null, $newValue);
         }
 
         return $result;
@@ -79,11 +75,7 @@ trait CollectionTrait
      */
     public function filter(callable $callback): static
     {
-        $storage = $result = $this->createNew();
-
-        if ($storage instanceof \ArrayAccess === false) {
-            $storage = &$result->storage;
-        }
+        $result = $this->createNew();
 
         foreach ($this->entries() as $offset => $value) {
 
@@ -93,11 +85,7 @@ trait CollectionTrait
             if ( ! is_string($offset)) {
                 $offset = null;
             }
-
-
-            if ($offset === null) {
-                $storage[] = $value;
-            } else { $storage[$offset] = $value; }
+            $result->_append($offset, $value);
         }
 
         return $result;
