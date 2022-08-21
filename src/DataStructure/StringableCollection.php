@@ -12,15 +12,16 @@ use IteratorAggregate,
 
 /**
  * A Stringable collection of stringable
- * 
+ *
  */
 class StringableCollection implements Stringable, IteratorAggregate
 {
 
-    use CloneWith;
+    use CloneWith,
+        CollectionTrait;
 
     /** @var Stringable[] */
-    protected $storage = [];
+    protected array $storage = [];
     protected ?string $cache = null;
 
     /**
@@ -65,9 +66,36 @@ class StringableCollection implements Stringable, IteratorAggregate
         return array_pop($this->storage);
     }
 
+    /**
+     * @phan-suppress PhanUnusedProtectedMethodParameter
+     */
+    protected function _append(mixed $offset, mixed $value): void
+    {
+        $this->storage[] = $value;
+    }
+
+    protected function createNew(): static
+    {
+        return new static();
+    }
+
+    public function entries(Sort $sort = Sort::ASC): iterable
+    {
+
+        $keys = array_keys($this->storage);
+
+        if ($sort->is(Sort::DESC)) {
+            $keys = array_reverse($keys);
+        }
+
+        foreach ($keys as $offset) {
+            yield $this->storage[$offset];
+        }
+    }
+
     public function getIterator(): Traversable
     {
-        yield from $this->storage;
+        yield from $this->entries();
     }
 
     protected function build(): string

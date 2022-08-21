@@ -35,7 +35,7 @@ class Text implements Stringable
 
     public function __toString(): string
     {
-        return (string) $this->text;
+        return $this->text;
     }
 
 }
