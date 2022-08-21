@@ -44,7 +44,7 @@ if ( ! function_exists('is_stringable')) {
 
     function is_stringable(mixed $value): bool
     {
-        if (is_scalar($value)) {
+        if (is_scalar($value) || is_null($value)) {
             return true;
         }
         if ($value instanceof Stringable) {
