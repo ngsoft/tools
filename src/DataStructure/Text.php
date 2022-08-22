@@ -27,10 +27,10 @@ class Text implements Stringable, Countable, JsonSerializable
 
     public function __construct(mixed $text = '')
     {
-        $this->_setText($text);
+        $this->setText($text);
     }
 
-    protected function _setText(mixed $text): static
+    protected function setText(mixed $text): static
     {
         if ( ! is_stringable($text) || is_null($text)) {
             throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($text)));
@@ -56,9 +56,9 @@ class Text implements Stringable, Countable, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++ ) {
+            for ($i = 0; $i < $this->length; $i ++) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
+                for ($j = 0; $j < strlen($char); $j ++) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
