@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use ArrayAccess,
-    NGSOFT\Tools,
-    Stringable;
+use ArrayAccess;
+use NGSOFT\{
+    DataStructure\Text, Tools
+};
+use Stringable;
 use const NAMESPACE_SEPARATOR;
 
 if (defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'MICROSECOND')) {
@@ -200,4 +202,12 @@ function msleep(int $milliseconds): void
 function safe(callable $callable, mixed ...$arguments): mixed
 {
     return Tools::safe_exec($callable, ...$arguments);
+}
+
+/**
+ * Creates a Stringable from a scallar
+ */
+function str(mixed $text): Text
+{
+    return Text::of($text);
 }
