@@ -13,8 +13,17 @@ use function get_debug_type,
              is_stringable,
              mb_strlen,
              mb_strpos,
-             mb_substr,
-             preg_valid;
+             mb_strtolower,
+             mb_strtoupper,
+             mb_substr;
+use function NGSOFT\Tools\{
+    every, some
+};
+use function preg_exec,
+             preg_valid,
+             str_contains,
+             str_ends_with,
+             str_starts_with;
 
 /**
  * Transform a scalar to its stringable representation
@@ -129,8 +138,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
         $needle = (string) $needle;
 
-        if ($this->isEmpty()) {
-            return $needle === '' && $offset === 0 ? 0 : -1;
+        if (empty($needle) || $this->isEmpty()) {
+            return -1;
         }
 
         if ($offset >= $this->length) {
@@ -216,7 +225,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function endsWith(mixed $needle, bool $ignoreCase = false): bool
     {
-
+        if (is_iterable($needle)) {
+            return some(fn($n) => $this->endsWith($n, $ignoreCase), $needle);
+        }
         $needle = $this->convert($needle);
         $haystack = $this->text;
 
@@ -224,7 +235,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
-
+        if (empty($needle)) {
+            return false;
+        }
         return str_ends_with($haystack, $needle);
     }
 
@@ -233,12 +246,22 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function startsWith(mixed $needle, bool $ignoreCase = false): bool
     {
+
+        if (is_iterable($needle)) {
+            return some(fn($n) => $this->startsWith($n, $ignoreCase), $needle);
+        }
+
+
         $needle = $this->convert($needle);
         $haystack = $this->text;
 
         if ($ignoreCase) {
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
+        }
+
+        if (empty($needle)) {
+            return false;
         }
         return str_starts_with($haystack, $needle);
     }
@@ -246,8 +269,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     /**
      * The includes() method performs a search to determine whether one string may be found within another string, returning true or false as appropriate.
      */
-    public function contains(mixed $needle, bool $ignoreCase = false)
+    public function contains(mixed $needle, bool $ignoreCase = false): bool
     {
+
+        if (is_iterable($needle)) {
+            return every(fn($n) => $this->contains($n, $ignoreCase), $needle);
+        }
 
         $needle = $this->convert($needle);
         $haystack = $this->text;
@@ -258,7 +285,19 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
 
+        if (empty($needle)) {
+            return false;
+        }
+
         return str_contains($haystack, $needle);
+    }
+
+    /**
+     * Determine if a given string contains all needles
+     */
+    public function containsAll(iterable $needles, bool $ignoreCase = false): bool
+    {
+        return $this->contains($needles, $ignoreCase);
     }
 
     /**
@@ -284,6 +323,157 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function matchAll(string $pattern): array
     {
         return preg_exec($pattern, $this->text, 0);
+    }
+
+    /**
+     * Pad the left side of a string with another.
+     */
+    public function padStart(int $length = 1, mixed $pad = ' '): static
+    {
+
+        $length = max(0, $length);
+        $pad = $this->convert($pad);
+
+        if (empty($pad) || empty($length)) {
+            return $this;
+        }
+
+        $str = $this->text;
+        $total = $this->length + $length;
+
+        while (mb_strlen($str) < $total) {
+            $str = $pad . $str;
+        }
+
+        return $this->withText(mb_substr($str, $total - mb_strlen($str)));
+    }
+
+    /**
+     * Pad the right side of a string with another.
+     */
+    public function padEnd(int $length = 1, mixed $pad = ' '): static
+    {
+
+        $length = max(1, $length);
+        $pad = $this->convert($pad);
+
+        if (empty($pad) || empty($length)) {
+            return $this;
+        }
+
+        $str = $this->text;
+        $total = $this->length + $length;
+
+        while (mb_strlen($str) < $total) {
+            $str .= $pad;
+        }
+
+        return $this->withText(mb_substr($str, 0, $total));
+    }
+
+    /**
+     * Pad on both sides of a string with another.
+     */
+    public function pad(int $length = 2, mixed $pad = ' '): static
+    {
+        $length = max(0, $length);
+
+        $pad = $this->convert($pad);
+
+        if (empty($pad) || empty($length)) {
+            return $this;
+        }
+
+        $right = intval(ceil($length / 2));
+        $left = $length - $right;
+
+        return $this->padEnd($right, $pad)->padStart($left, $pad);
+    }
+
+    /**
+     * The repeat() method constructs and returns a new string which contains the specified number of copies of the string on which it was called, concatenated together.
+     */
+    public function repeat(int $times): static
+    {
+
+        $times = max(0, $times);
+        $str = '';
+
+        for ($i = 0; $i < $times; $i ++) {
+            $str .= $this->text;
+        }
+        return $this->withText($str);
+    }
+
+    /**
+     * Replace the first occurrence of a given value in the string.
+     */
+    public function replace(mixed $search, mixed $replacement): static
+    {
+
+        if (is_iterable($search)) {
+            $result = $this;
+            $index = 0;
+            foreach ($search as $pattern) {
+                if (is_iterable($replacement)) {
+                    $replace = $replacement[$index] ?? '';
+                } else { $replace = $replacement; }
+                $result = $result->replace($pattern, $replace);
+                $index ++;
+            }
+            return $result;
+        }
+
+        $search = $this->convert($search);
+
+        if (empty($search)) {
+            return $this;
+        }
+
+        $len = mb_strlen($search);
+
+        $replacement = $this->convert($replacement);
+
+        $index = $this->indexOf($search);
+
+        if ($index === -1) {
+            return $this;
+        }
+
+        $str = mb_substr($this->text, 0, $index);
+        $str .= $replacement;
+        $str .= mb_substr($this->text, $index + $len);
+        return $this->withText($str);
+    }
+
+    public function replaceAll(mixed $search, mixed $replacement): static
+    {
+
+        if (is_iterable($search)) {
+            $result = $this;
+            $index = 0;
+            foreach ($search as $pattern) {
+                if (is_iterable($replacement)) {
+                    $replace = $replacement[$index] ?? '';
+                } else { $replace = $replacement; }
+                $result = $result->replaceAll($pattern, $replace);
+                $index ++;
+            }
+            return $result;
+        }
+
+
+
+        $search = $this->convert($search);
+
+        if (empty($search)) {
+            return $this;
+        }
+
+        $replacement = $this->convert($replacement);
+        $method = preg_valid($search) ? 'preg_replace' : 'str_replace';
+
+        return $this->withText($method($search, $replacement, $this->text));
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
