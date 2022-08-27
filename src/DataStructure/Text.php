@@ -92,9 +92,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -144,6 +144,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $result[0] .= $this->convert($char);
         }
         return $result;
+    }
+
+    protected function isValidRange(Range $range): bool
+    {
+        [$start, $stop, $step] = [$this->translateOffset($range->start), $this->translateOffset($range->stop), $range->step];
+        return $step > 0 ? $stop > $start : $stop < $start;
     }
 
     /**
@@ -425,7 +431,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -532,7 +538,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $str = '';
 
-        for ($index = $start; $index < $this->length; $index ++ ) {
+        for ($index = $start; $index < $this->length; $index ++) {
             if ( ! in_range($index, 0, $end - 1)) {
                 break;
             }
@@ -594,7 +600,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -647,7 +653,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     public function offsetExists(mixed $offset): bool
     {
-        return $this->offsetGet($offset) !== null;
+        return $this->offsetGet($offset) !== '';
     }
 
     public function offsetGet(mixed $offset): mixed
@@ -667,40 +673,47 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
                 $step = intval($step);
 
-                if (is_null($start) || $start === '') {
+                if ((string) $start === '') {
                     $start = $step > 0 ? 0 : -1;
                 }
 
-                if (is_null($stop) || $stop === '') {
+                if ((string) $stop === '') {
                     $stop = $step > 0 ? $this->length : -$this->length - 1;
                 }
+
+
                 $offset = new Range((int) $start, (int) $stop, $step);
             }
         }
 
 
 
-        if ($offset instanceof Range) {
+        if ($offset instanceof Range && $this->isValidRange($offset)) {
 
-            $start = $this->translateOffset($offset->start);
-            $stop = $this->translateOffset($offset->stop);
-            $step = $offset->step;
+            $str = '';
+            $last = null;
 
-            if ($step > 0 ? $stop > $start : $stop < $start) {
+            foreach ($offset as $index) {
 
-                $str = '';
-                foreach ($offset as $index) {
-                    $str .= $this->at($index);
+
+                $sign = $index === 0 ? 1 : $index / abs($index);
+
+                if ( ! is_null($last) && $last !== $sign) {
+                    break;
                 }
-                return $str;
+
+                $str .= $this->at($index);
+
+                $last = $sign;
             }
+            return $str;
         }
 
         if (is_int($offset)) {
-            return $this->at($offset);
+            return $this->at($offset) ?? '';
         }
 
-        return null;
+        return '';
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
