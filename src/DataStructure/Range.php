@@ -19,8 +19,8 @@ use ArrayAccess,
 class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable
 {
 
-    protected int $stop;
     protected int $start = 0;
+    protected int $stop;
     protected int $step = 1;
     protected bool $empty;
 
@@ -60,7 +60,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
         $offset = 0;
 
-        while ($value = $this->offsetGet($offset)) {
+        while ( ! is_null($value = $this->offsetGet($offset))) {
             yield $value;
             $offset ++;
         }
@@ -77,6 +77,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
             return false;
         }
         $value = $this->getValue($offset);
+
         return $this->step > 0 ? $value < $this->stop : $value > $this->stop;
     }
 

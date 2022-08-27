@@ -92,9 +92,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -425,7 +425,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -532,7 +532,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $str = '';
 
-        for ($index = $start; $index < $this->length; $index ++ ) {
+        for ($index = $start; $index < $this->length; $index ++) {
             if ( ! in_range($index, 0, $end - 1)) {
                 break;
             }
@@ -594,7 +594,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -674,21 +674,20 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
                 if (is_null($stop) || $stop === '') {
                     $stop = $step > 0 ? $this->length : -$this->length - 1;
                 }
-
-
-                var_dump([$start, $stop, $step]);
-
                 $offset = new Range((int) $start, (int) $stop, (int) $step);
-
-                var_dump($offset->toArray());
             }
         }
 
 
 
         if ($offset instanceof Range) {
+
+
+            var_dump($offset->toArray());
+
             $str = '';
             foreach ($offset as $index) {
+
                 $str .= $this->at($index);
             }
             return $str;
