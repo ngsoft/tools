@@ -17,7 +17,7 @@ use function get_debug_type,
              mb_strtoupper,
              mb_substr;
 use function NGSOFT\Tools\{
-    every, some
+    every, map, some
 };
 use function preg_exec,
              preg_valid,
@@ -134,9 +134,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $offset < 0 ? $this->length + $offset : $offset;
     }
 
-    public function indexOf(string|Stringable $needle, int $offset = 0): int
+    /**
+     * The indexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the first occurrence of the specified substring
+     */
+    public function indexOf(mixed $needle, int $offset = 0): int
     {
-        $needle = (string) $needle;
+        $needle = $this->convert($needle);
 
         if (empty($needle) || $this->isEmpty()) {
             return -1;
@@ -165,7 +168,18 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return -1;
     }
 
-    public function lastIndexOf(string|Stringable $needle, int $offset = 0)
+    /**
+     * Alias of indexOf
+     */
+    public function search(mixed $needle)
+    {
+        return $this->indexOf($this->convert($needle));
+    }
+
+    /**
+     * The lastIndexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the last occurrence of the specified substring.
+     */
+    public function lastIndexOf(mixed $needle, int $offset = 0)
     {
         $result = -1;
         while (-1 !== $pos = $this->indexOf($needle, $offset)) {
@@ -462,8 +476,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             return $result;
         }
 
-
-
         $search = $this->convert($search);
 
         if (empty($search)) {
@@ -474,6 +486,34 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $method = preg_valid($search) ? 'preg_replace' : 'str_replace';
 
         return $this->withText($method($search, $replacement, $this->text));
+    }
+
+    /**
+     * The slice() method extracts a section of a string and returns it as a new string
+     */
+    public function slice(int $start, ?int $length = null): static
+    {
+        return $this->withText(mb_substr($this->text, $start, $length));
+    }
+
+    /**
+     * The split() method takes a pattern and divides a String into an ordered list of substrings by searching for the pattern
+     */
+    public function split(mixed $separator, int $limit = 0): iterable
+    {
+
+        $separator = $this->convert($separator);
+
+        if (empty($separator)) {
+            return [$this];
+        }
+
+        if ( ! preg_valid($separator)) {
+            $method = 'explode';
+            $limit = $limit < 1 ? PHP_INT_MAX : $limit;
+        } else { $method = 'preg_split'; }
+
+        return map(fn($val) => $this->withText($val), $method($separator, $this->text, $limit));
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
