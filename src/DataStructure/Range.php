@@ -20,9 +20,9 @@ use ArrayAccess,
 class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable, Stringable
 {
 
-    protected int $start = 0;
-    protected int $stop;
-    protected int $step = 1;
+    public readonly int $start;
+    public readonly int $stop;
+    public readonly int $step;
     protected ?int $count = null;
 
     public static function create(int $start, ?int $stop = null, int $step = 1): static
