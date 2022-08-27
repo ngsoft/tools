@@ -695,10 +695,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             foreach ($offset as $index) {
 
-
                 $sign = $index === 0 ? 1 : $index / abs($index);
-
-                if ( ! is_null($last) && $last !== $sign) {
+                $last ??= $sign;
+                if ($last !== $sign) {
                     break;
                 }
 

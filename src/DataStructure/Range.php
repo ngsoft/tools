@@ -50,7 +50,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         $this->stop = $stop;
         $this->step = $step;
 
-        if ($step > 0 ? $stop < $start : $stop > $start) {
+        if ($step > 0 ? $stop <= $start : $stop >= $start) {
             $this->count = 0;
         }
     }
