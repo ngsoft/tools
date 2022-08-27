@@ -134,6 +134,18 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $offset < 0 ? $this->length + $offset : $offset;
     }
 
+    protected function getChars(array $chars): array
+    {
+        $result = [];
+
+        $str = '';
+        foreach ($chars as $char) {
+            $result[0] ??= '';
+            $result[0] .= $this->convert($char);
+        }
+        return $result;
+    }
+
     /**
      * The indexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the first occurrence of the specified substring
      */
@@ -504,7 +516,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $separator = $this->convert($separator);
 
-        if (empty($separator)) {
+        if (empty($separator) || $limit === 1) {
             return [$this];
         }
 
@@ -514,6 +526,85 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         } else { $method = 'preg_split'; }
 
         return map(fn($val) => $this->withText($val), $method($separator, $this->text, $limit));
+    }
+
+    /**
+     * The substring() method returns the part of the string between the start and end indexes, or to the end of the string.
+     *
+     * @param int $start
+     * @param int|null $end
+     * @return static
+     */
+    public function substring(int $start = 0, ?int $end = null): static
+    {
+
+        if ($start === $end) {
+            return $this->withText('');
+        }
+
+        if ( ! is_int($end)) {
+            $end = $this->length;
+        }
+
+        if ($start > $end) {
+            [$start, $end] = [$end, $start];
+        }
+
+        if ($end > $this->length) {
+            $end = $this->length;
+        }
+        if ($start < 0) {
+            $start = 0;
+        }
+
+        $str = '';
+        for ($index = $start; $index < $end; $index ++) {
+            $str .= $this->at($index);
+        }
+
+
+        return $this->withText($str);
+    }
+
+    /**
+     * Left Trim the string of the given characters.
+     */
+    public function ltrim(mixed ...$chars): static
+    {
+        return $this->withText(ltrim(...array_merge([$this->text], $this->getChars($chars))));
+    }
+
+    /**
+     * Alias of ltrim
+     */
+    public function trimStart(mixed ...$chars): static
+    {
+        return $this->ltrim(...$chars);
+    }
+
+    /**
+     * Right Trim the string of the given characters.
+     */
+    public function rtrim(mixed ...$chars): static
+    {
+
+        return $this->withText(rtrim(...array_merge([$this->text], $this->getChars($chars))));
+    }
+
+    /**
+     * Alias of rtrim
+     */
+    public function trimEnd(mixed ...$chars): static
+    {
+        return $this->rtrim(...$chars);
+    }
+
+    /**
+     * Trim the string of the given characters.
+     */
+    public function trim(mixed ...$chars): static
+    {
+        return $this->withText(trim(...array_merge([$this->text], $this->getChars($chars))));
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
