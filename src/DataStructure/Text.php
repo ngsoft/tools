@@ -501,11 +501,46 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
+     * Reverse the string
+     */
+    public function reverse(): static
+    {
+        return $this->withText(implode('', array_reverse(mb_str_split($text))));
+    }
+
+    /**
      * The slice() method extracts a section of a string and returns it as a new string
      */
-    public function slice(int $start, ?int $length = null): static
+    public function slice(int $start = 0, ?int $end = null): static
     {
-        return $this->withText(mb_substr($this->text, $start, $length));
+
+        $end ??= $this->length;
+
+        if ( ! in_range($start, -$this->length, $this->length - 1)) {
+            return $this->withText('');
+        }
+
+
+        if ($start < 0) {
+            $start += $this->length;
+        }
+
+        if ($end < 0) {
+            $end += $this->length;
+        }
+
+
+        $str = '';
+
+        for ($index = $start; $index < $this->length; $index ++) {
+            if ( ! in_range($index, 0, $end - 1)) {
+                break;
+            }
+            $str .= $this->at($index);
+        }
+
+
+        return $this->withText($str);
     }
 
     /**
@@ -549,6 +584,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         if ($start > $end) {
             [$start, $end] = [$end, $start];
         }
+
 
         if ($end > $this->length) {
             $end = $this->length;
@@ -611,12 +647,47 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     public function offsetExists(mixed $offset): bool
     {
-        return $this->at($offset) !== null;
+        return $this->offsetGet($offset) !== null;
     }
 
     public function offsetGet(mixed $offset): mixed
     {
-        return $this->at($offset);
+
+
+        if (is_int($offset)) {
+            return $this->at($offset);
+        }
+
+
+        if (is_string($offset)) {
+
+            if (preg_test('#^-?\d+$#', $offset)) {
+                return $this->at(intval($offset));
+            }
+
+            if ($offset === ':') {
+                return $this->toString();
+            } elseif ($result = preg_exec('#^(-?\d+):$#', $offset)) {
+                [, $start] = $result;
+
+                $start = intval($start);
+
+                if ($start < 0) {
+                    $start += $this->length;
+                }
+                return $this->slice($start)->toString();
+            } elseif ($result = preg_exec('#^(-?\d+)?:(-?\d+)$#', $offset)) {
+
+                [, $start, $end] = $result;
+
+                $start = empty($start) ? 0 : intval($start);
+                $end = intval($end);
+
+                return $this->slice($start, $end)->toString();
+            }
+        }
+
+        return null;
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
