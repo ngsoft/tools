@@ -22,7 +22,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
     protected int $start = 0;
     protected int $stop;
     protected int $step = 1;
-    protected bool $empty;
+    protected ?int $count = null;
 
     public static function create(int $start, ?int $stop = null, int $step = 1): static
     {
@@ -49,12 +49,14 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         $this->stop = $stop;
         $this->step = $step;
 
-        $this->empty = $step > 0 ? $stop < $start : $stop > $start;
+        if ($step > 0 ? $stop < $start : $stop > $start) {
+            $this->count = 0;
+        }
     }
 
     public function getIterator(): Traversable
     {
-        if ($this->empty) {
+        if ( ! $this->count) {
             return;
         }
 
@@ -103,17 +105,13 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function isEmpty(): bool
     {
-        return $this->empty;
+        return $this->count === 0;
     }
 
     public function count(): int
     {
 
-        if ($this->isEmpty()) {
-            return 0;
-        }
-
-        return count($this->toArray());
+        return $this->count ??= iterator_count($this);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
@@ -128,12 +126,12 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function __serialize(): array
     {
-        return[$this->start, $this->stop, $this->step, $this->empty];
+        return[$this->start, $this->stop, $this->step, $this->coun];
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->start, $this->stop, $this->step, $this->empty] = $data;
+        [$this->start, $this->stop, $this->step, $this->count] = $data;
     }
 
 }
