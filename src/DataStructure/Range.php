@@ -8,6 +8,7 @@ use ArrayAccess,
     Countable,
     IteratorAggregate,
     JsonSerializable,
+    Stringable,
     Traversable,
     ValueError;
 
@@ -16,7 +17,7 @@ use ArrayAccess,
  * @link https://docs.python.org/3/library/stdtypes.html#range
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
-class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable
+class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable, Stringable
 {
 
     protected int $start = 0;
@@ -56,7 +57,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function getIterator(): Traversable
     {
-        if ( ! $this->count) {
+        if ($this->isEmpty()) {
             return;
         }
 
@@ -132,6 +133,11 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
     public function __unserialize(array $data): void
     {
         [$this->start, $this->stop, $this->step, $this->count] = $data;
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('%d:%d:%d', $this->start, $this->stop, $this->step);
     }
 
 }
