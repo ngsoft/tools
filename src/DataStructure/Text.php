@@ -92,9 +92,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++ ) {
+            for ($i = 0; $i < $this->length; $i ++) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
+                for ($j = 0; $j < strlen($char); $j ++) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -425,7 +425,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -532,7 +532,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $str = '';
 
-        for ($index = $start; $index < $this->length; $index ++) {
+        for ($index = $start; $index < $this->length; $index ++ ) {
             if ( ! in_range($index, 0, $end - 1)) {
                 break;
             }
@@ -594,7 +594,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 
@@ -653,38 +653,49 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function offsetGet(mixed $offset): mixed
     {
 
-
-        if (is_int($offset)) {
-            return $this->at($offset);
-        }
-
-
         if (is_string($offset)) {
 
             if (preg_test('#^-?\d+$#', $offset)) {
-                return $this->at(intval($offset));
-            }
+                $offset = intval($offset);
+            } elseif ($result = preg_exec('#^(-?\d+)?(?:\:(-?\d+)?)?(?:\:(-?\d+)?)?$#', $offset)) {
 
-            if ($offset === ':') {
-                return $this->toString();
-            } elseif ($result = preg_exec('#^(-?\d+):$#', $offset)) {
-                [, $start] = $result;
+                @list(, $start, $stop, $step) = $result;
 
-                $start = intval($start);
-
-                if ($start < 0) {
-                    $start += $this->length;
+                if (is_null($step) || $step === '') {
+                    $step = 1;
                 }
-                return $this->slice($start)->toString();
-            } elseif ($result = preg_exec('#^(-?\d+)?:(-?\d+)$#', $offset)) {
 
-                [, $start, $end] = $result;
+                $step = intval($step);
 
-                $start = empty($start) ? 0 : intval($start);
-                $end = intval($end);
+                if (is_null($start) || $start === '') {
+                    $start = $step > 0 ? 0 : -1;
+                }
 
-                return $this->slice($start, $end)->toString();
+                if (is_null($stop) || $stop === '') {
+                    $stop = $step > 0 ? $this->length : -$this->length - 1;
+                }
+
+
+                var_dump([$start, $stop, $step]);
+
+                $offset = new Range((int) $start, (int) $stop, (int) $step);
+
+                var_dump($offset->toArray());
             }
+        }
+
+
+
+        if ($offset instanceof Range) {
+            $str = '';
+            foreach ($offset as $index) {
+                $str .= $this->at($index);
+            }
+            return $str;
+        }
+
+        if (is_int($offset)) {
+            return $this->at($offset);
         }
 
         return null;
