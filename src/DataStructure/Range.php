@@ -127,7 +127,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function __serialize(): array
     {
-        return[$this->start, $this->stop, $this->step, $this->coun];
+        return[$this->start, $this->stop, $this->step, $this->count];
     }
 
     public function __unserialize(array $data): void
