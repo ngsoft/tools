@@ -218,6 +218,12 @@ if ( ! function_exists('in_range')) {
      */
     function in_range(int $number, int $min, int $max, bool $inclusive = true)
     {
+
+        if ($min > $max) {
+            [$min, $max] = [$max, $min];
+        }
+
+
         return
                 $inclusive ?
                 ($number >= $min && $number <= $max) :
