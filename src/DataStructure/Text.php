@@ -621,30 +621,18 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      * Return a string which is the concatenation of the strings in iterable.
      * The separator between elements is the string providing this method.
      */
-    public function join(mixed ...$strings): static
+    public function join(mixed $iterable): static
     {
 
-        $result = clone $this;
 
-        foreach ($strings as $string) {
+        if ( ! is_iterable($iterable)) {
 
-
-            if (is_iterable($string)) {
-
-                foreach ($string as $value) {
-                    $result = $result->join($value);
-                }
-
-                continue;
-            }
-
-            $string = $this->convert($string);
-
-            $result = $result->withText($this->text . $string);
+            $iterable = static::of($iterable);
         }
 
 
-        return $result;
+
+        $glue = $this->text;
     }
 
     /**
