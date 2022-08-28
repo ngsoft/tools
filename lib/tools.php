@@ -211,3 +211,19 @@ function str(mixed $text): Text
 {
     return Text::of($text);
 }
+
+/**
+ * Joins iterable together using provided glue
+ */
+function join(mixed $glue, iterable $values): string
+{
+    return Tools::join($glue, $values);
+}
+
+/**
+ * Split a stringable using provided separator
+ */
+function split(mixed $separator, mixed $value): array
+{
+    return Tools::split($separator, $value);
+}

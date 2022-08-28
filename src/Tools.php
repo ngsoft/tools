@@ -577,6 +577,33 @@ final class Tools
         return $result;
     }
 
+    /**
+     * Joins iterable together using provided glue
+     */
+    public static function join(mixed $glue, iterable $values): string
+    {
+        $glue = str_val($glue);
+
+        $result = [];
+
+        foreach ($values as $value) {
+            $result[] = str_val($value);
+        }
+
+        return implode($glue, $result);
+    }
+
+    /**
+     * Split a stringable using provided separator
+     */
+    public static function split(mixed $separator, mixed $value): array
+    {
+        $separator = str_val($separator);
+
+        $value = str_val($value);
+        return explode($separator, $value);
+    }
+
     ////////////////////////////   Time   ////////////////////////////
 
     /**

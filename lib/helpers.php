@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-use NGSOFT\Tools;
+use NGSOFT\{
+    Tools, Tools\TypeCheck
+};
 
 if ( ! defined('NAMESPACE_SEPARATOR')) {
     define('NAMESPACE_SEPARATOR', '\\');
@@ -87,6 +89,19 @@ if ( ! function_exists('str_val')) {
 }
 
 
+
+if ( ! function_exists('is_arrayaccess')) {
+
+    /**
+     * Check if value is Array like
+     */
+    function is_arrayaccess(mixed $value): bool
+    {
+        return TypeCheck::checkType($value, TypeCheck::TYPE_ARRAYACCESS);
+    }
+
+}
+
 if ( ! function_exists('is_unsigned')) {
 
     /**
@@ -157,7 +172,7 @@ if ( ! function_exists('is_instanciable')) {
 
     function is_instanciable(string $class): bool
     {
-        return class_exists($class) && (new \ReflectionClass($class))->isInstantiable();
+        return class_exists($class) && (new ReflectionClass($class))->isInstantiable();
     }
 
 }

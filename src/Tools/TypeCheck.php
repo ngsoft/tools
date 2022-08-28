@@ -29,7 +29,8 @@ class TypeCheck
     public const TYPE_NULL = 'null';
     public const TYPE_FALSE = 'false';
     public const TYPE_RESOURCE = 'resource';
-    public const TYPE_ARRAYACCESS = 'ArrayAccess&Countable&Traversable';
+    public const TYPE_ARRAYACCESS = 'array|ArrayAccess&Countable';
+    public const TYPE_ARRAYACCESSITERABLE = 'array|ArrayAccess&Countable&Traversable';
     public const TYPE_STRINGABLE = 'string|Stringable';
     public const TYPE_SCALAR = 'int|bool|float|string';
 

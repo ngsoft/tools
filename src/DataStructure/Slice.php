@@ -21,7 +21,7 @@ class Slice
     public static function of(string|int $slice): static
     {
 
-        $start = $stop = null;
+        $stop = null;
         $step = 1;
 
         if (is_numeric($slice)) {

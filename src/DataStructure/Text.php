@@ -19,7 +19,6 @@ use function NGSOFT\Tools\{
     every, map, some
 };
 use function preg_exec,
-             preg_test,
              preg_valid,
              str_contains,
              str_ends_with,
@@ -28,7 +27,7 @@ use function preg_exec,
 
 /**
  * Transform a scalar to its stringable representation
- * @phan-file-suppress PhanUnusedPublicMethodParameter
+ * @phan-file-suppress PhanUnusedPublicMethodParameter, PhanParamTooFewInternalUnpack
  */
 class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 {
@@ -138,6 +137,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
         return $result;
     }
+
+    ////////////////////////////   JS Like   ////////////////////////////
 
     /**
      * The indexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the first occurrence of the specified substring
@@ -434,7 +435,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $result = $this;
             $index = 0;
             foreach ($search as $pattern) {
-                if (is_iterable($replacement)) {
+                if (is_arrayaccess($replacement)) {
                     $replace = $replacement[$index] ?? '';
                 } else { $replace = $replacement; }
                 $result = $result->replace($pattern, $replace);
@@ -472,7 +473,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $result = $this;
             $index = 0;
             foreach ($search as $pattern) {
-                if (is_iterable($replacement)) {
+                if (is_arrayaccess($replacement)) {
                     $replace = $replacement[$index] ?? '';
                 } else { $replace = $replacement; }
                 $result = $result->replaceAll($pattern, $replace);
@@ -491,49 +492,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $method = preg_valid($search) ? 'preg_replace' : 'str_replace';
 
         return $this->withText($method($search, $replacement, $this->text));
-    }
-
-    /**
-     * Reverse the string
-     */
-    public function reverse(): static
-    {
-        return $this->withText(implode('', array_reverse(mb_str_split($this->text))));
-    }
-
-    /**
-     * The slice() method extracts a section of a string and returns it as a new string
-     */
-    public function slice(int $start = 0, ?int $end = null): static
-    {
-
-        $end ??= $this->length;
-
-        if ( ! in_range($start, -$this->length, $this->length - 1)) {
-            return $this->withText('');
-        }
-
-
-        if ($start < 0) {
-            $start += $this->length;
-        }
-
-        if ($end < 0) {
-            $end += $this->length;
-        }
-
-
-        $str = '';
-
-        for ($index = $start; $index < $this->length; $index ++) {
-            if ( ! in_range($index, 0, $end - 1)) {
-                break;
-            }
-            $str .= $this->at($index);
-        }
-
-
-        return $this->withText($str);
     }
 
     /**
@@ -634,6 +592,99 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function trim(mixed ...$chars): static
     {
         return $this->withText(trim(...array_merge([$this->text], $this->getChars($chars))));
+    }
+
+    ////////////////////////////   Python Like Methods   ////////////////////////////
+
+    /**
+     * Return a copy of the string with its first character capitalized and the rest lowercased.
+     */
+    public function capitalize(): static
+    {
+
+        if ( ! $this->length) {
+            return $this;
+        }
+
+        [$start, $end] = [$this[0], $this['1:']];
+
+        $start = mb_strtoupper($start);
+        $end = mb_strtolower($end);
+
+        return $this->withText($start . $end);
+    }
+
+    /**
+     * Return a string which is the concatenation of the strings in iterable.
+     * The separator between elements is the string providing this method.
+     */
+    public function join(mixed ...$strings): static
+    {
+
+        $result = clone $this;
+
+        foreach ($strings as $string) {
+
+
+            if (is_iterable($string)) {
+
+                foreach ($string as $value) {
+                    $result = $result->join($value);
+                }
+
+                continue;
+            }
+
+            $string = $this->convert($string);
+
+            $result = $result->withText($this->text . $string);
+        }
+
+
+        return $result;
+    }
+
+    /**
+     * Reverse the string
+     */
+    public function reverse(): static
+    {
+        return $this->withText(implode('', array_reverse(mb_str_split($this->text))));
+    }
+
+    /**
+     * The slice() method extracts a section of a string and returns it as a new string
+     */
+    public function slice(int $start = 0, ?int $end = null): static
+    {
+
+        $end ??= $this->length;
+
+        if ( ! in_range($start, -$this->length, $this->length - 1)) {
+            return $this->withText('');
+        }
+
+
+        if ($start < 0) {
+            $start += $this->length;
+        }
+
+        if ($end < 0) {
+            $end += $this->length;
+        }
+
+
+        $str = '';
+
+        for ($index = $start; $index < $this->length; $index ++ ) {
+            if ( ! in_range($index, 0, $end - 1)) {
+                break;
+            }
+            $str .= $this->at($index);
+        }
+
+
+        return $this->withText($str);
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
