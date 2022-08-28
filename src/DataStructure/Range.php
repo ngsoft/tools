@@ -8,13 +8,15 @@ use ArrayAccess,
     Countable,
     IteratorAggregate,
     JsonSerializable,
+    NGSOFT\Tools\TypeCheck,
     Stringable,
     Traversable,
     ValueError;
-use function NGSOFT\Tools\map;
+use function in_range,
+             is_unsigned;
 
 /**
- * A Python like Range
+ * A Python like Range Implementation
  * @link https://docs.python.org/3/library/stdtypes.html#range
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
@@ -50,10 +52,6 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         $this->start = $start;
         $this->stop = $stop;
         $this->step = $step;
-
-        if ($step > 0 ? $stop <= $start : $stop >= $start) {
-            $this->count = 0;
-        }
     }
 
     public function getStart(): int
@@ -71,11 +69,10 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         return $this->step;
     }
 
-    protected function isValidSlice(Text $text): bool
+    protected function isValidSlice(array|Countable $array): bool
     {
 
-
-        [$start, $stop, $len] = [$this->start, $this->stop, count($text)];
+        [$start, $stop, $len] = [$this->start, $this->stop, count($array)];
 
         if ( ! in_range($start, -$len, $len - 1)) {
             return false;
@@ -85,36 +82,51 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
             return false;
         }
 
+        if ($start === 0 && $stop < 0) {
+            return false;
+        }
+
 
         return $this->step > 0 ? $stop > $start : $stop < $start;
     }
 
     /**
-     * Get a slice from a stringable using current range
+     * Get a slice from a array like using current range
      */
-    public function slice(mixed $text): string
+    public function slice(mixed $array): array
     {
 
 
-        $text = Text::of($text);
-        $result = '';
+        if (is_string($array)) {
+            $array = Text::of($array);
+        }
 
-        if ( ! $this->isValidSlice($text)) {
+        TypeCheck::assertType(
+                __METHOD__ . ' Argument #0', $array,
+                TypeCheck::TYPE_ARRAY, TypeCheck::UNION, ArrayAccess::class, TypeCheck::INTERSECTION, Countable::class
+        );
+
+        $text = Text::of($text);
+        $result = [];
+
+        if ( ! $this->isValidSlice($array)) {
             return $result;
         }
 
 
+        [$start, $stop, $step, $len] = [$this->start, $this->stop, $this->step, count($array)];
 
         foreach ($this as $offset) {
-
-            $sign = $offset > 0 ? 1 : -1;
-
-            if (isset($prev) && $prev !== $sign) {
+            $unsigned ??= is_unsigned($offset);
+            if ($unsigned !== is_unsigned($offset)) {
                 break;
             }
 
-            $result .= $string->at($offset);
-            $prev = $sign;
+            while ($offset < 0) {
+                $offset += $len;
+            }
+
+            $result[] = $array[$offset];
         }
 
 
@@ -172,13 +184,12 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function isEmpty(): bool
     {
-        return $this->count === 0;
+        return $this->step > 0 ? $this->stop <= $this->start : $this->stop >= $this->start;
     }
 
     public function count(): int
     {
-
-        return $this->count ??= iterator_count($this);
+        return $this->count ??= $this->isEmpty() ? 0 : iterator_count($this);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
@@ -196,6 +207,11 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         return[$this->start, $this->stop, $this->step, $this->count];
     }
 
+    public function __clone()
+    {
+        $this->count = null;
+    }
+
     public function __unserialize(array $data): void
     {
         [$this->start, $this->stop, $this->step, $this->count] = $data;
@@ -203,7 +219,7 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function __toString(): string
     {
-        return sprintf('%d:%d:%d', $this->start, $this->stop, $this->step);
+        return sprintf('%s(%d, %d, %d)', static::class, $this->start, $this->stop, $this->step);
     }
 
 }

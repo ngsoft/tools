@@ -171,7 +171,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             // python does not change signs for slices
             $positive = $start >= 0;
 
-            $result = static::create($start, $stop, $step);
+            $result = Range::create($start, $stop, $step);
         }
 
         if ( ! isset($result) || $this->isValidRange($result)) {
@@ -256,14 +256,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     /**
      * The at() method takes an integer value and returns the character located at the specified offset
      */
-    public function at(int $offset = 0): ?string
+    public function at(int $offset = 0): string
     {
 
 
         $offset = $this->translateOffset($offset);
 
         if ($offset >= $this->length || $offset < 0) {
-            return null;
+            return '';
         }
 
         return mb_substr($this->text, $offset, 1);
