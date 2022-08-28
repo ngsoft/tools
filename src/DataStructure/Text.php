@@ -6,6 +6,7 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
+    InvalidArgumentException,
     JsonSerializable;
 use NGSOFT\{
     Tools, Traits\SliceAble
@@ -14,13 +15,15 @@ use Stringable,
     ValueError;
 use const MB_CASE_TITLE;
 use function is_arrayaccess,
+             is_stringable,
              mb_convert_case,
              mb_str_split,
              mb_strlen,
              mb_strpos,
              mb_strtolower,
              mb_strtoupper,
-             mb_substr;
+             mb_substr,
+             mb_substr_count;
 use function NGSOFT\Tools\{
     every, map, some
 };
@@ -99,9 +102,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -330,7 +333,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
 
         if (is_iterable($needle)) {
-            return every(fn($n) => $this->contains($n, $ignoreCase), $needle);
+            return some(fn($n) => $this->contains($n, $ignoreCase), $needle);
         }
 
         $needle = $this->convert($needle);
@@ -354,7 +357,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function containsAll(iterable $needles, bool $ignoreCase = false): bool
     {
-        return $this->contains($needles, $ignoreCase);
+        return every(fn($n) => $this->contains($n, $ignoreCase), $needles);
     }
 
     /**
@@ -388,20 +391,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function padStart(int $length, mixed $pad = ' '): static
     {
 
+        $total = $length;
         $length -= $this->length;
 
-        if ($length <= 0) {
-            return $this;
-        }
-
-        $pad = $this->convert($pad);
-
-        if ($pad === '') {
+        if ($length <= 0 || '' === $pad = $this->convert($pad)) {
             return $this;
         }
 
         $str = $this->text;
-        $total = $this->length + $length;
 
         while (mb_strlen($str) < $total) {
             $str = $pad . $str;
@@ -416,20 +413,16 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function padEnd(int $length, mixed $pad = ' '): static
     {
 
+        $total = $length;
+
         $length -= $this->length;
 
-        if ($length <= 0) {
+        if ($length <= 0 || '' === $pad = $this->convert($pad)) {
             return $this;
         }
 
-        $pad = $this->convert($pad);
-
-        if ($pad === '') {
-            return $this;
-        }
 
         $str = $this->text;
-        $total = $this->length + $length;
 
         while (mb_strlen($str) < $total) {
             $str .= $pad;
@@ -443,25 +436,21 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function pad(int $length, mixed $pad = ' '): static
     {
+        $total = $length;
         $length -= $this->length;
 
-        if ($length <= 0) {
+        if ($length <= 0 || '' === $pad = $this->convert($pad)) {
             return $this;
         }
 
-        $pad = $this->convert($pad);
+        $right = $this->length + intval(ceil($length / 2));
 
-        if ($pad === '') {
-            return $this;
-        }
-
-        $right = intval(ceil($length / 2));
-
-        return $this->padEnd($this->length + $right, $pad)->padStart($this->length + $length, $pad);
+        return $this->padEnd($right, $pad)->padStart($total, $pad);
     }
 
     /**
-     * The repeat() method constructs and returns a new string which contains the specified number of copies of the string on which it was called, concatenated together.
+     * The repeat() method constructs and returns a new string which contains the specified number of copies of the string on which it was called,
+     * concatenated together.
      */
     public function repeat(int $times): static
     {
@@ -469,7 +458,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -493,6 +482,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             }
             return $result;
         }
+
+
 
         $search = $this->convert($search);
 
@@ -575,7 +566,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -818,7 +809,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function iscontrol(): bool
     {
-        ctype_cntrl($this->text);
+        return ctype_cntrl($this->text);
     }
 
     /**
@@ -831,7 +822,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     /**
      * Return a string which is the concatenation of the strings in iterable.
-     * The separator between elements is the string providing this method.
+     * The separator between elements is the Text providing this method.
      */
     public function join(mixed $iterable): static
     {
