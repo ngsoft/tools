@@ -89,8 +89,6 @@ class Slice
     public function slice(mixed $value): array
     {
 
-
-        var_dump($this);
         TypeCheck::assertType(
                 __METHOD__ . ' Argument #0', $value,
                 TypeCheck::TYPE_ARRAY, TypeCheck::UNION, ArrayAccess::class, TypeCheck::INTERSECTION, Countable::class
