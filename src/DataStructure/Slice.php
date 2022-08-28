@@ -26,11 +26,7 @@ class Slice implements Stringable
         $stop = null;
         $step = 1;
 
-        if (is_numeric($slice)) {
-
-            $start = intval($slice);
-            $stop = $start + 1;
-        } elseif ($slice === ':' || $slice === '::') {
+        if ($slice === ':' || $slice === '::') {
             $start = 0;
         } elseif (str_contains($slice, ':')) {
 

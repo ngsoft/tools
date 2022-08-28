@@ -10,7 +10,8 @@ use ArrayAccess,
 use NGSOFT\{
     Tools, Traits\SliceAble
 };
-use Stringable,
+use OutOfRangeException,
+    Stringable,
     ValueError;
 use const MB_CASE_TITLE;
 use function is_arrayaccess,
@@ -100,9 +101,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++ ) {
+            for ($i = 0; $i < $this->length; $i ++) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
+                for ($j = 0; $j < strlen($char); $j ++) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -456,7 +457,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -564,7 +565,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 
@@ -1307,8 +1308,11 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function offsetGet(mixed $offset): static
     {
 
-        if (is_string($offset)) {
+        if (is_numeric($offset)) {
+            $offset = intval($offset);
+        }
 
+        if (is_string($offset)) {
             $offset = $this->getSlice($offset);
         }
 
@@ -1317,7 +1321,13 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         if (is_int($offset)) {
-            return $this->withText($this->at($offset));
+
+            if ('' === $value = $this->at($offset)) {
+                throw new OutOfRangeException(sprintf('Offset #%d does not exists.', $offset));
+            }
+
+
+            return $this->withText($value);
         }
 
 
