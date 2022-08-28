@@ -7,8 +7,10 @@ namespace NGSOFT\DataStructure;
 use ArrayAccess,
     Countable,
     JsonSerializable,
+    NGSOFT\Traits\SliceAble,
     Stringable;
 use function in_range,
+             is_arrayaccess,
              mb_str_split,
              mb_strlen,
              mb_strpos,
@@ -31,6 +33,8 @@ use function preg_exec,
  */
 class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 {
+
+    use SliceAble;
 
     protected string $text;
     protected int $length;
@@ -699,12 +703,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         if (is_string($offset)) {
 
-            $offset = Slice::of($offset);
+            $offset = $this->getSlice($offset);
         }
 
         if ($offset instanceof Slice) {
 
-            return implode('', $offset->slice($this));
+            return implode('', $this->sliceValue($offset, $this));
         }
 
         if (is_int($offset)) {
