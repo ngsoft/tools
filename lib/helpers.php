@@ -247,6 +247,7 @@ if ( ! function_exists('preg_exec')) {
 
         if (preg_match_all($pattern, $subject, $matches, PREG_SET_ORDER) > 0) {
 
+
             if ($limit === 0) {
                 $limit = count($matches);
             }

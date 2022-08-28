@@ -6,9 +6,12 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
-    JsonSerializable,
-    NGSOFT\Traits\SliceAble,
-    Stringable;
+    JsonSerializable;
+use NGSOFT\{
+    Tools, Traits\SliceAble
+};
+use Stringable,
+    ValueError;
 use function is_arrayaccess,
              mb_str_split,
              mb_strlen,
@@ -88,9 +91,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++ ) {
+            for ($i = 0; $i < $this->length; $i ++) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
+                for ($j = 0; $j < strlen($char); $j ++) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -351,13 +354,18 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     /**
      * Pad the left side of a string with another.
      */
-    public function padStart(int $length = 1, mixed $pad = ' '): static
+    public function padStart(int $length, mixed $pad = ' '): static
     {
 
-        $length = max(0, $length);
+        $length -= $this->length;
+
+        if ($length <= 0) {
+            return $this;
+        }
+
         $pad = $this->convert($pad);
 
-        if (empty($pad) || empty($length)) {
+        if (empty($pad)) {
             return $this;
         }
 
@@ -368,19 +376,27 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $str = $pad . $str;
         }
 
+
+        var_dump($str);
+
         return $this->withText(mb_substr($str, $total - mb_strlen($str)));
     }
 
     /**
      * Pad the right side of a string with another.
      */
-    public function padEnd(int $length = 1, mixed $pad = ' '): static
+    public function padEnd(int $length, mixed $pad = ' '): static
     {
 
-        $length = max(1, $length);
+        $length -= $this->length;
+
+        if ($length <= 0) {
+            return $this;
+        }
+
         $pad = $this->convert($pad);
 
-        if (empty($pad) || empty($length)) {
+        if (empty($pad)) {
             return $this;
         }
 
@@ -397,20 +413,23 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     /**
      * Pad on both sides of a string with another.
      */
-    public function pad(int $length = 2, mixed $pad = ' '): static
+    public function pad(int $length, mixed $pad = ' '): static
     {
-        $length = max(0, $length);
+        $length -= $this->length;
+
+        if ($length <= 0) {
+            return $this;
+        }
 
         $pad = $this->convert($pad);
 
-        if (empty($pad) || empty($length)) {
+        if (empty($pad)) {
             return $this;
         }
 
         $right = intval(ceil($length / 2));
-        $left = $length - $right;
 
-        return $this->padEnd($right, $pad)->padStart($left, $pad);
+        return $this->padEnd($this->length + $right, $pad)->padStart($this->length + $length, $pad);
     }
 
     /**
@@ -422,7 +441,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -505,7 +524,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $separator = $this->convert($separator);
 
-        if (empty($separator) || $limit === 1) {
+        if ($limit === 1 || empty($separator)) {
             return [$this];
         }
 
@@ -548,7 +567,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 
@@ -618,21 +637,201 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
+     * Return centered in a string of length width. Padding is done using the specified fillchar (default is an ASCII space).
+     * The original string is returned if width is less than or equal to len(s).
+     */
+    public function center(int $width, mixed $fillchar = ' '): static
+    {
+        return $this->pad($width, $fillchar);
+    }
+
+    /**
+     * Return a copy of the string where all tab characters are replaced by one or more spaces
+     */
+    public function expandtabs(int $tabsize = 8): static
+    {
+
+        $tabsize = max(0, $tabsize);
+
+        return $this->replaceAll(["\t", '\t'], $tabsize > 0 ? str_repeat(' ', $tabsize) : '');
+    }
+
+    /**
+     * Return the lowest index in the string where substring sub is found within the slice s[start:end].
+     * Optional arguments start and end are interpreted as in slice notation. Return -1 if sub is not found.
+     */
+    public function find(mixed $sub, ?int $start = null, ?int $end = null): static
+    {
+
+        $sub = $this->convert($sub);
+        $start ??= 0;
+        $end ??= $this->length;
+
+        return $this->slice($start, $end)->indexOf($sub);
+    }
+
+    /**
+     * Perform a string formatting operation. The string on which this method is called can contain literal text or replacement fields delimited by braces {}.
+     * Each replacement field contains either the numeric index of a positional argument, or the name of a keyword argument.
+     */
+    public function format(mixed ...$args): static
+    {
+        $result = $this;
+        $replacements = $replaced = [];
+
+        foreach ($args as $index => $arg) {
+            $replacements[$index] = $this->convert($arg);
+        }
+
+
+        if ($matches = preg_exec("#{([^}]+)}#", $this->text, 0)) {
+
+            foreach ($matches as $matches) {
+
+                [$sub, $offset] = $matches;
+
+                if (isset($replaced[$sub])) {
+                    continue;
+                }
+
+                $offset = is_numeric($offset) ? intval($offset) : $offset;
+
+                if ( ! array_key_exists($offset, $replacements)) {
+                    throw new ValueError('Invalid key ' . $sub);
+                }
+
+                $result = $result->replaceAll($sub, $replacements[(int) $offset]);
+
+                $replaced[$sub] = true;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Like find(), but raise ValueError when the substring is not found.
+     */
+    public function index(mixed $sub, ?int $start = null, ?int $end = null): static
+    {
+
+        if (-1 === $result = $this->find($sub, $start, $end)) {
+            throw new ValueError('Substring not found.');
+        }
+
+        return $result;
+    }
+
+    /**
+     * Return True if all characters in the string are alphanumeric and there is at least one character, False otherwise
+     */
+    public function isalnum(): bool
+    {
+        return ctype_alnum($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are alphabetic and there is at least one character, False otherwise.
+     */
+    public function isalpha(): bool
+    {
+        return ctype_alpha($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are decimal characters and there is at least one character, False otherwise
+     */
+    public function isdecimal(): bool
+    {
+        return preg_test('#^\d+$#', $this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are digits and there is at least one character, False otherwise.
+     */
+    public function isdigit(): bool
+    {
+        return ctype_digit($this->text);
+    }
+
+    /**
+     * Return True if all cased characters in the string are lowercase and there is at least one cased character, False otherwise.
+     */
+    public function islower(): bool
+    {
+        return preg_test('#[a-z]#', $this->text) && ! preg_test('#[A-Z]#', $this->text);
+    }
+
+    /**
+     * Finds whether a variable is a number or a numeric string
+     * @link https://www.php.net/manual/en/function.is-numeric.php
+     */
+    public function isnumeric(): bool
+    {
+        return is_numeric($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are uppercase and there is at least one lowercase character, False otherwise.
+     */
+    public function isupper(): bool
+    {
+        return ! preg_test('#[a-z]#', $this->text) && preg_test('#[A-Z]#', $this->text);
+    }
+
+    /**
      * Return a string which is the concatenation of the strings in iterable.
      * The separator between elements is the string providing this method.
      */
     public function join(mixed $iterable): static
     {
 
-
         if ( ! is_iterable($iterable)) {
-
-            $iterable = static::of($iterable);
+            $iterable = mb_str_split($this->convert($iterable));
         }
 
 
+        return $this->withText(Tools::join($this->text, $iterable));
+    }
 
-        $glue = $this->text;
+    /**
+     * Return a copy of the string with all characters converted to lowercase.
+     */
+    public function lower(): static
+    {
+        return $this->toLowerCase();
+    }
+
+    /**
+     * Return a copy of the string with leading characters removed.
+     * The chars argument is a string specifying the set of characters to be removed. If omitted or null, the chars argument defaults to removing whitespace.
+     * The chars argument is not a prefix; rather, all combinations of its values are stripped:
+     */
+    public function lstrip(mixed $chars = null): static
+    {
+        $args = [];
+        if ( ! is_null($chars)) {
+            $args [] = $this->convert($chars);
+        }
+
+        return $this->ltrim(...$args);
+    }
+
+    /**
+     * Split the string at the first occurrence of sep,
+     * and return a 3-tuple containing the part before the separator, the separator itself, and the part after the separator.
+     * If the separator is not found, return a 3-tuple containing the string itself, followed by two empty strings.
+     */
+    public function partition(mixed $sep): array
+    {
+        $sep = $this->convert($sep);
+        @list($before, $after) = explode($sep, $this->text, 2);
+        if (is_null($after)) {
+            $empty = $this->withText('');
+            return [$this->withText($before), $empty, $empty];
+        }
+
+        return [$this->withText($before), $this->withText($sep), $this->withText($after)];
     }
 
     /**
