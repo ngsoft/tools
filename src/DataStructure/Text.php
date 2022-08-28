@@ -9,8 +9,7 @@ use ArrayAccess,
     JsonSerializable,
     NGSOFT\Traits\SliceAble,
     Stringable;
-use function in_range,
-             is_arrayaccess,
+use function is_arrayaccess,
              mb_str_split,
              mb_strlen,
              mb_strpos,
@@ -659,36 +658,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     /**
      * The slice() method extracts a section of a string and returns it as a new string
      */
-    public function slice(int $start = 0, ?int $end = null): static
+    public function slice(int $start = 0, ?int $end = null, int $step = 1): static
     {
-
-        $end ??= $this->length;
-
-        if ( ! in_range($start, -$this->length, $this->length - 1)) {
-            return $this->withText('');
-        }
-
-
-        if ($start < 0) {
-            $start += $this->length;
-        }
-
-        if ($end < 0) {
-            $end += $this->length;
-        }
-
-
-        $str = '';
-
-        for ($index = $start; $index < $this->length; $index ++ ) {
-            if ( ! in_range($index, 0, $end - 1)) {
-                break;
-            }
-            $str .= $this->at($index);
-        }
-
-
-        return $this->withText($str);
+        return $this->withText($this->joinSliceValue(Slice::create($start, $end, $step), $this));
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
@@ -707,8 +679,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         if ($offset instanceof Slice) {
-
-            return implode('', $this->sliceValue($offset, $this));
+            return $this->joinSliceValue($offset, $this);
         }
 
         if (is_int($offset)) {

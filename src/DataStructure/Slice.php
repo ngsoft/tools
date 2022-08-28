@@ -6,8 +6,10 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
-    InvalidArgumentException,
-    NGSOFT\Tools\TypeCheck;
+    InvalidArgumentException;
+use NGSOFT\{
+    Tools, Tools\TypeCheck
+};
 use function str_contains;
 
 class Slice
@@ -83,6 +85,9 @@ class Slice
         return ($this->start ?? 0) + ($offset * ($this->step ?? 1));
     }
 
+    /**
+     * Returs a dlice of an array like object
+     */
     public function slice(mixed $value): array
     {
 
@@ -135,6 +140,14 @@ class Slice
 
 
         return $result;
+    }
+
+    /**
+     * Returns a String of a slice
+     */
+    public function join(mixed $glue, mixed $value): string
+    {
+        return Tools::join($glue, $this->slice($value));
     }
 
 }
