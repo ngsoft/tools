@@ -81,7 +81,7 @@ if ( ! function_exists('str_val')) {
         if (is_scalar($value) && ! is_string($value)) {
             $value = json_encode($value, flags: JSON_THROW_ON_ERROR);
         }
-        return (string) $text;
+        return (string) $value;
     }
 
 }
