@@ -38,6 +38,10 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     public static function of(mixed $text): static
     {
+
+        if ($text instanceof self) {
+            return $text;
+        }
         return new static($text);
     }
 
@@ -92,9 +96,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++ ) {
+            for ($i = 0; $i < $this->length; $i ++) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
+                for ($j = 0; $j < strlen($char); $j ++) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -167,12 +171,17 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
                 $start = $step > 0 ? 0 : -1;
             }
 
+            $start = intval($start);
             if ((string) $stop === '') {
                 $stop = $step > 0 ? $length : -$length - 1;
             }
 
+            $stop = intval($stop);
 
-            $result = static::create((int) $start, (int) $stop, $step);
+            // python does not change signs for slices
+            $positive = $start >= 0;
+
+            $result = static::create($start, $stop, $step);
         }
 
         if ( ! isset($result) || $this->isValidRange($result)) {
@@ -477,7 +486,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -584,7 +593,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $str = '';
 
-        for ($index = $start; $index < $this->length; $index ++) {
+        for ($index = $start; $index < $this->length; $index ++ ) {
             if ( ! in_range($index, 0, $end - 1)) {
                 break;
             }
@@ -646,7 +655,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 

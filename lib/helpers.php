@@ -60,6 +60,46 @@ if ( ! function_exists('is_stringable')) {
 
 }
 
+
+if ( ! function_exists('str_val')) {
+
+    /**
+     * Get string value of a variable
+     * unlike strval it uses json_encode to convert bool|int|float
+     */
+    function str_val(mixed $value): string
+    {
+
+        if ( ! is_stringable($value)) {
+            throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($value)));
+        }
+
+        if (is_null($value)) {
+            return '';
+        }
+
+        if (is_scalar($value) && ! is_string($value)) {
+            $value = json_encode($value, flags: JSON_THROW_ON_ERROR);
+        }
+        return (string) $text;
+    }
+
+}
+
+
+if ( ! function_exists('is_unsigned')) {
+
+    /**
+     * Checks if value is positive
+     */
+    function is_unsigned(mixed $value): bool
+    {
+        $value = str_val($value);
+        return is_numeric($value) && (int) $value >= 0;
+    }
+
+}
+
 if ( ! function_exists('uses_trait')) {
 
     /**

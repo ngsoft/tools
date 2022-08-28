@@ -11,6 +11,7 @@ use ArrayAccess,
     Stringable,
     Traversable,
     ValueError;
+use function NGSOFT\Tools\map;
 
 /**
  * A Python like Range
@@ -53,6 +54,53 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         if ($step > 0 ? $stop <= $start : $stop >= $start) {
             $this->count = 0;
         }
+    }
+
+    protected function isValidSlice(Text $text): bool
+    {
+
+
+        [$start, $stop, $len] = [$this->start, $this->stop, count($text)];
+
+        if ( ! in_range($start, -$len, $len - 1)) {
+            return false;
+        }
+
+        if ( ! in_range($stop, -$len - 1, $len)) {
+            return false;
+        }
+
+
+        return $this->step > 0 ? $stop > $start : $stop < $start;
+    }
+
+    /**
+     * Get a slice from a stringable using current range
+     */
+    public function slice(mixed $string): string
+    {
+
+
+        $string = Text::of($string);
+
+        $result = '';
+
+        $len = count($string);
+
+        foreach ($this as $offset) {
+
+            $sign = $offset > 0 ? 1 : -1;
+
+            if (isset($prev) && $prev !== $sign) {
+                break;
+            }
+
+            $result .= $string->at($offset);
+            $prev = $sign;
+        }
+
+
+        return $result;
     }
 
     public function getIterator(): Traversable
