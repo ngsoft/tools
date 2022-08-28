@@ -207,7 +207,7 @@ function safe(callable $callable, mixed ...$arguments): mixed
 /**
  * Creates a Stringable from a scallar
  */
-function str(mixed $text): Text
+function text(mixed $text): Text
 {
     return Text::of($text);
 }

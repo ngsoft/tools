@@ -95,14 +95,20 @@ class Slice
         );
 
         [$start, $stop, $step, $len, $result] = [$this->start, $this->stop, $this->step, count($value), []];
-
         if ($len === 0) {
             return $result;
         }
 
         $step ??= 1;
-        $start ??= $stop < 0 ? -$len : 0;
-        $stop ??= $len;
+
+        if ($step > 0) {
+            $start ??= $stop < 0 ? -$len : 0;
+            $stop ??= $len;
+        } else {
+            $stop ??= -$len - 1;
+            $start ??= $stop < 0 ? -1 : $len - 1;
+        }
+
 
         if ($step > 0 ? $stop <= $start : $stop >= $start) {
             return $result;

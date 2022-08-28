@@ -6,7 +6,6 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
-    InvalidArgumentException,
     JsonSerializable;
 use NGSOFT\{
     Tools, Traits\SliceAble
@@ -15,7 +14,6 @@ use Stringable,
     ValueError;
 use const MB_CASE_TITLE;
 use function is_arrayaccess,
-             is_stringable,
              mb_convert_case,
              mb_str_split,
              mb_strlen,
@@ -1241,6 +1239,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     /**
      * Count needle occurences inside Text
+     * if using a regex as needle the search will be case sensitive
      */
     public function countChars(mixed $needle, bool $ignoreCase = false): int
     {
@@ -1250,6 +1249,11 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         [$haystack, $needle] = [$this->text, $this->convert($needle)];
+
+        if (preg_valid($needle)) {
+
+            return (int) preg_match_all($needle, $haystack);
+        }
 
         if ($ignoreCase) {
             [$haystack, $needle] = [mb_strtolower($haystack), mb_strtolower($needle)];
