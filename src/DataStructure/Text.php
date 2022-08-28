@@ -22,7 +22,7 @@ use function is_arrayaccess,
              mb_strtoupper,
              mb_substr;
 use function NGSOFT\Tools\{
-    every, some
+    every, map, some
 };
 use function preg_exec,
              preg_test,
@@ -790,6 +790,38 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
+     * Return True if there are only whitespace characters in the string and there is at least one character, False otherwise.
+     */
+    public function isspace(): bool
+    {
+        return ctype_space($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are printable or the string is empty, False otherwise.
+     */
+    public function isprintable(): bool
+    {
+        return $this->isEmpty() || ctype_print($this->text);
+    }
+
+    /**
+     * Checks if all of the characters in the provided Text,  are punctuation character.
+     */
+    public function ispunct(): bool
+    {
+        return ctype_punct($this->text);
+    }
+
+    /**
+     * Checks if all characters in Text are control characters
+     */
+    public function iscontrol(): bool
+    {
+        ctype_cntrl($this->text);
+    }
+
+    /**
      * Return True if all characters in the string are uppercase and there is at least one lowercase character, False otherwise.
      */
     public function isupper(): bool
@@ -1080,6 +1112,33 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $result;
     }
 
+    /**
+     * Return a list of the lines in the string, breaking at line boundaries.
+     * Line breaks are not included in the resulting list unless keepends is given and true.
+     */
+    public function splitlines(bool $keepends = false): array
+    {
+
+        if ($this->isEmpty() || ! preg_test('#\v+#', $this->text)) {
+            return [$this->copy()];
+        }
+
+        $result = [];
+
+        $text = $this;
+
+        while ( ! $text->isEmpty()) {
+
+            [$_text, $sep, $text] = $text->partition('#\v+#');
+            if ($keepends) {
+                $_text = $_text->append($sep);
+            }
+            $result[] = $_text;
+        }
+
+        return $result;
+    }
+
     ////////////////////////////   PHP Methods   ////////////////////////////
 
     /**
@@ -1117,6 +1176,127 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             return $this;
         }
         return $this->withText(mb_strtolower($this[0]) . $this['1:']);
+    }
+
+    /**
+     * Returns new Text with suffix added
+     */
+    public function append(mixed ...$suffix): static
+    {
+
+        $text = '';
+        foreach ($suffix as $_suffix) {
+            $text .= $this->convert($_suffix);
+        }
+
+
+        return $this->withText($this->text . $text);
+    }
+
+    /**
+     * Returns new Text with prefix added
+     */
+    public function prepend(mixed $prefix): static
+    {
+        $text = '';
+        foreach ($prefix as $_prefix) {
+            $text .= $this->convert($_prefix);
+        }
+        return $this->withText($text . $this->text);
+    }
+
+    /**
+     * Checks if Text is base 64 encoded
+     */
+    public function isBase64(): bool
+    {
+
+        if ($this->isEmpty()) {
+            return false;
+        }
+
+        $b64 = base64_decode($this->text, true);
+
+        return $b64 !== false && base64_encode($b64) === $this->text;
+    }
+
+    /**
+     * Returns a base64 decoded Text
+     */
+    public function base64Encode(): static
+    {
+        return $this->withText(base64_encode($this->text));
+    }
+
+    /**
+     * Returns a base64 decoded Text
+     */
+    public function base64Decode(): static
+    {
+        return $this->withText(base64_decode($this->text));
+    }
+
+    /**
+     * Split the Text into multiple Text[]
+     */
+    public function splitChars(int $length = 1): array
+    {
+        if ($this->isEmpty()) {
+            return [$this->copy()];
+        }
+
+        return map(fn($char) => $this->withText($char), mb_str_split($this->text, max(1, $length)));
+    }
+
+    /**
+     * Count needle occurences inside Text
+     */
+    public function countChars(mixed $needle, bool $ignoreCase = false): int
+    {
+
+        if ($this->isEmpty()) {
+            return 0;
+        }
+
+        [$haystack, $needle] = [$this->text, $this->convert($needle)];
+
+        if ($ignoreCase) {
+            [$haystack, $needle] = [mb_strtolower($haystack), mb_strtolower($needle)];
+        }
+
+
+        return mb_substr_count($haystack, $needle);
+    }
+
+    /**
+     * Checks if Text is the same as the provided needle
+     */
+    public function isEquals(mixed $needle, bool $ignoreCase = false)
+    {
+
+        [$haystack, $needle] = [$this->text, $this->convert($needle)];
+
+        if ($ignoreCase) {
+            [$haystack, $needle] = [mb_strtolower($haystack), mb_strtolower($needle)];
+        }
+
+        return $haystack === $needle;
+    }
+
+    /**
+     * Checks if string is hexadecimal number
+     */
+    public function ishexadecimal(): bool
+    {
+        return ctype_xdigit($this->text);
+    }
+
+    /**
+     * Returns the length of the text
+     */
+    public function length(): int
+    {
+        return $this->count();
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
@@ -1188,6 +1368,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function __unserialize(array $data): void
     {
         list($this->text, $this->length, $this->offsets) = $data;
+    }
+
+    public function __debugInfo(): array
+    {
+
+        return [
+            'text' => $this->text
+        ];
     }
 
 }
