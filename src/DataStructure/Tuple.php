@@ -52,7 +52,7 @@ abstract class Tuple implements ArrayAccess
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename($this));
+        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__));
     }
 
     public function offsetUnset(mixed $offset): void
