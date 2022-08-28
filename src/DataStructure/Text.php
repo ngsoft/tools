@@ -138,12 +138,58 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
         $result = [];
 
-        $str = '';
         foreach ($chars as $char) {
             $result[0] ??= '';
             $result[0] .= $this->convert($char);
         }
         return $result;
+    }
+
+    protected function getSlice(string $range): ?Range
+    {
+
+
+        if (preg_test('#^:{1,2}$#', $range)) {
+            $result = Range::create(0, $this->length);
+        } elseif (is_numeric($range) && $this->isValidOffset($range)) {
+            $start = $this->translateOffset((int) $range);
+            $result = Range::create($start, $start + 1);
+        } elseif ($matches = preg_exec('#^(-?\d+)?(?:\:(-?\d+)?)?(?:\:(-?\d+)?)?$#', $range)) {
+            @list(, $start, $stop, $step) = $matches;
+
+            if ((string) $step === '') {
+                $step = 1;
+            }
+
+            $step = intval($step);
+
+            if ((string) $start === '') {
+                $start = $step > 0 ? 0 : -1;
+            }
+
+            if ((string) $stop === '') {
+                $stop = $step > 0 ? $length : -$length - 1;
+            }
+
+
+            $result = static::create((int) $start, (int) $stop, $step);
+        }
+
+        if ( ! isset($result) || $this->isValidRange($result)) {
+            return null;
+        }
+
+        return $result;
+    }
+
+    protected function isValidOffset(mixed $offset): bool
+    {
+
+        if ( ! is_numeric($offset)) {
+            return false;
+        }
+
+        return in_range($this->translateOffset((int) $offset), 0, $this->length - 1);
     }
 
     protected function isValidRange(Range $range): bool

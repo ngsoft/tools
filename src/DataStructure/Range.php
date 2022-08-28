@@ -11,8 +11,6 @@ use ArrayAccess,
     Stringable,
     Traversable,
     ValueError;
-use function preg_exec,
-             preg_test;
 
 /**
  * A Python like Range
@@ -30,66 +28,6 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
     public static function create(int $start, ?int $stop = null, int $step = 1): static
     {
         return new static($start, $stop, $step);
-    }
-
-    /**
-     * Create a range from python like slice
-     * @link https://www.bestprog.net/en/2019/12/07/python-strings-access-by-indexes-slices-get-a-fragment-of-a-string-examples/
-     */
-    public static function fromSlice(string $slice, string|\Stringable $input): static
-    {
-
-
-        $length = mb_strlen((string) $input);
-
-        if (preg_test('#^-?\d+$#', $slice)) {
-            $start = intval($slice);
-            $step = intval($start / abs($start));
-            $stop = (abs($start) + 1) * $step;
-            $output = static::create($start, $stop, $step);
-        } elseif ($result = preg_exec('#^(-?\d+)?(?:\:(-?\d+)?)?(?:\:(-?\d+)?)?$#', $slice)) {
-
-            @list(, $start, $stop, $step) = $result;
-
-            if (is_null($step) || $step === '') {
-                $step = 1;
-            }
-
-            $step = intval($step);
-
-            if ((string) $start === '') {
-                $start = $step > 0 ? 0 : -1;
-            }
-
-            if ((string) $stop === '') {
-                $stop = $step > 0 ? $length : -$length - 1;
-            }
-
-
-            $output = static::create((int) $start, (int) $stop, $step);
-        } else { throw new ValueError(sprintf('Invalid slice "%s"', $slice)); }
-
-
-
-
-        if (isset($output)) {
-            [$start, $stop, $step] = [$output->start, $output->stop, $output->step];
-            if ($start < 0) {
-                $start += $length;
-            }
-            if ($stop < 0) {
-                $stop += $length;
-            }
-
-            if ($step > 0 ? $stop > $start : $stop < $start) {
-                return $output;
-            }
-        }
-
-
-
-
-        return $output;
     }
 
     public function __construct(
