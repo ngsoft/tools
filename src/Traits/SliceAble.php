@@ -12,7 +12,7 @@ trait SliceAble
     /**
      * Create a Slice Instance
      */
-    protected function getSlice(string|int $offset): Slice
+    protected function getSlice(string $offset): Slice
     {
         return Slice::of($offset);
     }

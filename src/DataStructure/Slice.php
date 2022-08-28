@@ -21,11 +21,10 @@ class Slice implements Stringable
         return new static($start, $stop, $step);
     }
 
-    public static function of(string|int $slice): static
+    public static function of(string $slice): static
     {
 
-        $stop = null;
-        $step = 1;
+        $step = $stop = null;
 
         if ($slice === ':' || $slice === '::') {
             $start = 0;
@@ -34,10 +33,8 @@ class Slice implements Stringable
             @list($start, $stop, $step) = explode(':', $slice);
 
             if ( ! is_numeric($step)) {
-                $step = 1;
-            }
-
-            $step = intval($step);
+                $step = null;
+            } else { $step = intval($step); }
 
             if ( ! is_numeric($start)) {
                 $start = null;
@@ -46,7 +43,7 @@ class Slice implements Stringable
             if ( ! is_numeric($stop)) {
                 $stop = null;
             } else { $stop = intval($stop); }
-        } else { throw new InvalidArgumentException(sprintf('Invalid slice "%s"', (string) $slice)); }
+        } else { throw new InvalidArgumentException(sprintf('Invalid slice "%s"', $slice)); }
 
         return self::create($start, $stop, $step);
     }
@@ -96,26 +93,8 @@ class Slice implements Stringable
          */
         $step ??= 1;
 
-        if ($step > 0) {
-
-            if (is_null($start) && is_null($stop)) {
-                $start = 0;
-                $stop = $len;
-            } elseif (is_null($stop)) {
-                $stop = $len;
-            } elseif (is_null($start)) {
-                $start = 0;
-            }
-        } else {
-            if (is_null($start) && is_null($stop)) {
-                $start = $len - 1;
-                $stop = -1;
-            } elseif (is_null($stop)) {
-                $stop = -1;
-            } elseif (is_null($start)) {
-                $start = $len - 1;
-            }
-        }
+        $stop ??= $step > 0 ? $len : -1;
+        $start ??= $step > 0 ? 0 : $len - 1;
 
         while ($start < 0) {
             $start += $len;
