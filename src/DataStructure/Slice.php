@@ -43,10 +43,8 @@ class Slice
             $step = intval($step);
 
             if ( ! is_numeric($start)) {
-                $start = 0;
-            }
-
-            $start = intval($start);
+                $start = null;
+            } else { $start = intval($start); }
 
             if ( ! is_numeric($stop)) {
                 $stop = null;
@@ -91,6 +89,8 @@ class Slice
     public function slice(mixed $value): array
     {
 
+
+        var_dump($this);
         TypeCheck::assertType(
                 __METHOD__ . ' Argument #0', $value,
                 TypeCheck::TYPE_ARRAY, TypeCheck::UNION, ArrayAccess::class, TypeCheck::INTERSECTION, Countable::class
@@ -103,7 +103,7 @@ class Slice
         }
 
         $step ??= 1;
-        $start ??= 0;
+        $start ??= $stop < 0 ? -$len : 0;
         $stop ??= $len;
 
         if ($step > 0 ? $stop <= $start : $stop >= $start) {

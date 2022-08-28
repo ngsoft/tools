@@ -834,6 +834,28 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return [$this->withText($before), $this->withText($sep), $this->withText($after)];
     }
 
+    public function removeprefix(mixed $prefix): static
+    {
+
+        if ($this->startsWith($prefix)) {
+            return $this->slice(mb_strlen($this->convert($prefix)));
+        }
+
+        return $this;
+    }
+
+    public function removeSuffix(mixed $suffix): static
+    {
+        if ($this->endsWith($suffix)) {
+
+            $len = mb_strlen($this->convert($suffix));
+
+            return $this->withText($this[":-$len"]);
+        }
+
+        return $this;
+    }
+
     /**
      * Reverse the string
      */
