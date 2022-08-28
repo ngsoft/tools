@@ -99,9 +99,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++ ) {
+            for ($i = 0; $i < $this->length; $i ++) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
+                for ($j = 0; $j < strlen($char); $j ++) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -159,10 +159,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             //translate char into byte offset
 
             if (is_null($offset = $this->getNonUtfOffset($offset))) {
-                return -1;
+                return [];
             }
 
+
             if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
+
                 // translate byte into char offset
                 return [$matches[0][0], $this->getUtfOffset($matches[0][1]) ?? -1];
             }
@@ -179,9 +181,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $result = [];
 
         //  -1 !== $pos = $this->indexOf($needle, $offset)
-        while (count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1] ?? -1) {
+        while ($offset < $this->length && count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1] ?? -1) {
             $result = $indexOf;
-            $offset = $pos + 1;
+            $offset = $pos + mb_strlen($indexOf[0]) + 1;
         }
 
         return $result;
@@ -467,7 +469,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -573,7 +575,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 
@@ -840,8 +842,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function partition(mixed $sep): array
     {
-
-
         $sep = $this->convert($sep);
 
         if ($sep === '') {
@@ -929,12 +929,19 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function rpartition(mixed $sep): array
     {
 
-        if (-1 !== $index = $this->lastIndexOf($sep)) {
-            $sep = $this->withText($sep);
+        $sep = $this->convert($sep);
+
+        if ($sep === '') {
+            return $this->getEmptyPartition();
+        }
+
+        $result = $this->_lastIndexOf($sep);
+        if (-1 !== $index = $result[1] ?? -1) {
+            $sep = $this->withText($result[0]);
             return [$this->slice(0, $index), $sep, $this->slice($index + count($sep))];
         }
-        $empty = $this->withText('');
-        return [$this->copy(), $empty, $empty];
+
+        return $this->getEmptyPartition();
     }
 
     /**
@@ -1005,16 +1012,72 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      * Return a list of the words in the string, using sep as the delimiter string.
      * If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements).
      * If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).
+     * @return static[]
      */
     public function split(mixed $sep = null, int $maxsplit = -1): array
     {
-
-        if (is_null($sep)) {
+        if (is_null($sep) || $maxsplit === 0) {
             return [$this->copy()];
         }
 
+        $result = [];
+
+        $text = $this;
+
+        while ( ! $text->isEmpty()) {
+
+            if ($maxsplit > 0 && count($result) === $maxsplit) {
+
+                break;
+            }
+
+            [$_text,, $text] = $text->partition($sep);
+            $result[] = $_text;
+        }
+
+        if ( ! $text->isEmpty()) {
+            $result[] = $text;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Return a list of the words in the string, using sep as the delimiter string.
+     * If maxsplit is given, at most maxsplit splits are done, the rightmost ones.
+     * If sep is not specified or None, any whitespace string is a separator.
+     * Except for splitting from the right, rsplit() behaves like split().
+     */
+    public function rsplit(mixed $sep = null, int $maxsplit = -1): array
+    {
+        if (is_null($sep) || $maxsplit === 0) {
+            return [$this->copy()];
+        }
 
         $result = [];
+
+        $text = $this;
+
+        while ( ! $text->isEmpty()) {
+
+            if ($maxsplit > 0 && count($result) === $maxsplit) {
+                break;
+            }
+
+            [$text,, $_text] = $text->rpartition($sep);
+
+            if ( ! $_text->isEmpty()) {
+                array_unshift($result, $_text);
+                continue;
+            }
+            break;
+        }
+
+        if ( ! $text->isEmpty()) {
+            array_unshift($result, $text);
+        }
+
+        return $result;
     }
 
     ////////////////////////////   PHP Methods   ////////////////////////////
