@@ -8,12 +8,9 @@ use ArrayAccess,
     Countable,
     IteratorAggregate,
     JsonSerializable,
-    NGSOFT\Tools\TypeCheck,
     Stringable,
     Traversable,
     ValueError;
-use function in_range,
-             is_unsigned;
 
 /**
  * A Python like Range Implementation
@@ -69,72 +66,10 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         return $this->step;
     }
 
-    protected function isValidSlice(array|Countable $array): bool
-    {
-
-        [$start, $stop, $len] = [$this->start, $this->stop, count($array)];
-
-        if ( ! in_range($start, -$len, $len - 1)) {
-            return false;
-        }
-
-        if ( ! in_range($stop, -$len - 1, $len)) {
-            return false;
-        }
-
-        if ($start === 0 && $stop < 0) {
-            return false;
-        }
-
-
-        return $this->step > 0 ? $stop > $start : $stop < $start;
-    }
-
-    /**
-     * Get a slice from a array like using current range
-     */
-    public function slice(mixed $array): array
-    {
-
-
-        if (is_string($array)) {
-            $array = Text::of($array);
-        }
-
-        TypeCheck::assertType(
-                __METHOD__ . ' Argument #0', $array,
-                TypeCheck::TYPE_ARRAY, TypeCheck::UNION, ArrayAccess::class, TypeCheck::INTERSECTION, Countable::class
-        );
-
-        $text = Text::of($text);
-        $result = [];
-
-        if ( ! $this->isValidSlice($array)) {
-            return $result;
-        }
-
-
-        [$start, $stop, $step, $len] = [$this->start, $this->stop, $this->step, count($array)];
-
-        foreach ($this as $offset) {
-            $unsigned ??= is_unsigned($offset);
-            if ($unsigned !== is_unsigned($offset)) {
-                break;
-            }
-
-            while ($offset < 0) {
-                $offset += $len;
-            }
-
-            $result[] = $array[$offset];
-        }
-
-
-        return $result;
-    }
-
     public function getIterator(): Traversable
     {
+
+
         if ($this->isEmpty()) {
             return;
         }

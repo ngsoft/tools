@@ -86,9 +86,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -137,64 +137,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $result[0] .= $this->convert($char);
         }
         return $result;
-    }
-
-    protected function getSlice(string $range): ?Range
-    {
-
-
-        if (preg_test('#^:{1,2}$#', $range)) {
-            $result = Range::create(0, $this->length);
-        } elseif (is_numeric($range) && $this->isValidOffset($range)) {
-            $start = $this->translateOffset((int) $range);
-            $result = Range::create($start, $start + 1);
-        } elseif ($matches = preg_exec('#^(-?\d+)?(?:\:(-?\d+)?)?(?:\:(-?\d+)?)?$#', $range)) {
-            @list(, $start, $stop, $step) = $matches;
-
-            if ((string) $step === '') {
-                $step = 1;
-            }
-
-            $step = intval($step);
-
-            if ((string) $start === '') {
-                $start = $step > 0 ? 0 : -1;
-            }
-
-            $start = intval($start);
-            if ((string) $stop === '') {
-                $stop = $step > 0 ? $length : -$length - 1;
-            }
-
-            $stop = intval($stop);
-
-            // python does not change signs for slices
-            $positive = $start >= 0;
-
-            $result = Range::create($start, $stop, $step);
-        }
-
-        if ( ! isset($result) || $this->isValidRange($result)) {
-            return null;
-        }
-
-        return $result;
-    }
-
-    protected function isValidOffset(mixed $offset): bool
-    {
-
-        if ( ! is_numeric($offset)) {
-            return false;
-        }
-
-        return in_range($this->translateOffset((int) $offset), 0, $this->length - 1);
-    }
-
-    protected function isValidRange(Range $range): bool
-    {
-        [$start, $stop, $step] = [$this->translateOffset($range->start), $this->translateOffset($range->stop), $range->step];
-        return $step > 0 ? $stop > $start : $stop < $start;
     }
 
     /**
@@ -476,7 +418,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -583,7 +525,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $str = '';
 
-        for ($index = $start; $index < $this->length; $index ++ ) {
+        for ($index = $start; $index < $this->length; $index ++) {
             if ( ! in_range($index, 0, $end - 1)) {
                 break;
             }
@@ -645,7 +587,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -706,55 +648,16 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         if (is_string($offset)) {
 
-            if (preg_test('#^-?\d+$#', $offset)) {
-                $offset = intval($offset);
-            } elseif ($result = preg_exec('#^(-?\d+)?(?:\:(-?\d+)?)?(?:\:(-?\d+)?)?$#', $offset)) {
-
-                @list(, $start, $stop, $step) = $result;
-
-                if (is_null($step) || $step === '') {
-                    $step = 1;
-                }
-
-                $step = intval($step);
-
-                if ((string) $start === '') {
-                    $start = $step > 0 ? 0 : -1;
-                }
-
-                if ((string) $stop === '') {
-                    $stop = $step > 0 ? $this->length : -$this->length - 1;
-                }
-
-
-                $offset = new Range((int) $start, (int) $stop, $step);
-            }
+            $offset = Slice::of($offset);
         }
 
+        if ($offset instanceof Slice) {
 
-
-        if ($offset instanceof Range && $this->isValidRange($offset)) {
-
-            $str = '';
-            $last = null;
-
-            foreach ($offset as $index) {
-
-                $sign = $index === 0 ? 1 : $index / abs($index);
-                $last ??= $sign;
-                if ($last !== $sign) {
-                    break;
-                }
-
-                $str .= $this->at($index);
-
-                $last = $sign;
-            }
-            return $str;
+            return implode('', $offset->slice($this));
         }
 
         if (is_int($offset)) {
-            return $this->at($offset) ?? '';
+            return $this->at($offset);
         }
 
         return '';

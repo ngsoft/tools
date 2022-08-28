@@ -27,7 +27,7 @@ class Slice
         if (is_numeric($slice)) {
 
             $start = intval($slice);
-            $stop = $start + $step;
+            $stop = $start + 1;
         } elseif ($slice === ':' || $slice === '::') {
             $start = 0;
         } elseif (str_contains($slice, ':')) {
@@ -101,11 +101,16 @@ class Slice
         $start ??= 0;
         $stop ??= $len;
 
-        if ($step > 1 ? $stop <= $start : $stop >= $start) {
+        if ($step > 0 ? $stop <= $start : $stop >= $start) {
             return $result;
         }
 
-        foreach (new Range($start, $stop, $step) as $offset) {
+
+        $range = new Range($start, $stop, $step);
+
+        foreach ($range as $offset) {
+
+
 
             $unsigned ??= $offset >= 0;
 
