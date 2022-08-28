@@ -12,7 +12,9 @@ use NGSOFT\{
 };
 use Stringable,
     ValueError;
+use const MB_CASE_TITLE;
 use function is_arrayaccess,
+             mb_convert_case,
              mb_str_split,
              mb_strlen,
              mb_strpos,
@@ -20,9 +22,10 @@ use function is_arrayaccess,
              mb_strtoupper,
              mb_substr;
 use function NGSOFT\Tools\{
-    every, map, some
+    every, some
 };
 use function preg_exec,
+             preg_test,
              preg_valid,
              str_contains,
              str_ends_with,
@@ -149,23 +152,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $result;
     }
 
-    ////////////////////////////   JS Like   ////////////////////////////
-
-    /**
-     * The indexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the first occurrence of the specified substring
-     */
-    public function indexOf(mixed $needle, int $offset = 0): int
+    protected function _indexOf(string $needle, int $offset = 0): array
     {
-        $needle = $this->convert($needle);
-
-        if (empty($needle) || $this->isEmpty()) {
-            return -1;
-        }
-
-        if ($offset >= $this->length) {
-            return -1;
-        }
-
         if (preg_valid($needle)) {
 
             //translate char into byte offset
@@ -176,13 +164,55 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
                 // translate byte into char offset
-                return $this->getUtfOffset($matches[0][1]) ?? -1;
+                return [$matches[0][0], $this->getUtfOffset($matches[0][1]) ?? -1];
             }
         } elseif (is_int($pos = mb_strpos($this->text, $needle, $offset))) {
-            return $pos;
+            return [$needle, $pos];
         }
 
-        return -1;
+        return [];
+    }
+
+    protected function _lastIndexOf(mixed $needle, int $offset = 0): array
+    {
+
+        $result = [];
+
+        //  -1 !== $pos = $this->indexOf($needle, $offset)
+        while (count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1] ?? -1) {
+            $result = $indexOf;
+            $offset = $pos + 1;
+        }
+
+        return $result;
+    }
+
+    protected function getEmptyPartition(): array
+    {
+        static $empty;
+        $empty ??= $this->withText('');
+        return [$this->copy(), $empty, $empty];
+    }
+
+    ////////////////////////////   JS Like   ////////////////////////////
+
+    /**
+     * The indexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the first occurrence of the specified substring
+     */
+    public function indexOf(mixed $needle, int $offset = 0): int
+    {
+        $needle = $this->convert($needle);
+
+        if ($needle === '' || $this->isEmpty()) {
+            return -1;
+        }
+
+        if ($offset >= $this->length) {
+            return -1;
+        }
+
+
+        return $this->_indexOf($needle, $offset)[1] ?? -1;
     }
 
     /**
@@ -190,21 +220,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function search(mixed $needle)
     {
-        return $this->indexOf($this->convert($needle));
+        return $this->indexOf($needle);
     }
 
     /**
      * The lastIndexOf() method, given one argument: a substring/regex to search for, searches the entire calling string, and returns the index of the last occurrence of the specified substring.
      */
-    public function lastIndexOf(mixed $needle, int $offset = 0)
+    public function lastIndexOf(mixed $needle, int $offset = 0): int
     {
-        $result = -1;
-        while (-1 !== $pos = $this->indexOf($needle, $offset)) {
-            $result = $pos;
-            $offset = $pos + 1;
-        }
-
-        return $result;
+        return $this->_lastIndexOf($needle, $offset)[1] ?? -1;
     }
 
     /**
@@ -266,7 +290,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
-        if (empty($needle)) {
+        if ($needle === '') {
             return false;
         }
         return str_ends_with($haystack, $needle);
@@ -291,7 +315,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $needle = mb_strtolower($needle);
         }
 
-        if (empty($needle)) {
+        if ($needle === '') {
             return false;
         }
         return str_starts_with($haystack, $needle);
@@ -316,7 +340,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
 
-        if (empty($needle)) {
+        if ($needle === '') {
             return false;
         }
 
@@ -370,7 +394,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $pad = $this->convert($pad);
 
-        if (empty($pad)) {
+        if ($pad === '') {
             return $this;
         }
 
@@ -380,9 +404,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         while (mb_strlen($str) < $total) {
             $str = $pad . $str;
         }
-
-
-        var_dump($str);
 
         return $this->withText(mb_substr($str, $total - mb_strlen($str)));
     }
@@ -401,7 +422,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $pad = $this->convert($pad);
 
-        if (empty($pad)) {
+        if ($pad === '') {
             return $this;
         }
 
@@ -428,7 +449,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $pad = $this->convert($pad);
 
-        if (empty($pad)) {
+        if ($pad === '') {
             return $this;
         }
 
@@ -473,7 +494,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $search = $this->convert($search);
 
-        if (empty($search)) {
+        if ($search === '') {
             return $this;
         }
 
@@ -511,7 +532,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $search = $this->convert($search);
 
-        if (empty($search)) {
+        if ($search === '') {
             return $this;
         }
 
@@ -819,12 +840,21 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function partition(mixed $sep): array
     {
-        if (-1 !== $index = $this->indexOf($sep)) {
-            $sep = $this->withText($sep);
+
+
+        $sep = $this->convert($sep);
+
+        if ($sep === '') {
+            return $this->getEmptyPartition();
+        }
+
+        $result = $this->_indexOf($sep);
+        if (-1 !== $index = $result[1] ?? -1) {
+            $sep = $this->withText($result[0]);
             return [$this->slice(0, $index), $sep, $this->slice($index + count($sep))];
         }
-        $empty = $this->withText('');
-        return [$this->copy(), $empty, $empty];
+
+        return $this->getEmptyPartition();
     }
 
     /**
@@ -969,6 +999,22 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function upper(): static
     {
         return $this->toUpperCase();
+    }
+
+    /**
+     * Return a list of the words in the string, using sep as the delimiter string.
+     * If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements).
+     * If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).
+     */
+    public function split(mixed $sep = null, int $maxsplit = -1): array
+    {
+
+        if (is_null($sep)) {
+            return [$this->copy()];
+        }
+
+
+        $result = [];
     }
 
     ////////////////////////////   PHP Methods   ////////////////////////////
