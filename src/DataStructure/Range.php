@@ -21,9 +21,9 @@ use function NGSOFT\Tools\map;
 class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable, Stringable
 {
 
-    public readonly int $start;
-    public readonly int $stop;
-    public readonly int $step;
+    protected int $start;
+    protected int $stop;
+    protected int $step;
     protected ?int $count = null;
 
     public static function create(int $start, ?int $stop = null, int $step = 1): static
@@ -56,6 +56,21 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
         }
     }
 
+    public function getStart(): int
+    {
+        return $this->start;
+    }
+
+    public function getStop(): int
+    {
+        return $this->stop;
+    }
+
+    public function getStep(): int
+    {
+        return $this->step;
+    }
+
     protected function isValidSlice(Text $text): bool
     {
 
@@ -77,15 +92,18 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
     /**
      * Get a slice from a stringable using current range
      */
-    public function slice(mixed $string): string
+    public function slice(mixed $text): string
     {
 
 
-        $string = Text::of($string);
-
+        $text = Text::of($text);
         $result = '';
 
-        $len = count($string);
+        if ( ! $this->isValidSlice($text)) {
+            return $result;
+        }
+
+
 
         foreach ($this as $offset) {
 

@@ -6,11 +6,10 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
-    InvalidArgumentException,
     JsonSerializable,
     Stringable;
-use function get_debug_type,
-             is_stringable,
+use function in_range,
+             mb_str_split,
              mb_strlen,
              mb_strpos,
              mb_strtolower,
@@ -20,10 +19,12 @@ use function NGSOFT\Tools\{
     every, map, some
 };
 use function preg_exec,
+             preg_test,
              preg_valid,
              str_contains,
              str_ends_with,
-             str_starts_with;
+             str_starts_with,
+             str_val;
 
 /**
  * Transform a scalar to its stringable representation
@@ -52,18 +53,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     protected function convert(mixed $text): string
     {
-        if ( ! is_stringable($text)) {
-            throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($text)));
-        }
-
-        if (is_null($text)) {
-            return '';
-        }
-
-        if (is_scalar($text) && ! is_string($text)) {
-            $text = json_encode($text, flags: JSON_THROW_ON_ERROR);
-        }
-        return (string) $text;
+        return str_val($text);
     }
 
     protected function setText(mixed $text): static
