@@ -100,9 +100,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -456,7 +456,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -564,7 +564,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -625,7 +625,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             return $this;
         }
 
-        [$start, $end] = [$this[0], $this['1:']];
+        [$start, $end] = [$this->at(0), $this->slice(1)->toString()];
 
         $start = mb_strtoupper($start);
         $end = mb_strtolower($end);
@@ -1152,7 +1152,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             return $this;
         }
 
-        return $this->withText(mb_strtoupper($this[0]) . $this['1:']);
+        return $this->withText(mb_strtoupper($this->at(0)) . $this->slice(1)->toString());
     }
 
     /**
@@ -1164,7 +1164,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         if ($this->isEmpty()) {
             return $this;
         }
-        return $this->withText(mb_strtolower($this[0]) . $this['1:']);
+        return $this->withText(mb_strtolower($this->at(0)) . $this->slice(1)->toString());
     }
 
     /**
@@ -1298,10 +1298,13 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     public function offsetExists(mixed $offset): bool
     {
-        return $this->offsetGet($offset) !== '';
+        return ! $this->offsetGet($offset)->isEmpty();
     }
 
-    public function offsetGet(mixed $offset): mixed
+    /**
+     * @return static
+     */
+    public function offsetGet(mixed $offset): static
     {
 
         if (is_string($offset)) {
@@ -1310,14 +1313,16 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         if ($offset instanceof Slice) {
-            return $this->joinSliceValue($offset, $this);
+            return $this->withText($this->joinSliceValue($offset, $this));
         }
 
         if (is_int($offset)) {
-            return $this->at($offset);
+            return $this->withText($this->at($offset));
         }
 
-        return '';
+
+
+        return $this->withText('');
     }
 
     public function offsetSet(mixed $offset, mixed $value): void

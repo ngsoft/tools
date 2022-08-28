@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    Countable,
-    InvalidArgumentException;
+use InvalidArgumentException;
 use NGSOFT\{
     Tools, Tools\TypeCheck
 };
-use function str_contains;
+use Stringable;
+use function class_basename,
+             str_contains;
 
-class Slice implements \Stringable
+class Slice implements Stringable
 {
 
     public static function create(?int $start = null, ?int $stop = null, ?int $step = null): static
