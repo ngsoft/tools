@@ -12,7 +12,7 @@ use NGSOFT\{
 };
 use function str_contains;
 
-class Slice
+class Slice implements \Stringable
 {
 
     public static function create(?int $start = null, ?int $stop = null, ?int $step = null): static
@@ -84,14 +84,14 @@ class Slice
     }
 
     /**
-     * Returs a dlice of an array like object
+     * Returns a slice of an array like object
      */
     public function slice(mixed $value): array
     {
 
         TypeCheck::assertType(
                 __METHOD__ . ' Argument #0', $value,
-                TypeCheck::TYPE_ARRAY, TypeCheck::UNION, ArrayAccess::class, TypeCheck::INTERSECTION, Countable::class
+                TypeCheck::TYPE_ARRAYACCESS
         );
 
         [$start, $stop, $step, $len, $result] = [$this->start, $this->stop, $this->step, count($value), []];
@@ -99,39 +99,52 @@ class Slice
             return $result;
         }
 
+        /**
+         * @link https://www.bestprog.net/en/2019/12/07/python-strings-access-by-indexes-slices-get-a-fragment-of-a-string-examples/
+         */
         $step ??= 1;
 
         if ($step > 0) {
-            $start ??= $stop < 0 ? -$len : 0;
-            $stop ??= $len;
+
+            if (is_null($start) && is_null($stop)) {
+                $start = 0;
+                $stop = $len;
+            } elseif (is_null($stop)) {
+                $stop = $len;
+            } elseif (is_null($start)) {
+                $start = 0;
+            }
         } else {
-            $stop ??= -$len - 1;
-            $start ??= $stop < 0 ? -1 : $len - 1;
+            if (is_null($start) && is_null($stop)) {
+                $start = $len - 1;
+                $stop = -1;
+            } elseif (is_null($stop)) {
+                $stop = -1;
+            } elseif (is_null($start)) {
+                $start = $len - 1;
+            }
+        }
+
+        while ($start < 0) {
+            $start += $len;
+        }
+
+        while ($stop < ($step < 0 ? -1 : 0)) {
+            $stop += $len;
         }
 
 
-        if ($step > 0 ? $stop <= $start : $stop >= $start) {
-            return $result;
-        }
+        $start = max(0, min($start, $len - 1));
+        $stop = max(-1, min($stop, $len));
+
+        foreach (Range::create($start, $stop, $step) as $offset) {
 
 
-        $range = new Range($start, $stop, $step);
-
-        foreach ($range as $offset) {
-
-
-
-            $unsigned ??= $offset >= 0;
-
-            if ($unsigned !== $offset >= 0) {
+            if ($offset >= $len && $step > 0) {
                 break;
             }
 
-            while ($offset < 0) {
-                $offset += $len;
-            }
-
-            if ($offset >= $len) {
+            if ($offset < 0 && $step < 0) {
                 break;
             }
 
@@ -142,7 +155,6 @@ class Slice
             $result[] = $value[$offset];
         }
 
-
         return $result;
     }
 
@@ -152,6 +164,17 @@ class Slice
     public function join(mixed $glue, mixed $value): string
     {
         return Tools::join($glue, $this->slice($value));
+    }
+
+    public function __toString(): string
+    {
+        return sprintf(
+                '%s(%s,%s,%s)',
+                class_basename($this),
+                is_null($this->start) ? 'null' : (string) $this->start,
+                is_null($this->stop) ? 'null' : (string) $this->stop,
+                is_null($this->step) ? 'null' : (string) $this->step
+        );
     }
 
 }
