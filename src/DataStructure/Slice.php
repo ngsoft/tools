@@ -8,7 +8,8 @@ use InvalidArgumentException;
 use NGSOFT\{
     Tools, Tools\TypeCheck
 };
-use Stringable;
+use Stringable,
+    Throwable;
 use function class_basename,
              str_contains;
 
@@ -74,11 +75,6 @@ class Slice implements Stringable
         return $this->step;
     }
 
-    protected function getOffset(int $offset): int
-    {
-        return ($this->start ?? 0) + ($offset * ($this->step ?? 1));
-    }
-
     /**
      * Returns a slice of an array like object
      */
@@ -130,9 +126,6 @@ class Slice implements Stringable
         }
 
 
-        $start = max(0, min($start, $len - 1));
-        $stop = max(-1, min($stop, $len));
-
         foreach (Range::create($start, $stop, $step) as $offset) {
 
 
@@ -144,11 +137,16 @@ class Slice implements Stringable
                 break;
             }
 
-            if (is_null($value[$offset] ?? null)) {
-                continue;
-            }
+            try {
 
-            $result[] = $value[$offset];
+                if (is_null($value[$offset] ?? null)) {
+                    continue;
+                }
+
+                $result[] = $value[$offset];
+            } catch (Throwable) {
+
+            }
         }
 
         return $result;
