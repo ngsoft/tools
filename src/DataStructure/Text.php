@@ -74,9 +74,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $this->offsets = [];
     }
 
+    protected function copy(): static
+    {
+        return clone $this;
+    }
+
     protected function withText(mixed $text): static
     {
-        $clone = clone $this;
+        $clone = $this->copy();
         return $clone->setText($text);
     }
 
@@ -91,9 +96,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -441,7 +446,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -517,26 +522,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
-     * The split() method takes a pattern and divides a String into an ordered list of substrings by searching for the pattern
-     */
-    public function split(mixed $separator, int $limit = 0): iterable
-    {
-
-        $separator = $this->convert($separator);
-
-        if ($limit === 1 || empty($separator)) {
-            return [$this];
-        }
-
-        if ( ! preg_valid($separator)) {
-            $method = 'explode';
-            $limit = $limit < 1 ? PHP_INT_MAX : $limit;
-        } else { $method = 'preg_split'; }
-
-        return map(fn($val) => $this->withText($val), $method($separator, $this->text, $limit));
-    }
-
-    /**
      * The substring() method returns the part of the string between the start and end indexes, or to the end of the string.
      *
      * @param int $start
@@ -567,7 +552,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -660,7 +645,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      * Return the lowest index in the string where substring sub is found within the slice s[start:end].
      * Optional arguments start and end are interpreted as in slice notation. Return -1 if sub is not found.
      */
-    public function find(mixed $sub, ?int $start = null, ?int $end = null): static
+    public function find(mixed $sub, ?int $start = null, ?int $end = null): int
     {
 
         $sub = $this->convert($sub);
@@ -712,7 +697,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     /**
      * Like find(), but raise ValueError when the substring is not found.
      */
-    public function index(mixed $sub, ?int $start = null, ?int $end = null): static
+    public function index(mixed $sub, ?int $start = null, ?int $end = null): int
     {
 
         if (-1 === $result = $this->find($sub, $start, $end)) {
@@ -772,6 +757,16 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
+     * Return True if the string is a titlecased string and there is at least one character,
+     * for example uppercase characters may only follow uncased characters and lowercase characters only cased ones.
+     * Return False otherwise.
+     */
+    public function istitle(): bool
+    {
+        return preg_test('#[A-Z]#', $this->text) && $this->title()->toString() === $this->text;
+    }
+
+    /**
      * Return True if all characters in the string are uppercase and there is at least one lowercase character, False otherwise.
      */
     public function isupper(): bool
@@ -824,18 +819,24 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function partition(mixed $sep): array
     {
-        $sep = $this->convert($sep);
-        @list($before, $after) = explode($sep, $this->text, 2);
-        if (is_null($after)) {
-            $empty = $this->withText('');
-            return [$this->withText($before), $empty, $empty];
+        if (-1 !== $index = $this->indexOf($sep)) {
+            $sep = $this->withText($sep);
+            return [$this->slice(0, $index), $sep, $this->slice($index + count($sep))];
         }
-
-        return [$this->withText($before), $this->withText($sep), $this->withText($after)];
+        $empty = $this->withText('');
+        return [$this->copy(), $empty, $empty];
     }
 
+    /**
+     * If the string starts with the prefix string,
+     * return string[len(prefix):]. Otherwise, return a copy of the original string:
+     */
     public function removeprefix(mixed $prefix): static
     {
+        if ($this->isEmpty()) {
+            return $this;
+        }
+
 
         if ($this->startsWith($prefix)) {
             return $this->slice(mb_strlen($this->convert($prefix)));
@@ -844,13 +845,17 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $this;
     }
 
+    /**
+     * If the string ends with the suffix string and that suffix is not empty, return string[:-len(suffix)].
+     * Otherwise, return a copy of the original string:
+     */
     public function removeSuffix(mixed $suffix): static
     {
+        if ($this->isEmpty()) {
+            return $this;
+        }
         if ($this->endsWith($suffix)) {
-
-            $len = mb_strlen($this->convert($suffix));
-
-            return $this->withText($this[":-$len"]);
+            return $this->slice(end: - mb_strlen($this->convert($suffix)));
         }
 
         return $this;
@@ -865,11 +870,144 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
+     * Return the highest index in the string where substring sub is found, such that sub is contained within s[start:end].
+     * Optional arguments start and end are interpreted as in slice notation.
+     * Return -1 on failure.
+     */
+    public function rfind(mixed $sub, ?int $start = null, ?int $end = null): int
+    {
+        return $this->slice($start, $end)->lastIndexOf($sub);
+    }
+
+    /**
+     * Like rfind() but raises ValueError when the substring sub is not found.
+     */
+    public function rindex(mixed $sub, ?int $start = null, ?int $end = null): int
+    {
+        if (-1 === $result = $this->rfind($sub, $start, $end)) {
+            throw new ValueError('Substring not found.');
+        }
+
+        return $result;
+    }
+
+    /**
+     * Split the string at the last occurrence of sep,
+     * and return a 3-tuple containing the part before the separator, the separator itself, and the part after the separator.
+     * If the separator is not found, return a 3-tuple containing two empty strings, followed by the string itself.
+     */
+    public function rpartition(mixed $sep): array
+    {
+
+        if (-1 !== $index = $this->lastIndexOf($sep)) {
+            $sep = $this->withText($sep);
+            return [$this->slice(0, $index), $sep, $this->slice($index + count($sep))];
+        }
+        $empty = $this->withText('');
+        return [$this->copy(), $empty, $empty];
+    }
+
+    /**
+     * Return a copy of the string with trailing characters removed.
+     * The chars argument is a string specifying the set of characters to be removed.
+     * If omitted or None, the chars argument defaults to removing whitespace.
+     * The chars argument is not a suffix; rather, all combinations of its values are stripped:
+     */
+    public function rstrip(mixed $chars = null): static
+    {
+        $args = [];
+        if ( ! is_null($chars)) {
+            $args [] = $this->convert($chars);
+        }
+
+        return $this->rtrim(...$args);
+    }
+
+    /**
+     * Return a copy of the string with the leading and trailing characters removed.
+     * The chars argument is a string specifying the set of characters to be removed.
+     * If omitted or None, the chars argument defaults to removing whitespace.
+     * The chars argument is not a prefix or suffix; rather, all combinations of its values are stripped:
+     */
+    public function strip(mixed $chars = null): static
+    {
+        $args = [];
+        if ( ! is_null($chars)) {
+            $args [] = $this->convert($chars);
+        }
+
+        return $this->trim(...$args);
+    }
+
+    /**
+     * Return a copy of the string with uppercase characters converted to lowercase and vice versa.
+     */
+    public function swapcase(): static
+    {
+        return $this->withText(mb_strtolower($this->text) ^ mb_strtoupper($this->text) ^ $this->text);
+    }
+
+    /**
      * The slice() method extracts a section of a string and returns it as a new string
      */
-    public function slice(int $start = 0, ?int $end = null, int $step = 1): static
+    public function slice(?int $start = null, ?int $end = null, int $step = 1): static
     {
         return $this->withText($this->joinSliceValue(Slice::create($start, $end, $step), $this));
+    }
+
+    /**
+     * Return a titlecased version of the string where words start with an uppercase character and the remaining characters are lowercase.
+     */
+    public function title(): static
+    {
+        return $this->withText(mb_convert_case($this->text, MB_CASE_TITLE));
+    }
+
+    /**
+     * Return a copy of the string with all the cased characters converted to uppercase
+     */
+    public function upper(): static
+    {
+        return $this->toUpperCase();
+    }
+
+    ////////////////////////////   PHP Methods   ////////////////////////////
+
+    /**
+     * Use sprintf to format string
+     */
+    public function sprintf(mixed ...$args): static
+    {
+
+        if (count($args)) {
+            return $this->withText(sprintf($this->text, ...$args));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use ucfirst on the string
+     */
+    public function ucfirst(): static
+    {
+        if ($this->isEmpty()) {
+            return $this;
+        }
+
+        return $this->withText(mb_strtoupper($this[0]) . $this['1:']);
+    }
+
+    /**
+     * Use lcfirst on the string
+     */
+    public function lcfirst(): static
+    {
+
+        if ($this->isEmpty()) {
+            return $this;
+        }
+        return $this->withText(mb_strtolower($this[0]) . $this['1:']);
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
