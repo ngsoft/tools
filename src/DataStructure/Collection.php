@@ -291,15 +291,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public function keys(Sort $sort = Sort::ASC): iterable
     {
-        $indexes = array_keys($this->storage);
-
-        if ($sort->is(Sort::DESC)) {
-            $indexes = array_reverse($indexes);
-        }
-
-        foreach ($indexes as $offset) {
-            yield $offset;
-        }
+        yield from $this->sortArray(array_keys($this->storage), $sort);
     }
 
     /**
