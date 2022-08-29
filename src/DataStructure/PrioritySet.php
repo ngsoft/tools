@@ -7,10 +7,11 @@ namespace NGSOFT\DataStructure;
 use Countable,
     Generator,
     IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\StringableObject,
-    RuntimeException,
-    Stringable,
+    JsonSerializable;
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
+};
+use Stringable,
     Traversable;
 
 /**
@@ -19,7 +20,9 @@ use Countable,
 class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAggregate
 {
 
-    use StringableObject;
+    use StringableObject,
+        CommonMethods,
+        ObjectLock;
 
     private array $priorities = [];
     private array $storage = [];
@@ -69,10 +72,11 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
         return $this->sorted;
     }
 
-    private function getIndexes(Sort $sort = Sort::DESC): Generator
+    private function getIndexes(Sort $sort = Sort::DESC): iterable
     {
 
         $sorted = $this->getSorted();
+
         if ($sort->is(Sort::ASC)) {
             $sorted = array_reverse($sorted);
         }
@@ -91,6 +95,10 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function add(mixed $value, int|Priority $priority = Priority::MEDIUM): static
     {
+
+        if ($this->isLocked()) {
+            return $this;
+        }
 
         $priority = is_int($priority) ? $priority : $priority->getValue();
 
@@ -121,6 +129,10 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function clear(): void
     {
+        if ($this->isLocked()) {
+            return;
+        }
+
         $this->storage = $this->priorities = $this->sorted = [];
     }
 
@@ -132,11 +144,15 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function delete(mixed $value): bool
     {
-        $offset = $this->indexOf($value);
-        if ($offset > -1) {
-            unset($this->storage[$offset], $this->priorities[$offset]);
-            $this->sorted = [];
-            return true;
+
+        if ( ! $this->isLocked()) {
+
+            $offset = $this->indexOf($value);
+            if ($offset > -1) {
+                unset($this->storage[$offset], $this->priorities[$offset]);
+                $this->sorted = [];
+                return true;
+            }
         }
         return false;
     }
@@ -144,7 +160,7 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
     /**
      * The entries() method returns a new Iterator object that contains an array of [value, value] for each element in the Set object, in insertion order.
      */
-    public function entries(Sort $sort = Sort::DESC): Generator
+    public function entries(Sort $sort = Sort::DESC): iterable
     {
         foreach ($this->getIndexes($sort) as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
     }
@@ -215,25 +231,19 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
 
     public function __serialize(): array
     {
-        return [$this->storage, $this->priorities];
+        return [$this->storage, $this->priorities, $this->locked];
     }
 
     public function __unserialize(array $data): void
     {
-        list($this->storage, $this->priorities) = $data;
+        list($this->storage, $this->priorities, $this->locked) = $data;
     }
 
     /** {@inheritdoc} */
     public function __clone(): void
     {
-
         $this->sorted = [];
-        $indexes = array_keys($this->storage);
-        foreach ($indexes as $index) {
-            if (is_object($this->storage[$index])) {
-                $this->storage[$index] = clone $this->storage[$index];
-            }
-        }
+        $this->storage = $this->cloneArray($this->storage);
     }
 
 }
