@@ -284,15 +284,22 @@ if ( ! function_exists('in_range')) {
     function in_range(int $number, int $min, int $max, bool $inclusive = true)
     {
 
+
+        if ($min === $max) {
+            return $number === $min;
+        }
+
         if ($min > $max) {
             [$min, $max] = [$max, $min];
         }
 
+        if ($inclusive) {
 
-        return
-                $inclusive ?
-                ($number >= $min && $number <= $max) :
-                ($number > $min && $number < $max);
+            return $number >= $min && $number <= $max;
+        }
+
+
+        return $number > $min && $number < $max;
     }
 
 }

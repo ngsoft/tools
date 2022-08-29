@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use NGSOFT\Tools;
+use Countable,
+    LogicException,
+    NGSOFT\Tools;
 
 trait CommonMethods
 {
@@ -70,6 +72,18 @@ trait CommonMethods
     public function each(callable $callback): void
     {
         Tools::each($callback, $this->entries());
+    }
+
+    /**
+     * Checks if empty
+     */
+    public function isEmpty(): bool
+    {
+        if ($this instanceof Countable === false) {
+            throw new LogicException(sprintf('%s not an instance of %s', static::class, Countable::class));
+        }
+
+        return $this->count() === 0;
     }
 
 }
