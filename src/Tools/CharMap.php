@@ -30,7 +30,7 @@ class CharMap
     {
 
         $this->scan();
-        return $this->map->set($key, $value);
+        return $this->map;
     }
 
     protected function scan(): void
@@ -42,22 +42,11 @@ class CharMap
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++) {
+        for ($offset = 0; $offset < $this->length; $offset ++ ) {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++) {
-                $this->map;
-            }
-        }
-
-
-
-        $offsets = &$this->offsets;
-
-        for ($i = 0; $i < $this->length; $i ++) {
-            $char = mb_substr($this->text, $i, 1);
-            for ($j = 0; $j < strlen($char); $j ++) {
-                $offsets[0][] = $i;
-                $offsets[1][$i] ??= array_key_last($offsets[0]);
+            for ($byte = 0; $byte < strlen($char); $byte ++ ) {
+                $this->map->add($index, $offset);
+                $index ++;
             }
         }
     }
@@ -67,11 +56,16 @@ class CharMap
      */
     public function getCharOffset(int $byteOffset): int
     {
-        if ( ! in_range($byteOffset, 0, $this->size - 1)) {
+
+        if (0 === $byteOffset) {
+            return $byteOffset;
+        }
+
+        if ($this->isEmpty() || ! in_range($byteOffset, 0, $this->size - 1)) {
             throw new OutOfRangeException(sprintf('Byte offset %d is invalid [ 0-%d ].', $byteOffset, $this->size - 1));
         }
 
-        if ($this->size === $this->length || $byteOffset === 0) {
+        if ($this->size === $this->length) {
             return $byteOffset;
         }
     }
@@ -81,8 +75,11 @@ class CharMap
      */
     public function getByteOffset(int $charOffset): int
     {
+        if (0 === $charOffset) {
+            return $charOffset;
+        }
 
-        if ( ! in_range($charOffset, 0, $this->length - 1)) {
+        if ($this->isEmpty() || ! in_range($charOffset, 0, $this->length - 1)) {
             throw new OutOfRangeException(sprintf('Character offset %d is invalid [ 0-%d ].', $charOffset, $this->length - 1));
         }
 

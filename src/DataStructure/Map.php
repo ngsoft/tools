@@ -27,6 +27,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 
     protected array $keys = [];
     protected array $values = [];
+    protected bool $locked = false;
 
     protected function indexOf(mixed $key): int
     {
@@ -45,6 +46,14 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
         $this->keys[] = $key;
         $this->values[] = $value;
         return $this;
+    }
+
+    /**
+     * Lock the map preventing furter modifications
+     */
+    public function lock(): void
+    {
+        $this->locked = true;
     }
 
     /**
@@ -87,10 +96,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     }
 
     /**
-     * The search() method returns a specified key element from a Map object.
-     * If the key that is associated to the provided value is an object,
-     * then you will get a reference to that object and any change made
-     * to that object will effectively modify it inside the Map object.
+     * The search() method returns the first key match from a value
      */
     public function search(mixed $value): mixed
     {
