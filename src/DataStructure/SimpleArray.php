@@ -22,6 +22,8 @@ class SimpleArray extends Collection
      */
     public function unshift(mixed ...$values): int
     {
+        $this->assertLocked();
+
         foreach ($values as $value) {
             if ($value instanceof self) { $value = $value->storage; }
             array_unshift($this->storage, $value);
@@ -37,6 +39,8 @@ class SimpleArray extends Collection
      */
     public function push(mixed ...$values): int
     {
+        $this->assertLocked();
+
         foreach ($values as $value) {
             if ($value instanceof self) { $value = $value->storage; }
             array_push($this->storage, $value);
@@ -56,6 +60,8 @@ class SimpleArray extends Collection
      */
     public function shift(): mixed
     {
+        $this->assertLocked();
+
         $value = array_shift($this->storage);
         if (is_array($value) && $this->recursive) {
             $value = new static($value, $this->recursive);
@@ -71,6 +77,8 @@ class SimpleArray extends Collection
      */
     public function pop(): mixed
     {
+        $this->assertLocked();
+
         $value = array_pop($this->storage);
         if (is_array($value) && $this->recursive) {
             $value = new static($value, $this->recursive);
