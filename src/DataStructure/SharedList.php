@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use Countable,
-    Generator,
     InvalidArgumentException,
     IteratorAggregate,
     JsonSerializable,
@@ -21,7 +20,8 @@ use Countable,
 final class SharedList implements Countable, IteratorAggregate, JsonSerializable, Stringable
 {
 
-    use StringableObject;
+    use StringableObject,
+        CommonMethods;
 
     private array $values = [];
     private array $pairs = [];
@@ -193,10 +193,8 @@ final class SharedList implements Countable, IteratorAggregate, JsonSerializable
 
     /**
      * Iterates all values shared lists
-     *
-     * @return Generator
      */
-    public function entries(): Generator
+    public function entries(): iterable
     {
         foreach ($this->values as $value) {
             yield $value => $this->get($value);
