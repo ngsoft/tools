@@ -7,9 +7,11 @@ namespace NGSOFT\DataStructure;
 use ArrayAccess,
     Countable,
     IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\StringableObject,
-    Stringable,
+    JsonSerializable;
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
+};
+use Stringable,
     Traversable;
 use function get_debug_type;
 
@@ -23,11 +25,11 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 {
 
     use StringableObject,
-        CommonMethods;
+        CommonMethods,
+        ObjectLock;
 
     protected array $keys = [];
     protected array $values = [];
-    protected bool $locked = false;
 
     protected function indexOf(mixed $key): int
     {
@@ -43,17 +45,12 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 
     protected function append(mixed $key, mixed $value): static
     {
-        $this->keys[] = $key;
-        $this->values[] = $value;
-        return $this;
-    }
+        if ( ! $this->isLocked()) {
+            $this->keys[] = $key;
+            $this->values[] = $value;
+        }
 
-    /**
-     * Lock the map preventing furter modifications
-     */
-    public function lock(): void
-    {
-        $this->locked = true;
+        return $this;
     }
 
     /**
@@ -63,7 +60,9 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function clear(): void
     {
-        $this->keys = $this->values = [];
+        if ( ! $this->isLocked()) {
+            $this->keys = $this->values = [];
+        }
     }
 
     /**
@@ -74,10 +73,13 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function delete(mixed $key): bool
     {
-        if (($index = $this->indexOf($key)) > -1) {
-            unset($this->keys[$index], $this->values[$index]);
-            return true;
+        if ( ! $this->isLocked()) {
+            if (($index = $this->indexOf($key)) > -1) {
+                unset($this->keys[$index], $this->values[$index]);
+                return true;
+            }
         }
+
         return false;
     }
 

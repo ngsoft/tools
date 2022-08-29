@@ -1034,6 +1034,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      * Return a list of the words in the string, using sep as the delimiter string.
      * If maxsplit is given, at most maxsplit splits are done (thus, the list will have at most maxsplit+1 elements).
      * If maxsplit is not specified or -1, then there is no limit on the number of splits (all possible splits are made).
+     *
      * @return static[]
      */
     public function split(mixed $sep = null, int $maxsplit = -1): array
@@ -1133,11 +1134,13 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     /**
      * Use sprintf to format string
+     *
+     * @phan-suppress PhanPluginPrintfVariableFormatString
      */
     public function sprintf(mixed ...$args): static
     {
 
-        if (count($args)) {
+        if (count($args) && $this->indexOf('%') > -1) {
             return $this->withText(sprintf($this->text, ...$args));
         }
 
