@@ -71,6 +71,9 @@ if ( ! function_exists('str_val')) {
      */
     function str_val(mixed $value): string
     {
+        if (is_string($value)) {
+            return $value;
+        }
 
         if ( ! is_stringable($value)) {
             throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($value)));

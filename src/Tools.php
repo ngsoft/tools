@@ -582,7 +582,10 @@ final class Tools
      */
     public static function join(mixed $glue, iterable $values): string
     {
-        $glue = str_val($glue);
+        if ( ! is_string($glue)) {
+            $glue = str_val($glue);
+        }
+
 
         $result = [];
 
