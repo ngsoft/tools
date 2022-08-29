@@ -23,7 +23,8 @@ use ArrayAccess,
 final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
 {
 
-    use StringableObject;
+    use StringableObject,
+        CommonMethods;
 
     public const DEFAULT_CAPACITY = 8;
 
@@ -82,11 +83,6 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
         return true;
     }
 
-    protected function getIndexes(): Generator
-    {
-        foreach (array_keys($this->storage) as $offset) { yield $offset; }
-    }
-
     protected function append(int|string|null $key, mixed $value): void
     {
         if (null !== $key) {
@@ -98,7 +94,7 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
 
     protected function enforceCapacity(): void
     {
-        foreach ($this->getIndexes() as $offset) {
+        foreach ($this->keys() as $offset) {
             if ($this->count() > $this->size) {
                 unset($this->storage[$offset]);
             } else { break; }
@@ -114,25 +110,34 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     /** {@inheritdoc} */
     public function getIterator(): Traversable
     {
-        foreach ($this->getIndexes() as $offset) { yield $offset => $this->storage[$offset]; }
+        yield from $this->entries();
+    }
+
+    /** {@inheritdoc} */
+    public function entries(Sort $sort = Sort::ASC): iterable
+    {
+
+        foreach ($this->keys($sort) as $offset) {
+            yield $offset => $this->storage[$offset];
+        }
     }
 
     /**
      * Returns a new iterable with only the indexes
      * @return iterable
      */
-    public function keys(): iterable
+    public function keys(Sort $sort = Sort::ASC): iterable
     {
-        return array_keys($this->storage);
+        return $this->sortArray(array_keys($this->storage), $sort);
     }
 
     /**
      * Returns a new iterable with only the values
      * @return iterable
      */
-    public function values(): iterable
+    public function values(Sort $sort = Sort::ASC): iterable
     {
-        return array_values($this->storage);
+        return $this->sortArray(array_values($this->storage), $sort);
     }
 
     /** {@inheritdoc} */

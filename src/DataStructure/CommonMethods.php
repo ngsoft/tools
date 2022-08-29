@@ -15,6 +15,19 @@ trait CommonMethods
     abstract public function entries(Sort $sort = Sort::ASC): iterable;
 
     /**
+     * Sorts array using Sort enum
+     */
+    protected function sortArray(array $array, Sort $sort): array
+    {
+
+        if ($sort->is(Sort::DESC)) {
+            return array_reverse($array);
+        }
+
+        return $array;
+    }
+
+    /**
      * Helper to be used with __clone() method
      */
     protected function cloneArray(array $array): array
@@ -28,7 +41,7 @@ trait CommonMethods
 
 
             if (is_array($value)) {
-                $array[$offset] = $this->clone($value);
+                $array[$offset] = $this->cloneArray($value);
             }
         }
 

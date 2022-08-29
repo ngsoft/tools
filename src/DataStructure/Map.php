@@ -24,7 +24,8 @@ use function get_debug_type;
 final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, JsonSerializable
 {
 
-    use StringableObject;
+    use StringableObject,
+        CommonMethods;
 
     protected array $keys = [];
     protected array $values = [];
@@ -232,6 +233,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     public function __clone(): void
     {
 
+        $this->keys = $this->cloneArray($this->keys);
+        $this->values = $this->cloneArray($this->values);
     }
 
 }
