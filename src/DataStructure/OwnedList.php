@@ -171,19 +171,20 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
         return [
             'value' => $this->value,
             'ownedList' => $this->ownedList,
+            'locked' => $this->locked,
         ];
     }
 
     /** {@inheritdoc} */
     public function __serialize(): array
     {
-        return [$this->value, $this->ownedList];
+        return [$this->value, $this->ownedList, $this->locked];
     }
 
     /** {@inheritdoc} */
     public function __unserialize(array $data): void
     {
-        list($this->value, $this->ownedList) = $data;
+        list($this->value, $this->ownedList, $this->locked ) = $data;
     }
 
     /** {@inheritdoc} */
