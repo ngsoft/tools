@@ -8,9 +8,11 @@ use ArrayAccess,
     Countable,
     Generator,
     IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\StringableObject,
-    OutOfBoundsException,
+    JsonSerializable;
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
+};
+use OutOfBoundsException,
     RuntimeException,
     Stringable,
     Traversable,
@@ -22,7 +24,8 @@ use ArrayAccess,
 final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable, ArrayAccess
 {
 
-    use StringableObject;
+    use StringableObject,
+        ObjectLock;
 
     private Set $ownedList;
 
@@ -57,7 +60,10 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
         if ($this->value === $value) {
             throw new ValueError('Value cannot own itself.');
         }
-        $this->ownedList->add($value);
+        if ( ! $this->isLocked()) {
+            $this->ownedList->add($value);
+        }
+
         return $this;
     }
 
@@ -69,6 +75,9 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
      */
     public function delete(int|float|string|object $value): bool
     {
+        if ($this->isLocked()) {
+            return false;
+        }
         return $this->ownedList->delete($value);
     }
 
@@ -90,6 +99,9 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
      */
     public function clear(): void
     {
+        if ($this->isLocked()) {
+            return;
+        }
         $this->ownedList->clear();
     }
 
