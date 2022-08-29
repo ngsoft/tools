@@ -6,10 +6,8 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
-    Generator,
     IteratorAggregate,
     JsonSerializable,
-    LogicException,
     NGSOFT\Traits\StringableObject,
     Stringable,
     Traversable;
@@ -38,7 +36,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 
     protected function indexOfValue(mixed $value): int
     {
-        $index = array_search($key, $this->values, true);
+        $index = array_search($value, $this->values, true);
         return $index !== false ? $index : -1;
     }
 
@@ -47,15 +45,6 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
         $this->keys[] = $key;
         $this->values[] = $value;
         return $this;
-    }
-
-    protected function getIndexes(Sort $sort = Sort::ASC): Generator
-    {
-        $keys = array_keys($this->keys);
-        if ($sort->is(Sort::DESC)) {
-            $keys = array_reverse($keys);
-        }
-        foreach ($keys as $offset) { yield $offset; }
     }
 
     /**
@@ -88,15 +77,27 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      * If the value that is associated to the provided key is an object,
      * then you will get a reference to that object and any change made
      * to that object will effectively modify it inside the Map object.
-     *
-     * @param mixed $key
-     * @return mixed
      */
     public function get(mixed $key): mixed
     {
         return
                 ($index = $this->indexOf($key)) > -1 ?
                 $this->values[$index] :
+                null;
+    }
+
+    /**
+     * The search() method returns a specified key element from a Map object.
+     * If the key that is associated to the provided value is an object,
+     * then you will get a reference to that object and any change made
+     * to that object will effectively modify it inside the Map object.
+     */
+    public function search(mixed $value): mixed
+    {
+
+        return
+                ($index = $this->indexOfValue($value)) > -1 ?
+                $this->keys[$index] :
                 null;
     }
 
@@ -134,8 +135,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function keys(Sort $sort = Sort::ASC): iterable
     {
-        $keys = $sort->is(Sort::ASC) ? $this->keys : array_reverse($this->keys);
-        foreach ($keys as $key) { yield $key; }
+        yield from $this->sortArray($this->keys, $sort);
     }
 
     /**
@@ -143,8 +143,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function values(Sort $sort = Sort::ASC): iterable
     {
-        $values = $sort->is(Sort::ASC) ? $this->values : array_reverse($this->values);
-        foreach ($values as $value) { yield $value; }
+        yield from $this->sortArray($this->values, $sort);
     }
 
     /**
@@ -152,7 +151,9 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function entries(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->getIndexes($sort) as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
+        foreach ($this->sortArray(array_keys($this->keys), $sort) as $offset) {
+            yield $this->keys[$offset] => $this->values[$offset];
+        }
     }
 
     /**

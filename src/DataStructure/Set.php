@@ -9,7 +9,6 @@ use Countable,
     IteratorAggregate,
     JsonSerializable,
     NGSOFT\Traits\StringableObject,
-    RuntimeException,
     Stringable,
     Traversable;
 
@@ -19,7 +18,8 @@ use Countable,
 final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate
 {
 
-    use StringableObject;
+    use StringableObject,
+        CommonMethods;
 
     private array $storage = [];
 
@@ -47,20 +47,11 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
 
     private function getIndexes(Sort $sort = Sort::ASC): Generator
     {
-        $indexes = array_keys($this->storage);
-
-        if ($sort->is(Sort::DESC)) {
-            $indexes = array_reverse($indexes);
-        }
-
-        foreach ($indexes as $offset) { yield $offset; }
+        yield from $this->sortArray(array_keys($this->storage), $sort);
     }
 
     /**
      * The add() method appends a new element with a specified value to the end of a Set object.
-     *
-     * @param mixed $value
-     * @return static
      */
     public function add(mixed $value): static
     {
@@ -70,8 +61,6 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
 
     /**
      * The clear() method removes all elements from a Set object.
-     *
-     * @return void
      */
     public function clear(): void
     {
@@ -80,9 +69,6 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
 
     /**
      * The delete() method removes a specified value from a Set object, if it is in the set.
-     *
-     * @param mixed $value
-     * @return bool
      */
     public function delete(mixed $value): bool
     {
@@ -97,27 +83,15 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     /**
      * The entries() method returns a new Iterator object that contains an array of [value, value] for each element in the Set object, in insertion order.
      */
-    public function entries(Sort $sort = Sort::ASC): Generator
+    public function entries(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->getIndexes($sort) as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
-    }
-
-    /**
-     * The forEach() method executes a provided function once for each value in the Set object, in insertion order.
-     *
-     * @param callable $callable ($value,$value, Set)
-     * @return void
-     */
-    public function forEach(callable $callable): void
-    {
-        foreach ($this->entries() as $value) { $callable($value, $value, $this); }
+        foreach ($this->getIndexes($sort) as $offset) {
+            yield $this->storage[$offset] => $this->storage[$offset];
+        }
     }
 
     /**
      * The has() method returns a boolean indicating whether an element with the specified value exists in a Set object or not.
-     *
-     * @param mixed $value
-     * @return bool
      */
     public function has(mixed $value): bool
     {
@@ -126,8 +100,6 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
 
     /**
      * Checks if set is empty
-     *
-     * @return bool
      */
     public function isEmpty(): bool
     {
@@ -136,12 +108,10 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
 
     /**
      * The values() method returns a new Iterator object that contains the values for each element in the Set object in insertion order.
-     *
-     * @return Generator
      */
-    public function values(Sort $sort = Sort::ASC): Generator
+    public function values(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->entries($sort) as $value) { yield $value; }
+        yield from $this->sortArray(array_values($this->storage), $sort);
     }
 
     /** {@inheritdoc} */
@@ -153,7 +123,7 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     /** {@inheritdoc} */
     public function getIterator(): Traversable
     {
-        yield from $this->entries();
+        yield from $this->values();
     }
 
     /** {@inheritdoc} */
@@ -181,12 +151,7 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     /** {@inheritdoc} */
     public function __clone(): void
     {
-        foreach ($this->getIndexes() as $offset) {
-
-            if (is_object($this->storage[$offset])) {
-                $this->storage[$offset] = clone $this->storage[$offset];
-            }
-        }
+        $this->storage = $this->cloneArray($this->storage);
     }
 
 }
