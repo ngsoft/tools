@@ -47,6 +47,17 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     protected int $length;
     protected array $offsets = [];
 
+    /**
+     * Create new Text
+     */
+    public static function create(mixed $text): static
+    {
+        return static::of($text);
+    }
+
+    /**
+     * Create new Text
+     */
     public static function of(mixed $text): static
     {
 
@@ -54,6 +65,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             return $text;
         }
         return new static($text);
+    }
+
+    /**
+     * Create multiple segments of Text
+     * @return static[]
+     */
+    public function ofSegments(mixed ...$segments): array
+    {
+        return map(fn($text) => static::create($text), $segments);
     }
 
     public function __construct(mixed $text = '')
@@ -79,15 +99,22 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $this->offsets = [];
     }
 
-    protected function copy(): static
+    /**
+     * Get a Text Copy
+     */
+    public function copy(): static
     {
         return clone $this;
     }
 
     protected function withText(mixed $text): static
     {
-        $clone = $this->copy();
-        return $clone->setText($text);
+        return $this->copy()->setText($text);
+    }
+
+    protected function withSegments(mixed ...$segments): array
+    {
+        return map(fn($text) => $this->withText($text), $segments);
     }
 
     protected function buildOffsetMap(): void
@@ -101,9 +128,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             $offsets = &$this->offsets;
 
-            for ($i = 0; $i < $this->length; $i ++) {
+            for ($i = 0; $i < $this->length; $i ++ ) {
                 $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++) {
+                for ($j = 0; $j < strlen($char); $j ++ ) {
                     $offsets[0][] = $i;
                     $offsets[1][$i] ??= array_key_last($offsets[0]);
                 }
@@ -326,27 +353,31 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     }
 
     /**
-     * The includes() method performs a search to determine whether one string may be found within another string, returning true or false as appropriate.
+     * The includes() method performs a search to determine whether one string may be found within another string/regex, returning true or false as appropriate.
      */
     public function contains(mixed $needle, bool $ignoreCase = false): bool
     {
 
-        if (is_iterable($needle)) {
-            return some(fn($n) => $this->contains($n, $ignoreCase), $needle);
+        $needle = $this->convert($needle);
+
+        if ($needle === '') {
+            return false;
         }
 
-        $needle = $this->convert($needle);
         $haystack = $this->text;
+
+        if (preg_valid($needle)) {
+            $needle .= 'i';
+            return preg_test($needle, $haystack);
+        }
+
+
 
         if ($ignoreCase) {
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
 
-
-        if ($needle === '') {
-            return false;
-        }
 
         return str_contains($haystack, $needle);
     }
@@ -457,7 +488,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -565,7 +596,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++) {
             $str .= $this->at($index);
         }
 
@@ -867,13 +898,13 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $sep = $this->convert($sep);
 
         if ($sep === '') {
-            return $this->getEmptyPartition();
+            throw new ValueError('Empty separator.');
         }
 
         $result = $this->_indexOf($sep);
         if (-1 !== $index = $result[1] ?? -1) {
-            $sep = $this->withText($result[0]);
-            return [$this->slice(0, $index), $sep, $this->slice($index + count($sep))];
+            $_sep = $this->withText($result[0]);
+            return [$this->slice(0, $index), $_sep, $this->slice($index + count($_sep))];
         }
 
         return $this->getEmptyPartition();
@@ -954,13 +985,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $sep = $this->convert($sep);
 
         if ($sep === '') {
-            return $this->getEmptyPartition();
+            throw new ValueError('Empty separator.');
         }
+
 
         $result = $this->_lastIndexOf($sep);
         if (-1 !== $index = $result[1] ?? -1) {
-            $sep = $this->withText($result[0]);
-            return [$this->slice(0, $index), $sep, $this->slice($index + count($sep))];
+            $_sep = $this->withText($result[0]);
+            return [$this->slice(0, $index), $_sep, $this->slice($index + count($_sep))];
         }
 
         return $this->getEmptyPartition();
@@ -1039,30 +1071,19 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function split(mixed $sep = null, int $maxsplit = -1): array
     {
-        if (is_null($sep) || $maxsplit === 0) {
+        $sep = $this->convert($sep);
+
+        if ($sep === '') {
+            throw new ValueError('Empty separator.');
+        }
+
+
+        if ($maxsplit === 0) {
             return [$this->copy()];
         }
 
-        $result = [];
 
-        $text = $this;
-
-        while ( ! $text->isEmpty()) {
-
-            if ($maxsplit > 0 && count($result) === $maxsplit) {
-
-                break;
-            }
-
-            [$_text,, $text] = $text->partition($sep);
-            $result[] = $_text;
-        }
-
-        if ( ! $text->isEmpty()) {
-            $result[] = $text;
-        }
-
-        return $result;
+        return $this->withSegments(...Tools::split($sep, $this->text, $maxsplit));
     }
 
     /**
@@ -1071,9 +1092,20 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      * If sep is not specified or None, any whitespace string is a separator.
      * Except for splitting from the right, rsplit() behaves like split().
      */
-    public function rsplit(mixed $sep = null, int $maxsplit = -1): array
+    public function rsplit(mixed $sep = ' ', int $maxsplit = -1): array
     {
-        if (is_null($sep) || $maxsplit === 0) {
+
+        if (-1 === $maxsplit) {
+            return $this->split($sep);
+        }
+
+        $sep = $this->convert($sep);
+
+        if ($sep === '') {
+            throw new ValueError('Empty separator.');
+        }
+
+        if ($maxsplit === 0 || ! $this->contains($sep)) {
             return [$this->copy()];
         }
 
@@ -1081,26 +1113,18 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $text = $this;
 
-        while ( ! $text->isEmpty()) {
+        while (count($result) < $maxsplit) {
 
-            if ($maxsplit > 0 && count($result) === $maxsplit) {
+            [$text, $_sep, $_text] = $text->rpartition($sep);
+            if ($_sep->isEmpty()) {
                 break;
             }
-
-            [$text,, $_text] = $text->rpartition($sep);
-
-            if ( ! $_text->isEmpty()) {
-                array_unshift($result, $_text);
-                continue;
-            }
-            break;
+            $result[] = $_text;
         }
 
-        if ( ! $text->isEmpty()) {
-            array_unshift($result, $text);
-        }
+        $result[] = $text;
 
-        return $result;
+        return array_reverse($result);
     }
 
     /**
@@ -1114,20 +1138,31 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             return [$this->copy()];
         }
 
+
+        $flags = $keepends ? PREG_SPLIT_DELIM_CAPTURE : 0;
+
         $result = [];
 
-        $text = $this;
+        $text = $this->text;
 
-        while ( ! $text->isEmpty()) {
+        while ( ! is_null($text)) {
 
-            [$_text, $sep, $text] = $text->partition('#\v+#');
-            if ($keepends) {
-                $_text = $_text->append($sep);
+            @list($segment, $delim, $text) = preg_split('#(\v)#', $text, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+            if ( ! $keepends) {
+                $delim = '';
             }
-            $result[] = $_text;
+
+            $segment .= $delim ?? '';
+
+            if (is_null($text) && $segment === '') {
+                break;
+            }
+
+            $result[] = $segment;
         }
 
-        return $result;
+        return $this->withSegments(...$result);
     }
 
     ////////////////////////////   PHP Methods   ////////////////////////////
@@ -1395,7 +1430,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
 
         return [
-            'text' => $this->text
+            'text' => $this->text,
+            'normalized' => trim(json_encode($this->text, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS), '"')
         ];
     }
 

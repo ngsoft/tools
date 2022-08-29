@@ -597,12 +597,31 @@ final class Tools
     /**
      * Split a stringable using provided separator
      */
-    public static function split(mixed $separator, mixed $value): array
+    public static function split(mixed $separator, mixed $value, int $limit = -1): array
     {
         $separator = str_val($separator);
 
         $value = str_val($value);
-        return explode($separator, $value);
+
+        if ($limit === 0) {
+            return [$value];
+        }
+
+        if ($limit > 0 && $limit < PHP_INT_MAX) {
+            $limit ++;
+        }
+
+        $method = 'preg_split';
+        if ( ! preg_valid($separator)) {
+
+            $method = 'explode';
+            if ($limit < 0) {
+                $limit = PHP_INT_MAX;
+            }
+        }
+
+
+        return $method($separator, $value, $limit);
     }
 
     ////////////////////////////   Time   ////////////////////////////

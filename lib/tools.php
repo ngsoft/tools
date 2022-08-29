@@ -223,7 +223,7 @@ function join(mixed $glue, iterable $values): string
 /**
  * Split a stringable using provided separator
  */
-function split(mixed $separator, mixed $value): array
+function split(mixed $separator, mixed $value, int $limit = -1): array
 {
-    return Tools::split($separator, $value);
+    return Tools::split($separator, $value, $limit);
 }

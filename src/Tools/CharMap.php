@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use Countable;
-use NGSOFT\DataStructure\{
-    Map, Tuple
-};
-use OutOfRangeException,
+use Countable,
+    NGSOFT\DataStructure\Map,
+    OutOfRangeException,
+    RuntimeException,
     Stringable;
 use function in_range,
              mb_strlen,
@@ -20,11 +19,61 @@ use function in_range,
 class CharMap implements Stringable, Countable
 {
 
+    protected static array $_instances = [];
     protected string $string;
     protected int $size;
     protected int $length;
     protected Map $map;
 
+    ////////////////////////////   Static Methods   ////////////////////////////
+
+    /**
+     * Create a new CharMap
+     */
+    public static function create(string $string): static
+    {
+
+        static $empty;
+
+        if ($string !== '') {
+            return self::$_instances[$string] ??= new static($string);
+        }
+
+        return $empty ??= new static('');
+    }
+
+    /**
+     * Get character offset from byte offset
+     * Returns -1 on failure
+     */
+    public static function getCharOffset(string $string, int $byte): int
+    {
+        try {
+
+            return static::create($string)->convertByteOffset($byte);
+        } catch (OutOfRangeException | RuntimeException) {
+            return -1;
+        }
+    }
+
+    /**
+     * Get byte offset from character Offset
+     * returns -1 on failure
+     */
+    public static function getByteOffset(string $string, int $char): int
+    {
+        try {
+            return static::create($string)->convertCharacterOffset($char);
+        } catch (OutOfRangeException | RuntimeException) {
+            return -1;
+        }
+    }
+
+    ////////////////////////////   Implementation   ////////////////////////////
+
+    /**
+     * Create a new CharMap
+     */
     public function __construct(string $string)
     {
         $this->string = $string;
@@ -63,41 +112,53 @@ class CharMap implements Stringable, Countable
     /**
      * Get Character Offset from Byte Offset
      */
-    public function getCharOffset(int $byteOffset): int
+    public function convertByteOffset(int $byte): int
     {
 
-        if (0 === $byteOffset) {
-            return $byteOffset;
+        if (0 === $byte) {
+            return $byte;
         }
 
-        if ($this->isEmpty() || ! in_range($byteOffset, 0, $this->size - 1)) {
-            throw new OutOfRangeException(sprintf('Byte offset %d is invalid [ 0-%d ].', $byteOffset, $this->size - 1));
+
+        if ($this->isEmpty() || ! in_range($byte, 0, $this->size - 1)) {
+            throw new OutOfRangeException(sprintf('Byte offset %d is invalid [ 0-%d ].', $byte, $this->size - 1));
         }
 
         if ($this->size === $this->length) {
-            return $byteOffset;
+            return $byte;
         }
-        return $this->getMap()->get($byteOffset);
+
+        if (null === $offset = $this->getMap()->get($byte)) {
+
+            throw new RuntimeException(sprintf('Cannot find offset for byte #%d.', $byte));
+        }
+
+        return $offset;
     }
 
     /**
      * Get Byte offset from Character Offset
      */
-    public function getByteOffset(int $charOffset): int
+    public function convertCharacterOffset(int $char): int
     {
-        if (0 === $charOffset) {
-            return $charOffset;
+        if (0 === $char) {
+            return $char;
         }
 
-        if ($this->isEmpty() || ! in_range($charOffset, 0, $this->length - 1)) {
-            throw new OutOfRangeException(sprintf('Character offset %d is invalid [ 0-%d ].', $charOffset, $this->length - 1));
+        if ($this->isEmpty() || ! in_range($char, 0, $this->length - 1)) {
+            throw new OutOfRangeException(sprintf('Character offset %d is invalid [ 0-%d ].', $char, $this->length - 1));
         }
 
         if ($this->size === $this->length) {
-            return $charOffset;
+            return $char;
         }
 
-        return $this->getMap()->search($charOffset);
+        if (null === $offset = $this->getMap()->search($char)) {
+            throw new RuntimeException(sprintf('Cannot find offset for character #%d.', $char));
+        }
+
+
+        return $offset;
     }
 
     /**
