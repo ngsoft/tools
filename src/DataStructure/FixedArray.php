@@ -7,9 +7,11 @@ namespace NGSOFT\DataStructure;
 use ArrayAccess,
     Countable,
     IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\StringableObject,
-    OutOfRangeException,
+    JsonSerializable;
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
+};
+use OutOfRangeException,
     Stringable,
     Traversable;
 
@@ -23,7 +25,8 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
 {
 
     use StringableObject,
-        CommonMethods;
+        CommonMethods,
+        ObjectLock;
 
     public const DEFAULT_CAPACITY = 8;
 
@@ -84,6 +87,7 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
 
     protected function append(int|string|null $key, mixed $value): void
     {
+
         if (null !== $key) {
             unset($this->storage[$key]);
             $this->storage[$key] = $value;
@@ -154,7 +158,10 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     /** {@inheritdoc} */
     public function &offsetGet(mixed $offset): mixed
     {
+
         if (null === $offset) {
+            $this->assertLocked();
+
             $this->append($offset, []);
             $offset = array_key_last($this->storage);
         }
@@ -167,12 +174,18 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
+        if ($this->isLocked()) {
+            return;
+        }
         $this->append($offset, $value);
     }
 
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
+        if ($this->isLocked()) {
+            return;
+        }
         unset($this->storage[$offset]);
     }
 
