@@ -12,7 +12,7 @@ use function in_range,
 /**
  * A Multibyte/byte string convertion Map
  */
-class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable
+class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable, \Countable
 {
 
     protected string $string;
@@ -57,9 +57,9 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++) {
+        for ($offset = 0; $offset < $this->length; $offset ++ ) {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++) {
+            for ($byte = 0; $byte < strlen($char); $byte ++ ) {
                 $this->map->add($index, $offset);
                 $index ++;
             }
@@ -87,6 +87,8 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable
         }
 
 
+        return mb_strlen(substr($this->string, 0, $byteOffset));
+
         return $this->getMap()->get($byteOffset);
     }
 
@@ -107,6 +109,9 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable
             return $charOffset;
         }
 
+
+        return strlen(mb_substr($this->string, 0, $charOffset));
+
         return $this->getMap()->search($charOffset);
     }
 
@@ -126,14 +131,34 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable
         return $this->size;
     }
 
+    public function count(): int
+    {
+        return $this->length;
+    }
+
     public function isEmpty(): bool
     {
-        return $this->length === 0;
+        return $this->count() === 0;
+    }
+
+    public function toString(): string
+    {
+        return $this->string;
     }
 
     public function __toString(): string
     {
         return $this->string;
+    }
+
+    public function __unserialize(array $data)
+    {
+        @list($this->string, $this->length, $this->size, $this->map) = $data;
+    }
+
+    public function __serialize(): array
+    {
+        return [$this->string, $this->length, $this->size, $this->map];
     }
 
 }

@@ -229,13 +229,13 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     /** {@inheritdoc} */
     public function __serialize(): array
     {
-        return [$this->keys, $this->values];
+        return [$this->keys, $this->values, $this->locked];
     }
 
     /** {@inheritdoc} */
     public function __unserialize(array $data): void
     {
-        list($this->keys, $this->values) = $data;
+        list($this->keys, $this->values, $this->locked) = $data;
     }
 
     /** {@inheritdoc} */
