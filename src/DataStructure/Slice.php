@@ -16,36 +16,54 @@ use function class_basename,
 class Slice implements Stringable
 {
 
+    private const RE_SLICE = '#^(|-?\d+)(?::(|-?\d+))(?::(|-?\d+))?$#';
+
     public static function create(?int $start = null, ?int $stop = null, ?int $step = null): static
     {
         return new static($start, $stop, $step);
     }
 
+    /**
+     * Create a Slice instance using python slice notation
+     *
+     * @link https://www.bestprog.net/en/2019/12/07/python-strings-access-by-indexes-slices-get-a-fragment-of-a-string-examples/
+     * eg ':' '::' '0:1:' '10:2:-1' '1:'
+     */
     public static function of(string $slice): static
     {
 
-        $step = $stop = null;
+
+        if ( ! self::isValid($slice)) {
+            throw new InvalidArgumentException(sprintf('Invalid slice [%s]', $slice));
+        }
 
         if ($slice === ':' || $slice === '::') {
-            $start = 0;
-        } elseif (str_contains($slice, ':')) {
+            return static::create(0);
+        }
 
-            @list($start, $stop, $step) = explode(':', $slice);
+        @list(, $start, $stop, $step) = preg_exec(self::RE_SLICE, $slice);
 
-            if ( ! is_numeric($step)) {
-                $step = null;
-            } else { $step = intval($step); }
+        foreach ([&$start, &$stop, &$step] as &$value) {
 
-            if ( ! is_numeric($start)) {
-                $start = null;
-            } else { $start = intval($start); }
-
-            if ( ! is_numeric($stop)) {
-                $stop = null;
-            } else { $stop = intval($stop); }
-        } else { throw new InvalidArgumentException(sprintf('Invalid slice "%s"', $slice)); }
-
+            if (is_numeric($value)) {
+                $value = intval($value);
+            } else { $value = null; }
+        }
         return self::create($start, $stop, $step);
+    }
+
+    public static function isValid(string $slice): bool
+    {
+
+        if ( ! str_contains($slice, ':')) {
+            return false;
+        }
+
+        if ($slice === ':' || $slice === '::') {
+            return true;
+        }
+
+        return preg_test(self::RE_SLICE, $slice);
     }
 
     public function __construct(
@@ -88,11 +106,7 @@ class Slice implements Stringable
             return $result;
         }
 
-        /**
-         * @link https://www.bestprog.net/en/2019/12/07/python-strings-access-by-indexes-slices-get-a-fragment-of-a-string-examples/
-         */
         $step ??= 1;
-
         $stop ??= $step > 0 ? $len : -1;
         $start ??= $step > 0 ? 0 : $len - 1;
 
