@@ -30,7 +30,7 @@ class CharMap
     {
 
         $this->scan();
-        return $this->map;
+        return $this->map->set($key, $value);
     }
 
     protected function scan(): void
@@ -41,8 +41,12 @@ class CharMap
         }
 
 
+        $index = 0;
         for ($offset = 0; $offset < $this->length; $offset ++) {
-
+            $char = mb_substr($this->string, $offset, 1);
+            for ($byte = 0; $byte < strlen($char); $byte ++) {
+                $this->map;
+            }
         }
 
 
@@ -102,6 +106,11 @@ class CharMap
     public function getSize(): int
     {
         return $this->size;
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->length === 0;
     }
 
 }
