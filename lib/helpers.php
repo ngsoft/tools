@@ -67,7 +67,6 @@ if ( ! function_exists('str_val')) {
 
     /**
      * Get string value of a variable
-     * unlike strval it uses json_encode to convert bool|int|float
      */
     function str_val(mixed $value): string
     {
@@ -75,17 +74,24 @@ if ( ! function_exists('str_val')) {
             return $value;
         }
 
-        if ( ! is_stringable($value)) {
-            throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($value)));
-        }
-
         if (is_null($value)) {
             return '';
         }
 
-        if (is_scalar($value) && ! is_string($value)) {
-            $value = json_encode($value, flags: JSON_THROW_ON_ERROR);
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
         }
+
+        if (is_numeric($value)) {
+            return (string) $value;
+        }
+
+
+        if ( ! is_stringable($value)) {
+            throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($value)));
+        }
+
+
         return (string) $value;
     }
 
