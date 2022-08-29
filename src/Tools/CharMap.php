@@ -4,34 +4,26 @@ declare(strict_types=1);
 
 namespace NGSOFT\Tools;
 
-use NGSOFT\DataStructure\Map,
-    OutOfRangeException;
+use Countable;
+use NGSOFT\DataStructure\{
+    Map, Tuple
+};
+use OutOfRangeException,
+    Stringable;
 use function in_range,
-             mb_strlen;
+             mb_strlen,
+             mb_substr;
 
 /**
  * A Multibyte/byte string convertion Map
  */
-class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable, \Countable
+class CharMap implements Stringable, Countable
 {
 
     protected string $string;
     protected int $size;
     protected int $length;
     protected Map $map;
-
-    /**
-     * This is the order fo the indexes of the Tuple
-     * [$length, $size, string] = $charmap
-     */
-    protected function getTuple(): array
-    {
-        return [
-            'length' => $this->length,
-            'size' => $this->size,
-            'string' => $this->string,
-        ];
-    }
 
     public function __construct(string $string)
     {
@@ -57,9 +49,9 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable, \Count
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++ ) {
+        for ($offset = 0; $offset < $this->length; $offset ++) {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++ ) {
+            for ($byte = 0; $byte < strlen($char); $byte ++) {
                 $this->map->add($index, $offset);
                 $index ++;
             }
@@ -85,10 +77,6 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable, \Count
         if ($this->size === $this->length) {
             return $byteOffset;
         }
-
-
-        return mb_strlen(substr($this->string, 0, $byteOffset));
-
         return $this->getMap()->get($byteOffset);
     }
 
@@ -108,9 +96,6 @@ class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable, \Count
         if ($this->size === $this->length) {
             return $charOffset;
         }
-
-
-        return strlen(mb_substr($this->string, 0, $charOffset));
 
         return $this->getMap()->search($charOffset);
     }
