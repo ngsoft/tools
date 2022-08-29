@@ -12,15 +12,30 @@ use function in_range,
 /**
  * A Multibyte/byte string convertion Map
  */
-class CharMap
+class CharMap extends \NGSOFT\DataStructure\Tuple implements \Stringable
 {
 
-    protected Map $map;
-    protected int $length;
+    protected string $string;
     protected int $size;
+    protected int $length;
+    protected Map $map;
 
-    public function __construct(protected string $string)
+    /**
+     * This is the order fo the indexes of the Tuple
+     * [$length, $size, string] = $charmap
+     */
+    protected function getTuple(): array
     {
+        return [
+            'length' => $this->length,
+            'size' => $this->size,
+            'string' => $this->string,
+        ];
+    }
+
+    public function __construct(string $string)
+    {
+        $this->string = $string;
         $this->length = mb_strlen($string);
         $this->size = strlen($string);
         $this->map = new Map();
@@ -42,13 +57,15 @@ class CharMap
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++ ) {
+        for ($offset = 0; $offset < $this->length; $offset ++) {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++ ) {
+            for ($byte = 0; $byte < strlen($char); $byte ++) {
                 $this->map->add($index, $offset);
                 $index ++;
             }
         }
+
+        $this->map->lock();
     }
 
     /**
@@ -68,6 +85,9 @@ class CharMap
         if ($this->size === $this->length) {
             return $byteOffset;
         }
+
+
+        return $this->getMap()->get($byteOffset);
     }
 
     /**
@@ -86,6 +106,8 @@ class CharMap
         if ($this->size === $this->length) {
             return $charOffset;
         }
+
+        return $this->getMap()->search($charOffset);
     }
 
     /**
@@ -93,7 +115,6 @@ class CharMap
      */
     public function getLength(): int
     {
-
         return $this->length;
     }
 
@@ -108,6 +129,11 @@ class CharMap
     public function isEmpty(): bool
     {
         return $this->length === 0;
+    }
+
+    public function __toString(): string
+    {
+        return $this->string;
     }
 
 }
