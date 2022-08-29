@@ -23,7 +23,7 @@ abstract class Tuple implements ArrayAccess
      *
      * @return array<string, mixed>
      */
-    protected function getList(): array
+    protected function getTuple(): array
     {
         // works with protected|public properties (not private)
         return get_object_vars($this);
@@ -36,7 +36,7 @@ abstract class Tuple implements ArrayAccess
 
     public function offsetGet(mixed $offset): mixed
     {
-        $data = $this->getList();
+        $data = $this->getTuple();
 
         if (is_int($offset)) {
             $offsets = array_keys($data);
@@ -52,12 +52,12 @@ abstract class Tuple implements ArrayAccess
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__));
+        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__) . ' except if you implement ' . __FUNCTION__);
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__));
+        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__) . ' except if you implement ' . __FUNCTION__);
     }
 
 }
