@@ -1295,6 +1295,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $this->count();
     }
 
+    /**
+     * Returns the byte size
+     */
+    public function size(): int
+    {
+        return strlen($this->text);
+    }
+
     ////////////////////////////   Interfaces   ////////////////////////////
 
     public function offsetExists(mixed $offset): bool

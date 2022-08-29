@@ -9,8 +9,8 @@ use ArrayAccess,
     Generator,
     IteratorAggregate,
     JsonSerializable,
+    LogicException,
     NGSOFT\Traits\StringableObject,
-    RuntimeException,
     Stringable,
     Traversable;
 use function get_debug_type;
@@ -32,6 +32,12 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     protected function indexOf(mixed $key): int
     {
         $index = array_search($key, $this->keys, true);
+        return $index !== false ? $index : -1;
+    }
+
+    protected function indexOfValue(mixed $value): int
+    {
+        $index = array_search($key, $this->values, true);
         return $index !== false ? $index : -1;
     }
 
@@ -95,10 +101,6 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 
     /**
      * The set() method adds or updates an element with a specified key and a value to a Map object.
-     *
-     * @param mixed $key
-     * @param mixed $value
-     * @return static
      */
     public function set(mixed $key, mixed $value): static
     {
@@ -107,10 +109,19 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     }
 
     /**
+     * The add() method adds an element with a specified key and a value to a Map object if it does'n already exists.
+     */
+    public function add(mixed $key, mixed $value): static
+    {
+
+        if ($this->has($key)) {
+            return $this;
+        }
+        return $this->append($key, $value);
+    }
+
+    /**
      * The has() method returns a boolean indicating whether an element with the specified key exists or not.
-     *
-     * @param mixed $key
-     * @return bool
      */
     public function has(mixed $key): bool
     {
@@ -119,10 +130,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 
     /**
      * The keys() method returns a new iterator object that contains the keys for each element in the Map object in insertion order
-     *
-     * @return Generator
      */
-    public function keys(Sort $sort = Sort::ASC): Generator
+    public function keys(Sort $sort = Sort::ASC): iterable
     {
         $keys = $sort->is(Sort::ASC) ? $this->keys : array_reverse($this->keys);
         foreach ($keys as $key) { yield $key; }
@@ -131,7 +140,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     /**
      * The values() method returns a new iterator object that contains the values for each element in the Map object in insertion order.
      */
-    public function values(Sort $sort = Sort::ASC): Generator
+    public function values(Sort $sort = Sort::ASC): iterable
     {
         $values = $sort->is(Sort::ASC) ? $this->values : array_reverse($this->values);
         foreach ($values as $value) { yield $value; }
@@ -140,16 +149,13 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     /**
      * The entries() method returns a new iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
      */
-    public function entries(Sort $sort = Sort::ASC): Generator
+    public function entries(Sort $sort = Sort::ASC): iterable
     {
         foreach ($this->getIndexes($sort) as $offset) { yield $this->keys[$offset] => $this->values[$offset]; }
     }
 
     /**
      * The forEach() method executes a provided function once per each key/value pair in the Map object, in insertion order.
-     *
-     * @param callable $callable ($value, $key, $map)
-     * @return void
      */
     public function forEach(callable $callable): void
     {
@@ -225,7 +231,7 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     /** {@inheritdoc} */
     public function __clone(): void
     {
-        throw new RuntimeException(sprintf('%s cannot be cloned.', static::class));
+
     }
 
 }

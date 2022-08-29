@@ -26,7 +26,7 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 {
 
     use StringableObject,
-        CollectionTrait;
+        CommonMethods;
 
     protected array $storage = [];
     protected ?self $parent = null;
@@ -376,6 +376,30 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         Tools::concat($this, ...$values);
         return $this;
+    }
+
+    /**
+     * Exports to array
+     */
+    public function toArray(): array
+    {
+        return $this->storage;
+    }
+
+    /**
+     * Clears the Storage
+     *
+     * @return void
+     */
+    public function clear(): void
+    {
+        $array = [];
+        $this->storage = &$array;
+    }
+
+    public function __clone(): void
+    {
+        $this->storage = $this->cloneArray($this->storage);
     }
 
     public function jsonSerialize(): mixed
