@@ -10,7 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\StringableObject
+    Tools, Traits\ObjectLock, Traits\StringableObject
 };
 use OutOfBoundsException,
     RuntimeException,
@@ -26,7 +26,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 {
 
     use StringableObject,
-        CommonMethods;
+        CommonMethods,
+        ObjectLock;
 
     protected array $storage = [];
     protected ?self $parent = null;
@@ -126,6 +127,10 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
+        if ($this->isLocked()) {
+            return;
+        }
+
         try {
             $this->reload();
             $this->append($offset, $value);
@@ -137,6 +142,9 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
+        if ($this->isLocked()) {
+            return;
+        }
 
         try {
             $this->reload();
@@ -385,6 +393,9 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public function clear(): void
     {
+        if ($this->isLocked()) {
+            return;
+        }
         $array = [];
         $this->storage = &$array;
     }
@@ -401,12 +412,12 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
     public function __serialize(): array
     {
-        return [$this->storage, $this->recursive];
+        return [$this->storage, $this->recursive, $this->locked];
     }
 
     public function __unserialize(array $data): void
     {
-        list($this->storage, $this->recursive) = $data;
+        list($this->storage, $this->recursive, $this->locked) = $data;
     }
 
     public function __debugInfo(): array
