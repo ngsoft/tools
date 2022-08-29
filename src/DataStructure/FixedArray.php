@@ -6,7 +6,6 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
-    Generator,
     IteratorAggregate,
     JsonSerializable,
     NGSOFT\Traits\StringableObject,
