@@ -10,6 +10,14 @@ trait SliceAble
 {
 
     /**
+     * Checks if input is a slice
+     */
+    protected function isSlice(string $input): bool
+    {
+        return Slice::isValid($input);
+    }
+
+    /**
      * Create a Slice Instance
      */
     protected function getSlice(string $offset): Slice
