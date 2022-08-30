@@ -8,7 +8,7 @@ use ArrayAccess,
     Countable,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\SliceAble
+    Tools, Tools\CharMap, Traits\SliceAble
 };
 use OutOfRangeException,
     Stringable,
@@ -45,7 +45,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     protected string $text;
     protected int $length;
-    protected array $offsets = [];
 
     /**
      * Create new Text
@@ -94,11 +93,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         return $this;
     }
 
-    public function __clone()
-    {
-        $this->offsets = [];
-    }
-
     /**
      * Get a Text Copy
      */
@@ -115,54 +109,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     protected function withSegments(mixed ...$segments): array
     {
         return map(fn($text) => $this->withText($text), $segments);
-    }
-
-    protected function buildOffsetMap(): void
-    {
-
-        if (empty($this->offsets)) {
-
-            // UTF-8 offset map
-
-            $this->offsets = [[], []];
-
-            $offsets = &$this->offsets;
-
-            for ($i = 0; $i < $this->length; $i ++ ) {
-                $char = mb_substr($this->text, $i, 1);
-                for ($j = 0; $j < strlen($char); $j ++ ) {
-                    $offsets[0][] = $i;
-                    $offsets[1][$i] ??= array_key_last($offsets[0]);
-                }
-            }
-        }
-    }
-
-    protected function getUtfOffset(int $offset): ?int
-    {
-
-        if ($offset <= 0) {
-            return $offset;
-        }
-
-        if ($this->isEmpty()) {
-            return null;
-        }
-        $this->buildOffsetMap();
-        return $this->offsets[0][$offset] ?? null;
-    }
-
-    protected function getNonUtfOffset(int $offset): ?int
-    {
-        if ($offset <= 0) {
-            return $offset;
-        }
-
-        if ($this->isEmpty()) {
-            return null;
-        }
-        $this->buildOffsetMap();
-        return $this->offsets[1][$offset] ?? null;
     }
 
     protected function translateOffset(int $offset): int
@@ -187,7 +133,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
             //translate char into byte offset
 
-            if (is_null($offset = $this->getNonUtfOffset($offset))) {
+            if (-1 === $offset = CharMap::getByteOffset($this->text, $offset)) {
                 return [];
             }
 
@@ -195,7 +141,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
 
                 // translate byte into char offset
-                return [$matches[0][0], $this->getUtfOffset($matches[0][1]) ?? -1];
+                return [$matches[0][0], CharMap::getCharOffset($this->text, $matches[0][1])];
             }
         } elseif (is_int($pos = mb_strpos($this->text, $needle, $offset))) {
             return [$needle, $pos];
@@ -210,9 +156,9 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $result = [];
 
         //  -1 !== $pos = $this->indexOf($needle, $offset)
-        while ($offset < $this->length && count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1] ?? -1) {
+        while ($offset < $this->length && count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1]) {
             $result = $indexOf;
-            $offset = $pos + mb_strlen($indexOf[0]) + 1;
+            $offset = $pos + mb_strlen($indexOf[0]);
         }
 
         return $result;
@@ -1115,11 +1061,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         while (count($result) < $maxsplit) {
 
-            [$text, $_sep, $_text] = $text->rpartition($sep);
-            if ($_sep->isEmpty()) {
-                break;
+
+            if ($resp = $text->_lastIndexOf($sep)) {
+                [$_sep, $offset] = $resp;
+                $result[] = $text->slice($offset + mb_strlen($_sep));
+                $text = $text->slice(0, $offset);
+                continue;
             }
-            $result[] = $_text;
+
+            break;
         }
 
         $result[] = $text;
@@ -1137,9 +1087,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         if ($this->isEmpty() || ! preg_test('#\v+#', $this->text)) {
             return [$this->copy()];
         }
-
-
-        $flags = $keepends ? PREG_SPLIT_DELIM_CAPTURE : 0;
 
         $result = [];
 
@@ -1418,12 +1365,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     public function __serialize(): array
     {
-        return [$this->text, $this->length, $this->offsets];
+        return [$this->text, $this->length];
     }
 
     public function __unserialize(array $data): void
     {
-        list($this->text, $this->length, $this->offsets) = $data;
+        list($this->text, $this->length) = $data;
     }
 
     public function __debugInfo(): array
