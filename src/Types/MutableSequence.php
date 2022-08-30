@@ -12,11 +12,6 @@ use Throwable;
 abstract class MutableSequence extends Sequence
 {
 
-    public function offsetExists(mixed $offset): bool
-    {
-        return false;
-    }
-
     public function offsetSet(mixed $offset, mixed $value): void
     {
         throw IndexError::for($offset, $this);

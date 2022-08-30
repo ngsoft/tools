@@ -141,6 +141,15 @@ class Slice implements Stringable
     }
 
     /**
+     * @param array|ArrayAccess&Countable $value
+     * @return int[]
+     */
+    public function getOffsetList($value): array
+    {
+        return iterator_to_array($this->getIteratorFor($value));
+    }
+
+    /**
      * Returns a slice of an array like object
      *
      * @param array|ArrayAccess&Countable $value

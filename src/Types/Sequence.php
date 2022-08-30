@@ -82,7 +82,13 @@ abstract class Sequence implements Reversible, Collection
 
     public function offsetExists(mixed $offset): bool
     {
-        return false;
+
+        try {
+            $this[$offset];
+            return true;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
