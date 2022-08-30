@@ -595,6 +595,14 @@ final class Tools
     }
 
     /**
+     * Try to reproduce python format
+     */
+    public static function format(string $message, mixed ...$args): string
+    {
+
+    }
+
+    /**
      * Split a stringable using provided separator
      */
     public static function split(mixed $separator, mixed $value, int $limit = -1): array

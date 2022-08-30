@@ -52,12 +52,12 @@ abstract class Tuple implements ArrayAccess
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__) . ' except if you implement ' . __FUNCTION__);
+        throw new LogicException('Offsets cannot be set on a ' . class_basename(__CLASS__) . ' except if you implement ' . __FUNCTION__);
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        throw new LogicException('Offsets cannot be set/unset on a ' . class_basename(__CLASS__) . ' except if you implement ' . __FUNCTION__);
+        throw new LogicException('Offsets cannot be unset on a ' . class_basename(__CLASS__) . ' except if you implement ' . __FUNCTION__);
     }
 
 }
