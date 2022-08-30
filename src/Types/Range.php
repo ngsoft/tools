@@ -84,8 +84,8 @@ class Range implements Reversible, ArrayAccess, Countable, JsonSerializable, Str
 
         $offset = $this->count() - 1;
 
-        while ( ! is_null($value = $this->offsetGet($offset))) {
-            yield $value;
+        while ($offset >= 0) {
+            yield $this->offsetGet($offset);
             $offset --;
         }
     }
@@ -100,8 +100,8 @@ class Range implements Reversible, ArrayAccess, Countable, JsonSerializable, Str
 
         $offset = 0;
 
-        while ( ! is_null($value = $this->offsetGet($offset))) {
-            yield $value;
+        while ($offset < $this->count()) {
+            yield $this->offsetGet($offset);
             $offset ++;
         }
     }
