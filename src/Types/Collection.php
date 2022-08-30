@@ -10,4 +10,8 @@ namespace NGSOFT\Types;
 interface Collection extends \Countable, \Traversable, \ArrayAccess
 {
 
+    /**
+     * Checks if collection has value
+     */
+    public function contains(mixed $value): bool;
 }

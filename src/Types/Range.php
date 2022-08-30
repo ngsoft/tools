@@ -6,8 +6,8 @@ namespace NGSOFT\Types;
 
 use ArrayAccess,
     Countable,
-    IteratorAggregate,
     JsonSerializable,
+    NGSOFT\Types\Traits\IsReversible,
     Stringable,
     Traversable,
     ValueError;
@@ -17,8 +17,10 @@ use ArrayAccess,
  * @link https://docs.python.org/3/library/stdtypes.html#range
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
-class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializable, Stringable
+class Range implements Reversible, ArrayAccess, Countable, JsonSerializable, Stringable
 {
+
+    use IsReversible;
 
     protected int $start;
     protected int $stop;
@@ -28,6 +30,14 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
     public static function create(int $start, ?int $stop = null, int $step = 1): static
     {
         return new static($start, $stop, $step);
+    }
+
+    /**
+     * Get a range for a Countable
+     */
+    public static function of(Countable|array $countable): static
+    {
+        return new static(0, count($countable));
     }
 
     public function __construct(
@@ -64,6 +74,20 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
     public function getStep(): int
     {
         return $this->step;
+    }
+
+    public function getReverseIterator(): \Traversable
+    {
+        if ($this->isEmpty()) {
+            return;
+        }
+
+        $offset = $this->count() - 1;
+
+        while ( ! is_null($value = $this->offsetGet($offset))) {
+            yield $value;
+            $offset --;
+        }
     }
 
     public function getIterator(): Traversable
@@ -124,7 +148,21 @@ class Range implements IteratorAggregate, ArrayAccess, Countable, JsonSerializab
 
     public function count(): int
     {
-        return $this->count ??= $this->isEmpty() ? 0 : iterator_count($this);
+
+        if (is_null($this->count)) {
+            if ($this->isEmpty()) {
+                return $this->count = 0;
+            }
+
+            [$min, $max, $step] = [$this->start, $this->stop, abs($this->step)];
+
+            if ($min > $max) {
+                [$min, $max] = [$max, $min];
+            }
+
+            return $this->count = intval(ceil(($max - $min) / $step));
+        }
+        return $this->count;
     }
 
     public function offsetSet(mixed $offset, mixed $value): void

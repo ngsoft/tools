@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
+use NGSOFT\Types\Traits\IsReversible,
+    Throwable,
+    Traversable;
+use function NGSOFT\Tools\some;
+
 class Sequence implements Reversible, Collection
 {
 
-    public function entries(Sort $sort): iterable
+    use IsReversible;
+
+    /** {@inheritdoc} */
+    public function contains(mixed $value): bool
     {
-        yield from $sort->is(Sort::ASC) ? $this->getIterator() : $this->getReverseIterator();
+        return some(fn($_value) => $value === $_value, $this);
     }
 
     public function offsetExists(mixed $offset): bool
@@ -37,14 +45,29 @@ class Sequence implements Reversible, Collection
 
     }
 
-    public function getIterator(): \Traversable
+    /** {@inheritdoc} */
+    public function getIterator(): Traversable
     {
         $offset = 0;
+
+        try {
+            while ($this->offsetExists($offset)) {
+                $value = $this[$offset];
+                yield $value;
+                $offset ++;
+            }
+        } catch (Throwable) {
+            return;
+        }
     }
 
-    public function getReverseIterator(): \Traversable
+    /** {@inheritdoc} */
+    public function getReverseIterator(): Traversable
     {
 
+        foreach (Range::of($this)->getReverseIterator() as $offset) {
+            yield $this[$offset];
+        }
     }
 
 }
