@@ -26,9 +26,17 @@ trait SliceAble
     }
 
     /**
+     * Access Slice Iterator
+     */
+    protected function getSliceIterator(Slice $slice, mixed $value): iterable
+    {
+        yield from $slice->getIteratorFor($value);
+    }
+
+    /**
      * Returns a slice of an array like
      */
-    protected function sliceValue(Slice $slice, mixed $value): array
+    protected function getSliceValue(Slice $slice, mixed $value): array
     {
         return $slice->slice($value);
     }
