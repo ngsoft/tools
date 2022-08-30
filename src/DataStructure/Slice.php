@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use InvalidArgumentException;
+use ArrayAccess,
+    Countable,
+    InvalidArgumentException;
 use NGSOFT\{
     Tools, Tools\TypeCheck
 };
 use Stringable,
     Throwable;
 use function class_basename,
+             preg_exec,
+             preg_test,
              str_contains;
 
 class Slice implements Stringable
@@ -18,6 +22,9 @@ class Slice implements Stringable
 
     private const RE_SLICE = '#^(|-?\d+)(?::(|-?\d+))(?::(|-?\d+))?$#';
 
+    /**
+     * Creates a Slice instance
+     */
     public static function create(?int $start = null, ?int $stop = null, ?int $step = null): static
     {
         return new static($start, $stop, $step);
@@ -52,6 +59,9 @@ class Slice implements Stringable
         return self::create($start, $stop, $step);
     }
 
+    /**
+     * Checks if valid slice syntax
+     */
     public static function isValid(string $slice): bool
     {
 
@@ -91,20 +101,17 @@ class Slice implements Stringable
     }
 
     /**
-     * Returns a slice of an array like object
+     * @param array|ArrayAccess&Countable $value
+     * @return iterable<int>
      */
-    public function slice(mixed $value): array
+    public function getIteratorFor($value): iterable
     {
-
-        TypeCheck::assertType(
-                __METHOD__ . ' Argument #0', $value,
+        TypeCheck::assertTypeMethod(
+                [$this, __FUNCTION__, 0], $value,
                 TypeCheck::TYPE_ARRAYACCESS
         );
 
-        [$start, $stop, $step, $len, $result] = [$this->start, $this->stop, $this->step, count($value), []];
-        if ($len === 0) {
-            return $result;
-        }
+        [$start, $stop, $step, $len] = [$this->start, $this->stop, $this->step, count($value)];
 
         $step ??= 1;
         $stop ??= $step > 0 ? $len : -1;
@@ -118,10 +125,7 @@ class Slice implements Stringable
             $stop += $len;
         }
 
-
         foreach (Range::create($start, $stop, $step) as $offset) {
-
-
             if ($offset >= $len && $step > 0) {
                 break;
             }
@@ -129,6 +133,35 @@ class Slice implements Stringable
             if ($offset < 0 && $step < 0) {
                 break;
             }
+
+
+
+            yield $offset;
+        }
+    }
+
+    /**
+     * Returns a slice of an array like object
+     *
+     * @param array|ArrayAccess&Countable $value
+     */
+    public function slice($value): array
+    {
+
+        var_dump(__METHOD__);
+
+        TypeCheck::assertTypeMethod(
+                [$this, __FUNCTION__, 0], $value,
+                TypeCheck::TYPE_ARRAYACCESS
+        );
+
+        $result = [];
+
+        if (0 === count($value)) {
+            return $result;
+        }
+
+        foreach ($this->getIteratorFor($value) as $offset) {
 
             try {
 
@@ -150,7 +183,22 @@ class Slice implements Stringable
      */
     public function join(mixed $glue, mixed $value): string
     {
+
+        TypeCheck::assertTypeMethod(
+                [$this, __FUNCTION__, 1], $value,
+                TypeCheck::TYPE_ARRAYACCESS
+        );
+
         return Tools::join($glue, $this->slice($value));
+    }
+
+    public function __debugInfo(): array
+    {
+
+        return [
+            'slice' => $this->__toString(),
+            'offset' => sprintf('%s:%s:%s', strval($this->start ?? ''), strval($this->stop ?? ''), strval($this->step ?? ''))
+        ];
     }
 
     public function __toString(): string

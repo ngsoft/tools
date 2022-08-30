@@ -45,9 +45,40 @@ class TypeCheck
      */
     public static function assertType(string $name, mixed $value, string ...$types): void
     {
-        if ( ! self::checkType($value, ...$types)) {
-            throw new TypeError(sprintf('%s must be of type %s, %s given', $name, self::getTypeString($types), get_debug_type($value)));
+        if ( ! static::checkType($value, ...$types)) {
+            throw new TypeError(sprintf('%s must be of type %s, %s given', $name, static::getTypeString($types), get_debug_type($value)));
         }
+    }
+
+    /**
+     * Check the given value against the supplied types and throw TypeError if not valid
+     * 
+     */
+    public static function assertTypeMethod(string|array $method, mixed $value, string ...$types): void
+    {
+
+        $methodArr = $method;
+        if (is_string($method)) {
+            $methodArr = explode('::', $method);
+        }
+
+        if ( ! in_range(count($methodArr), 2, 3)) {
+            throw new InvalidArgumentException('Invalid method supplied, must be a string Class::method (__METHOD__) or an array [object|string Class, string method] or [object|string Class, string method, int argumentNumber]');
+        }
+
+        @list($class, $fnc, $num) = $methodArr;
+        $class = is_object($class) ? get_class($class) : $class;
+
+        $fnc = (string) $fnc;
+
+        $name = sprintf('%s::%s() argument', $class, $fnc);
+
+        if (is_int($num)) {
+            $name .= sprintf(' #%u', $num);
+        }
+
+
+        static::assertType($name, $value, ...$types);
     }
 
     /**
@@ -69,12 +100,12 @@ class TypeCheck
             throw new InvalidArgumentException(sprintf('%s() you must at least provide one type.', __METHOD__));
         }
 
-        $str = self::getTypeString($types);
+        $str = static::getTypeString($types);
 
-        foreach (explode(self::UNION, $str) as $type) {
+        foreach (explode(static::UNION, $str) as $type) {
 
 
-            if (self::checkIntersectionType($value, $type)) {
+            if (static::checkIntersectionType($value, $type)) {
                 return true;
             }
         }
@@ -95,13 +126,13 @@ class TypeCheck
             // type can contains | or & or both
             $current = preg_replace('#[\h\v]+#', '', $types[$offset]);
 
-            if (in_array($current, [self::INTERSECTION, self::UNION])) {
+            if (in_array($current, [static::INTERSECTION, static::UNION])) {
 
                 if ( ! $previous || ! $next) {
                     throw new InvalidArgumentException(sprintf('%s() parameter #%s "%s" is not between 2 types.', __METHOD__, $offset, $current));
                 }
 
-                if (in_array($previous, [self::INTERSECTION, self::UNION]) || in_array($next, [self::INTERSECTION, self::UNION])) {
+                if (in_array($previous, [static::INTERSECTION, static::UNION]) || in_array($next, [static::INTERSECTION, static::UNION])) {
                     throw new InvalidArgumentException(sprintf('%s() parameter #%s: 2 types separators cannot follow themselves.', __METHOD__, $offset));
                 }
 
@@ -110,14 +141,14 @@ class TypeCheck
             }
 
             // cleaning up for assertion purpose
-            $current = trim($current, self::INTERSECTION . self::UNION);
+            $current = trim($current, static::INTERSECTION . static::UNION);
 
-            if (in_array($previous, [self::INTERSECTION, self::UNION]) || empty($str)) {
+            if (in_array($previous, [static::INTERSECTION, static::UNION]) || empty($str)) {
                 $str .= $current;
                 continue;
             }
 
-            $str .= self::UNION . $current;
+            $str .= static::UNION . $current;
         }
 
         return $str;
@@ -128,9 +159,9 @@ class TypeCheck
         if (empty($types)) {
             return false;
         }
-        foreach (explode(self::INTERSECTION, $types) as $type) {
+        foreach (explode(static::INTERSECTION, $types) as $type) {
 
-            if ( ! self::checkOneType($value, $type)) {
+            if ( ! static::checkOneType($value, $type)) {
                 return false;
             }
         }

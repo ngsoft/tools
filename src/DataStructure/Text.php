@@ -24,7 +24,7 @@ use function is_arrayaccess,
              mb_substr,
              mb_substr_count;
 use function NGSOFT\Tools\{
-    every, map, some
+    every, map
 };
 use function preg_exec,
              preg_test,
@@ -257,19 +257,20 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function endsWith(mixed $needle, bool $ignoreCase = false): bool
     {
-        if (is_iterable($needle)) {
-            return some(fn($n) => $this->endsWith($n, $ignoreCase), $needle);
-        }
+
         $needle = $this->convert($needle);
+
+        if ('' === $needle) {
+            return false;
+        }
+
         $haystack = $this->text;
 
         if ($ignoreCase) {
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
-        if ($needle === '') {
-            return false;
-        }
+
         return str_ends_with($haystack, $needle);
     }
 
@@ -279,12 +280,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function startsWith(mixed $needle, bool $ignoreCase = false): bool
     {
 
-        if (is_iterable($needle)) {
-            return some(fn($n) => $this->startsWith($n, $ignoreCase), $needle);
+        $needle = $this->convert($needle);
+
+        if ('' === $needle) {
+            return false;
         }
 
 
-        $needle = $this->convert($needle);
+
         $haystack = $this->text;
 
         if ($ignoreCase) {
@@ -292,9 +295,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
             $needle = mb_strtolower($needle);
         }
 
-        if ($needle === '') {
-            return false;
-        }
+
         return str_starts_with($haystack, $needle);
     }
 
@@ -311,13 +312,6 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $haystack = $this->text;
-
-        if (preg_valid($needle)) {
-            $needle .= 'i';
-            return preg_test($needle, $haystack);
-        }
-
-
 
         if ($ignoreCase) {
             $haystack = mb_strtolower($haystack);
@@ -434,7 +428,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -446,25 +440,10 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function replace(mixed $search, mixed $replacement): static
     {
 
-        if (is_iterable($search)) {
-            $result = $this;
-            $index = 0;
-            foreach ($search as $pattern) {
-                if (is_arrayaccess($replacement)) {
-                    $replace = $replacement[$index] ?? '';
-                } else { $replace = $replacement; }
-                $result = $result->replace($pattern, $replace);
-                $index ++;
-            }
-            return $result;
-        }
-
-
-
         $search = $this->convert($search);
 
         if ($search === '') {
-            return $this;
+            return $this->copy();
         }
 
         $len = mb_strlen($search);
@@ -474,7 +453,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $index = $this->indexOf($search);
 
         if ($index === -1) {
-            return $this;
+            return $this->copy();
         }
 
         $str = mb_substr($this->text, 0, $index);
@@ -542,7 +521,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 
