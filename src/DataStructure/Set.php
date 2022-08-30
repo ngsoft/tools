@@ -7,9 +7,11 @@ namespace NGSOFT\DataStructure;
 use Countable,
     Generator,
     IteratorAggregate,
-    JsonSerializable,
-    NGSOFT\Traits\StringableObject,
-    Stringable,
+    JsonSerializable;
+use NGSOFT\{
+    Traits\StringableObject, Types\Sort
+};
+use Stringable,
     Traversable;
 
 /**

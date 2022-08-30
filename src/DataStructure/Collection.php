@@ -10,7 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\ObjectLock, Traits\StringableObject
+    Tools, Traits\ObjectLock, Traits\StringableObject, Types\Sort
 };
 use OutOfBoundsException,
     RuntimeException,

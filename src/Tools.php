@@ -599,7 +599,7 @@ final class Tools
      */
     public static function format(string $message, mixed ...$args): string
     {
-
+        return $message;
     }
 
     /**

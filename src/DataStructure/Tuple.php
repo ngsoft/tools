@@ -6,6 +6,7 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     LogicException;
+use function class_basename;
 
 /**
  * Transforms any class that extends it as a tuple
