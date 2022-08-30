@@ -20,6 +20,11 @@ class Sequence implements Reversible, Collection
         return some(fn($_value) => $value === $_value, $this);
     }
 
+    public function index(mixed $value, int $start = 0, ?int $stop = null): int
+    {
+
+    }
+
     public function offsetExists(mixed $offset): bool
     {
 
