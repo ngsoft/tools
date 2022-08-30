@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Traits;
 
-use NGSOFT\DataStructure\Slice;
+use NGSOFT\Types\Slice;
 
 trait SliceAble
 {

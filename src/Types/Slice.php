@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\DataStructure;
+namespace NGSOFT\Types;
 
 use ArrayAccess,
     Countable,

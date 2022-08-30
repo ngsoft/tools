@@ -8,7 +8,7 @@ use ArrayAccess,
     Countable,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Tools\CharMap, Traits\SliceAble
+    Tools, Tools\CharMap, Traits\SliceAble, Types\Slice
 };
 use OutOfRangeException,
     Stringable,
@@ -428,7 +428,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++) {
+        for ($i = 0; $i < $times; $i ++ ) {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -521,7 +521,7 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++) {
+        for ($index = $start; $index < $end; $index ++ ) {
             $str .= $this->at($index);
         }
 

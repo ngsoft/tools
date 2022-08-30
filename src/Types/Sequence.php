@@ -19,7 +19,7 @@ class Sequence implements Reversible, Collection
 
     public function offsetGet(mixed $offset): mixed
     {
-
+        throw IndexError::for($offset);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
@@ -39,7 +39,7 @@ class Sequence implements Reversible, Collection
 
     public function getIterator(): \Traversable
     {
-
+        $offset = 0;
     }
 
     public function getReverseIterator(): \Traversable
