@@ -53,7 +53,7 @@ abstract class MutableSequence extends Sequence
             while ($this->count()) {
                 $this->pop();
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
 
         }
     }
@@ -75,6 +75,10 @@ abstract class MutableSequence extends Sequence
      */
     public function extend(iterable $values): void
     {
+
+        if ($values === $this) {
+            $values = new iList($this);
+        }
 
         foreach ($values as $value) {
             $this->append($value);

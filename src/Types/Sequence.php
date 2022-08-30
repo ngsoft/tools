@@ -11,6 +11,9 @@ use Throwable,
     Traversable;
 use function NGSOFT\Tools\some;
 
+/**
+ * @phan-file-suppress PhanUnusedPublicMethodParameter
+ */
 abstract class Sequence implements Reversible, Collection
 {
 
@@ -75,6 +78,21 @@ abstract class Sequence implements Reversible, Collection
     public function offsetGet(mixed $offset): mixed
     {
         throw IndexError::for($offset, $this);
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return false;
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        // nothing to do
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        // nothing to do
     }
 
     /** {@inheritdoc} */
