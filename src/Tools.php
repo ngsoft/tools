@@ -380,6 +380,22 @@ final class Tools
         return $iterable;
     }
 
+    /**
+     * Count number of occurences of value
+     */
+    public static function countValue(mixed $value, iterable $iterable): int
+    {
+
+        $count = 0;
+
+        foreach ($iterable as $_value) {
+            if ($value === $_value) {
+                $count ++;
+            }
+        }
+        return $count;
+    }
+
     ////////////////////////////   Strings   ////////////////////////////
 
     /**

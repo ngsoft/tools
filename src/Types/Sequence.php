@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use NGSOFT\Types\Traits\IsReversible,
-    Throwable,
+use NGSOFT\{
+    Tools, Types\Traits\IsReversible
+};
+use Throwable,
     Traversable;
 use function NGSOFT\Tools\some;
 
-class Sequence implements Reversible, Collection
+abstract class Sequence implements Reversible, Collection
 {
 
     use IsReversible;
@@ -20,34 +22,59 @@ class Sequence implements Reversible, Collection
         return some(fn($_value) => $value === $_value, $this);
     }
 
+    /**
+     * Return first offset of value.
+     * Raises ValueError if the value is not present.
+     *
+     */
     public function index(mixed $value, int $start = 0, ?int $stop = null): int
     {
 
-    }
+        if ($start < 0) {
+            $start = max($this->count() + $start, 0);
+        }
 
-    public function offsetExists(mixed $offset): bool
-    {
+        if ($stop < 0) {
+            $stop += $this->count();
+        }
 
-    }
 
-    public function offsetGet(mixed $offset): mixed
-    {
-        throw IndexError::for($offset);
-    }
+        $offset = $start;
 
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
+        while (is_null($stop) || $offset < $stop) {
 
-    }
+            try {
 
-    public function offsetUnset(mixed $offset): void
-    {
+                $_value = $this[$offset];
+                if ($_value === $value) {
+                    return $offset;
+                }
+            } catch (Throwable) {
+                break;
+            }
+            $offset ++;
+        }
 
+
+        throw ValueError::for($value, $this);
     }
 
     public function count(): int
     {
+        return 0;
+    }
 
+    /**
+     * return number of occurrences of value
+     */
+    public function countValue(mixed $value): int
+    {
+        return Tools::countValue($value, $this);
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        throw IndexError::for($offset, $this);
     }
 
     /** {@inheritdoc} */

@@ -34,6 +34,14 @@ function iterate_all(iterable $iterable): array
 }
 
 /**
+ * Count number of occurences of value
+ */
+function count_value(mixed $value, iterable $iterable): int
+{
+    return Tools::countValue($value, $iterable);
+}
+
+/**
  * Tests if at least one element in the iterable passes the test implemented by the provided function.
  * @param callable $callback
  * @param iterable $iterable
