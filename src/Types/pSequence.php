@@ -4,33 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use NGSOFT\{
-    Tools, Types\Traits\IsReversible
-};
-use Throwable,
+use NGSOFT\Types\Traits\IsReversible,
+    Throwable,
     Traversable;
 use function in_range;
 
 /**
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
-abstract class pSequence implements pReversible, pCollection
+abstract class pSequence extends pCollection implements pReversible
 {
 
     use IsReversible;
 
     protected array $data = [];
-
-    /** {@inheritdoc} */
-    public function contains(mixed $value): bool
-    {
-
-        if (is_null($value)) {
-            return false;
-        }
-
-        return $this->count($value) > 0;
-    }
 
     protected function getValue(mixed $value): mixed
     {
@@ -81,6 +68,7 @@ abstract class pSequence implements pReversible, pCollection
         throw ValueError::for($value, $this);
     }
 
+    /** {@inheritdoc} */
     public function count(mixed $value = null): int
     {
 
@@ -98,6 +86,10 @@ abstract class pSequence implements pReversible, pCollection
         return $cnt;
     }
 
+    /**
+     * Translate negative offset as real offset,
+     * Slice offset as list of offsets
+     */
     protected function getOffset(Slice|int|string|null $offset): Slice|int
     {
 
