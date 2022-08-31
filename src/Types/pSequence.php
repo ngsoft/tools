@@ -12,7 +12,7 @@ use Throwable,
 use function in_range;
 
 /**
- * Python like sequence
+ * Python like read only sequence
  *
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
@@ -25,7 +25,6 @@ abstract class pSequence extends pCollection implements pReversible
     /**
      * Return first offset of value.
      * Raises ValueError if the value is not present.
-     *
      */
     public function index(mixed $value, int $start = 0, ?int $stop = null): int
     {
@@ -80,12 +79,12 @@ abstract class pSequence extends pCollection implements pReversible
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        // nothing to do
+        // not implemented
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        // nothing to do
+        // not implemented
     }
 
     /** {@inheritdoc} */
