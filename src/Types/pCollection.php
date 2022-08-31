@@ -6,13 +6,15 @@ namespace NGSOFT\Types;
 
 use ArrayAccess,
     Countable,
+    IteratorAggregate,
     JsonSerializable,
-    Stringable;
+    Stringable,
+    Throwable;
 
 /**
  * Python like Collection
  */
-abstract class pCollection implements Countable, \IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
+abstract class pCollection implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
 {
 
     protected array $data = [];
@@ -126,7 +128,7 @@ abstract class pCollection implements Countable, \IteratorAggregate, ArrayAccess
 
         try {
             return $this[$offset] !== null;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
