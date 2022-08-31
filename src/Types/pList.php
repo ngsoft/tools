@@ -22,26 +22,6 @@ class pList extends pMutableSequence
         $this->extend($list);
     }
 
-    protected function setData(array $data): static
-    {
-        $this->data = $data;
-
-        return $this;
-    }
-
-    protected function withData(array $data): static
-    {
-        return $this->copy()->setData($data);
-    }
-
-    /**
-     * Return a shallow copy of the list
-     */
-    public function copy(): static
-    {
-        return clone $this;
-    }
-
     /**
      * Insert an item at a given position.
      * The first argument is the index of the element before which to insert, so a.insert(0, x) inserts at the front of the list,

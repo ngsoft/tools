@@ -313,12 +313,23 @@ final class Tools
         return $result;
     }
 
+    public static function makeIterable(mixed $iterable): iterable
+    {
+
+    }
+
     /**
      * Converts an iterable to an array recursively
      * if the keys are not string the will be indexed
      */
-    public static function iterableToArray(iterable $iterable): array
+    public static function iterableToArray(mixed $iterable): array
     {
+
+
+
+
+
+
         $new = [];
         foreach ($iterable as $key => $value) {
 

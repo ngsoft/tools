@@ -35,6 +35,14 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
     ////////////////////////////   Python Methods   ////////////////////////////
 
     /**
+     * Return a shallow copy of the list
+     */
+    public function copy(): static
+    {
+        return clone $this;
+    }
+
+    /**
      * Checks if collection has value
      */
     public function contains(mixed $value): bool
@@ -83,6 +91,18 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
         }
 
         return $value;
+    }
+
+    protected function setData(array $data): static
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    protected function withData(array $data): static
+    {
+        return $this->copy()->setData($data);
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////
