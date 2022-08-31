@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use NGSOFT\Types\Traits\{
-    IsReversible, IsSliceable
-};
-use Throwable,
+use NGSOFT\Types\Traits\IsSliceable,
+    Throwable,
     Traversable;
 use function in_range;
 
@@ -22,6 +20,39 @@ abstract class pSequence extends pCollection
     use IsSliceable;
 
     abstract protected function __getitem__(int $offset): mixed;
+
+    protected function __contains__(mixed $value): bool
+    {
+        if (is_null($value)) {
+            return false;
+        }
+
+        return $this->count($value) > 0;
+    }
+
+    /** {@inheritdoc} */
+    protected function __iter__(): iterable
+    {
+
+
+        try {
+
+            foreach (Range::of($this) as $offset) {
+                yield $this[$offset];
+            }
+        } catch (Throwable) {
+            return;
+        }
+    }
+
+    /** {@inheritdoc} */
+    protected function __reversed__(): Traversable
+    {
+
+        foreach (Range::of($this)->getReverseIterator() as $offset) {
+            yield $this[$offset];
+        }
+    }
 
     /**
      * Return first offset of value.
@@ -58,9 +89,31 @@ abstract class pSequence extends pCollection
         throw ValueError::for($value, $this);
     }
 
+    /**
+     * Count number of occurences of value
+     * if value is null returns the collections size
+     */
+    public function count(mixed $value = null): int
+    {
+
+        // Countable __len__()
+        if (is_null($value)) {
+            return $this->__len__();
+        }
+
+        $value = $this->getValue($value);
+        $cnt = 0;
+        foreach ($this as $_value) {
+            if ($value === $this->getValue($_value)) {
+                $cnt ++;
+            }
+        }
+        return $cnt;
+    }
+
     public function offsetGet(mixed $offset): mixed
     {
-        if ( ! $this->count()) {
+        if ( ! $this->__len__()) {
             throw IndexError::for($offset, $this);
         }
 
@@ -72,7 +125,7 @@ abstract class pSequence extends pCollection
                 throw IndexError::for($offset, $this);
             }
 
-            return $this->data[$offset];
+            return $this->__getitem__($offset);
         }
 
         return $this->withData($offset->slice($this));
@@ -86,30 +139,6 @@ abstract class pSequence extends pCollection
     public function offsetUnset(mixed $offset): void
     {
         // not implemented
-    }
-
-    /** {@inheritdoc} */
-    public function __iter__(): iterable
-    {
-
-
-        try {
-
-            foreach (Range::of($this) as $offset) {
-                yield $this[$offset];
-            }
-        } catch (Throwable) {
-            return;
-        }
-    }
-
-    /** {@inheritdoc} */
-    public function getReverseIterator(): Traversable
-    {
-
-        foreach (Range::of($this)->getReverseIterator() as $offset) {
-            yield $this[$offset];
-        }
     }
 
 }

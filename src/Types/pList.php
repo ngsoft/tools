@@ -20,50 +20,18 @@ class pList extends pMutableSequence
         $this->extend($list);
     }
 
-    public function offsetSet(mixed $offset, mixed $value): void
+    /** {@inheritdoc} */
+    public function insert(int $offset, mixed $value): void
     {
+        $offset = $this->getOffset($offset);
 
-        if ( ! is_int($offset) && ! is_null($offset)) {
+        if ( ! in_range($offset, 0, $this->count())) {
             throw IndexError::for($offset, $this);
         }
 
-        if (is_int($offset)) {
-
-            $_offset = $this->getOffset($offset);
-
-            if ( ! in_range($_offset, 0, $this->count() - 1)) {
-                throw IndexError::for($offset, $this);
-            }
-        } else { $_offset = $this->count(); }
-
-        $this->data[$_offset] = $value;
-    }
-
-    public function offsetUnset(mixed $offset): void
-    {
-        $offset = $this->getOffset($offset);
-        $max = $this->count() - 1;
-        try {
-
-            if (is_int($offset)) {
-                if ( ! in_range($offset, 0, $max)) {
-                    parent::offsetUnset($offset);
-                }
-
-                unset($this->data[$offset]);
-                return;
-            }
-            foreach ($offset->getIteratorFor($this) as $_offset) {
-
-                if ( ! in_range($_offset, 0, $max)) {
-                    parent::offsetUnset($_offset);
-                }
-
-                unset($this->data[$offset]);
-            }
-        } finally {
-            $this->data = array_values($this->data);
-        }
+        if ($offset === $this->count()) {
+            $this->data[] = $value;
+        } else { array_splice($this->data, $offset, 0, $value); }
     }
 
 }

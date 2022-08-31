@@ -18,12 +18,48 @@ abstract class pMutableSequence extends pSequence
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw IndexError::for($offset, $this);
+
+        if ( ! is_int($offset) && ! is_null($offset)) {
+            throw IndexError::for($offset, $this);
+        }
+
+        if (is_int($offset)) {
+
+            $_offset = $this->getOffset($offset);
+
+            if ( ! in_range($_offset, 0, $this->count() - 1)) {
+                throw IndexError::for($offset, $this);
+            }
+        } else { $_offset = $this->count(); }
+
+        $this->__setitem__($offset, $value);
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        throw IndexError::for($offset, $this);
+        $offset = $this->getOffset($offset);
+        $max = $this->count() - 1;
+        try {
+
+            if (is_int($offset)) {
+                if ( ! in_range($offset, 0, $max)) {
+                    throw IndexError::for($offset, $this);
+                }
+
+                $this->__delitem__($offset);
+                return;
+            }
+            foreach ($offset->getIteratorFor($this) as $_offset) {
+
+                if ( ! in_range($_offset, 0, $max)) {
+                    throw IndexError::for($_offset, $this);
+                }
+
+                $this->__delitem__($offset);
+            }
+        } finally {
+            $this->data = array_values($this->data);
+        }
     }
 
     /**
@@ -31,18 +67,7 @@ abstract class pMutableSequence extends pSequence
      * The first argument is the index of the element before which to insert, so a.insert(0, x) inserts at the front of the list,
      * and a.insert(len(a), x) is equivalent to a.append(x).
      */
-    public function insert(int $offset, mixed $value): void
-    {
-        $offset = $this->getOffset($offset);
-
-        if ( ! in_range($offset, 0, $this->count())) {
-            throw IndexError::for($offset, $this);
-        }
-
-        if ($offset === $this->count()) {
-            $this->data[] = $value;
-        } else { array_splice($this->data, $offset, 0, $value); }
-    }
+    abstract public function insert(int $offset, mixed $value): void;
 
     /**
      * Append value to the end of the sequence

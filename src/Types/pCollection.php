@@ -6,7 +6,6 @@ namespace NGSOFT\Types;
 
 use ArrayAccess,
     Countable,
-    IteratorAggregate,
     JsonSerializable,
     Stringable,
     Throwable;
@@ -17,7 +16,8 @@ use ArrayAccess,
 abstract class pCollection extends pReversible implements Countable, ArrayAccess, JsonSerializable, Stringable
 {
 
-    use Sized;
+    use Sized,
+        Container;
 
     protected array $data = [];
 
@@ -55,42 +55,6 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
     public function copy(): static
     {
         return clone $this;
-    }
-
-    /**
-     * Checks if collection has value
-     */
-    public function contains(mixed $value): bool
-    {
-
-        if (is_null($value)) {
-            return false;
-        }
-
-
-        return $this->count($value) > 0;
-    }
-
-    /**
-     * Count number of occurences of value
-     * if value is null returns the collections size
-     */
-    public function count(mixed $value = null): int
-    {
-
-        // Countable __len__()
-        if (is_null($value)) {
-            return $this->__len__();
-        }
-
-        $value = $this->getValue($value);
-        $cnt = 0;
-        foreach ($this as $_value) {
-            if ($value === $this->getValue($_value)) {
-                $cnt ++;
-            }
-        }
-        return $cnt;
     }
 
     ////////////////////////////   Helpers   ////////////////////////////
