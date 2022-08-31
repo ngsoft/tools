@@ -305,6 +305,36 @@ if ( ! function_exists('in_range')) {
 }
 
 
+if ( ! function_exists('length')) {
+
+    /**
+     * Get the length of a scalar|array|Countable
+     */
+    function length(mixed $value): int
+    {
+
+        if ( ! is_scalar($value) && ! is_countable($value)) {
+            throw new TypeError(sprintf('object of type %s has no length.', get_debug_type($value)));
+        }
+
+        switch (get_debug_type($value)) {
+
+            case 'bool':
+                return $value ? 1 : 0;
+            case 'int':
+                return $value;
+            case 'float':
+                return (int) $value;
+            case 'string':
+                return mb_strlen($value);
+        }
+
+        return count($value);
+    }
+
+}
+
+
 if ( ! function_exists('wait')) {
 
     /**

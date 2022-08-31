@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types\Iterators;
 
-use Countable;
+use ArrayAccess,
+    Countable;
 use NGSOFT\{
     Tools\TypeCheck, Types\pReversible, Types\Range, Types\Traits\IsReversible, Types\ValueError
 };
-use Traversable;
+use Stringable,
+    Traversable;
 use function get_debug_type,
              mb_str_split,
-             NGSOFT\Types\is_list,
-             str_val;
+             NGSOFT\Types\is_list;
 
 /**
  * Basic (Reverse) Iterator Proxy
@@ -37,19 +38,20 @@ class pIterator implements pReversible, Countable
     }
 
     /**
-     * Creates a new pIterator that iterates each chars
+     * Creates a new pIterator that iterates each characters
      */
-    public static function ofStringable(mixed $value): static
+    public static function ofStringable(string|Stringable $value): static
     {
-
-        $value = str_val($value);
+        $value = (string) $value;
         return new static($value === '' ? [] : mb_str_split($value));
     }
 
     /**
      * Creates an iterator from a list
+     *
+     * @param iterable|ArrayAccess&Countable $value
      */
-    public static function ofList(mixed $value): static
+    public static function ofList($value): static
     {
 
         if (is_iterable($value)) {

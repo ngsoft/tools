@@ -17,7 +17,7 @@ function plist(iterable $list = []): pList
 }
 
 /**
- *
+ * Checks if value is a list
  */
 function is_list(mixed $value): bool
 {
@@ -72,4 +72,17 @@ function is_list(mixed $value): bool
 
 
     return true;
+}
+
+/**
+ * Alias of count
+ */
+function len(mixed $countable): int
+{
+
+    if (is_countable($countable)) {
+        return count($countable);
+    }
+
+    throw new TypeError(sprintf('object of type %s has no len()', get_debug_type($countable)));
 }
