@@ -9,7 +9,7 @@ use Throwable;
 /**
  * @phan-file-suppress PhanUnusedPublicMethodParameter, PhanUnusedPublicNoOverrideMethodParameter
  */
-abstract class MutableSequence extends Sequence
+abstract class pMutableSequence extends pSequence
 {
 
     protected array $data = [];

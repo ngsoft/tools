@@ -7,7 +7,7 @@ namespace NGSOFT\Types;
 /**
  * __collections_abc.py Mapping
  */
-abstract class Mapping implements Collection
+abstract class Mapping implements pCollection
 {
 
 }

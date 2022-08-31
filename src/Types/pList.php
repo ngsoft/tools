@@ -12,7 +12,7 @@ use function in_range;
  *
  * @link https://docs.python.org/3/tutorial/datastructures.html
  */
-class pList extends MutableSequence implements JsonSerializable, Stringable
+class pList extends pMutableSequence implements JsonSerializable, Stringable
 {
 
     public function __construct(
@@ -84,6 +84,11 @@ class pList extends MutableSequence implements JsonSerializable, Stringable
             return;
         }
         array_splice($this->data, $offset, 0, $value);
+    }
+
+    public function __len__(): int
+    {
+        $this->count();
     }
 
     public function count(): int
