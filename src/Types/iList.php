@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use Throwable;
+use JsonSerializable,
+    Stringable;
+use function in_range;
 
 /**
+ *
  * @link https://docs.python.org/3/tutorial/datastructures.html
  */
-class iList extends MutableSequence
+class iList extends MutableSequence implements JsonSerializable, Stringable
 {
 
     protected array $data = [];
@@ -79,10 +82,9 @@ class iList extends MutableSequence
         }
 
         if ($offset === $this->count()) {
-            $this->data[] = $offset;
+            $this->data[] = $value;
             return;
         }
-
         array_splice($this->data, $offset, 0, $value);
     }
 
@@ -94,17 +96,22 @@ class iList extends MutableSequence
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
-        if ( ! is_int($offset) && is_null($offset)) {
+        if ( ! is_int($offset) && ! is_null($offset)) {
             parent::offsetSet($offset, $value);
         }
 
-        $offset = $this->getOffset($offset);
+        if (is_int($offset)) {
 
-        if ( ! in_range($offset, 0, $this->count())) {
-            parent::offsetSet($offset, $value);
+            $_offset = $this->getOffset($offset);
+
+            if ( ! in_range($_offset, 0, $this->count() - 1)) {
+                parent::offsetSet($offset, $value);
+            }
+        } elseif (is_null($offset)) {
+            $_offset = $this->count();
         }
 
-        $this->data[$offset] = $value;
+        $this->data[$_offset] = $value;
     }
 
     public function offsetUnset(mixed $offset): void
@@ -152,6 +159,31 @@ class iList extends MutableSequence
         }
 
         return $this->withData($offset->slice($this));
+    }
+
+    public function __serialize(): array
+    {
+        return [$this->data];
+    }
+
+    public function __unserialize(array $data)
+    {
+        [$this->data] = $data;
+    }
+
+    public function __debugInfo(): array
+    {
+        return $this->data;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->data;
+    }
+
+    public function __toString(): string
+    {
+        return json_encode($this, JSON_UNESCAPED_LINE_TERMINATORS | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 
 }

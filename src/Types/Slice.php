@@ -158,8 +158,6 @@ class Slice implements Stringable
     public function slice($value): array
     {
 
-        var_dump(__METHOD__);
-
         TypeCheck::assertTypeMethod(
                 [$this, __FUNCTION__, 0], $value,
                 TypeCheck::TYPE_ARRAYACCESS
