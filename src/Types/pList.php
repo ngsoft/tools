@@ -12,7 +12,7 @@ use function in_range;
  *
  * @link https://docs.python.org/3/tutorial/datastructures.html
  */
-class pList extends pMutableSequence implements JsonSerializable, Stringable
+class pList extends pMutableSequence
 {
 
     public function __construct(

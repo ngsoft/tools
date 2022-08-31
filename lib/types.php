@@ -22,12 +22,8 @@ function plist(iterable $list = []): pList
 function is_list(mixed $value): bool
 {
 
-    if (
-            ! TypeCheck::checkType(
-                    $value,
-                    'ArrayAccess&Countable|iterable'
-            )
-    ) {
+    // mixed union, intersection type check
+    if ( ! TypeCheck::checkType($value, 'ArrayAccess&Countable|iterable')) {
         return false;
     }
 
@@ -47,6 +43,7 @@ function is_list(mixed $value): bool
     }
 
 
+    // array|Traversable
     if (is_iterable($value)) {
         $nextKey = -1;
 
@@ -63,6 +60,7 @@ function is_list(mixed $value): bool
 
     for ($offset = 0; $offset < count($value); $offset ++) {
 
+        // isset can return false negative
         try {
             if ($value[$offset] === null) {
                 return false;
