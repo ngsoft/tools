@@ -14,6 +14,7 @@ $scripts = [
     'tools',
     'filesystem',
     'symfony',
+    'types',
 ];
 
 foreach ($scripts as $name) {

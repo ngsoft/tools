@@ -9,7 +9,7 @@ use NGSOFT\{
 };
 use Throwable,
     Traversable;
-use function NGSOFT\Tools\some;
+use function in_range;
 
 /**
  * @phan-file-suppress PhanUnusedPublicMethodParameter
@@ -24,7 +24,25 @@ abstract class pSequence implements pReversible, pCollection
     /** {@inheritdoc} */
     public function contains(mixed $value): bool
     {
-        return some(fn($_value) => $value === $_value, $this);
+
+        foreach ($this as $_value) {
+
+            if ($value === $_value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function getValue(mixed $value): mixed
+    {
+
+        if ($value instanceof self) {
+            return $value->data;
+        }
+
+        return $value;
     }
 
     /**
@@ -46,11 +64,14 @@ abstract class pSequence implements pReversible, pCollection
 
         $offset = $start;
 
+        $value = $this->getValue($value);
+
         while (is_null($stop) || $offset < $stop) {
 
             try {
 
-                $_value = $this[$offset];
+                $_value = $this->getValue($this[$offset]);
+
                 if ($_value === $value) {
                     return $offset;
                 }
@@ -60,11 +81,10 @@ abstract class pSequence implements pReversible, pCollection
             $offset ++;
         }
 
-
         throw ValueError::for($value, $this);
     }
 
-    public function count(): int
+    public function count(mixed $value = null): int
     {
         return count($this->data);
     }
@@ -77,11 +97,48 @@ abstract class pSequence implements pReversible, pCollection
         return Tools::countValue($value, $this);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    protected function getOffset(Slice|int|string|null $offset): Slice|int
     {
 
+        if (is_null($offset)) {
+            return $this->count();
+        }
+        if (is_string($offset) && ! Slice::isValid($offset)) {
+            throw IndexError::for($offset, $this);
+        }
 
-        throw IndexError::for($offset, $this);
+
+        if (is_int($offset) && $offset < 0) {
+            $offset += $this->count();
+
+            if ($offset === -1 && ! $this->count()) {
+                $offset = 0;
+            }
+        } elseif (is_string($offset)) {
+            $offset = Slice::of($offset);
+        }
+
+        return $offset;
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        if ( ! $this->count()) {
+            throw IndexError::for($offset, $this);
+        }
+
+
+        $offset = $this->getOffset($offset);
+
+        if (is_int($offset)) {
+            if ( ! in_range($offset, 0, $this->count() - 1)) {
+                throw IndexError::for($offset, $this);
+            }
+
+            return $this->data[$offset];
+        }
+
+        return $this->withData($offset->slice($this));
     }
 
     public function offsetExists(mixed $offset): bool
@@ -127,6 +184,31 @@ abstract class pSequence implements pReversible, pCollection
         foreach (Range::of($this)->getReverseIterator() as $offset) {
             yield $this[$offset];
         }
+    }
+
+    public function __serialize(): array
+    {
+        return [$this->data];
+    }
+
+    public function __unserialize(array $data)
+    {
+        [$this->data] = $data;
+    }
+
+    public function __debugInfo(): array
+    {
+        return $this->data;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->data;
+    }
+
+    public function __toString(): string
+    {
+        return json_encode($this, JSON_UNESCAPED_LINE_TERMINATORS | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 
 }

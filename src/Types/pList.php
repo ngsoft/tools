@@ -22,30 +22,6 @@ class pList extends pMutableSequence implements JsonSerializable, Stringable
         $this->extend($list);
     }
 
-    protected function getOffset(Slice|int|string|null $offset): Slice|int
-    {
-
-        if (is_null($offset)) {
-            return $this->count();
-        }
-        if (is_string($offset) && ! Slice::isValid($offset)) {
-            throw IndexError::for($offset, $this);
-        }
-
-
-        if (is_int($offset) && $offset < 0) {
-            $offset += $this->count();
-
-            if ($offset === -1 && ! $this->count()) {
-                $offset = 0;
-            }
-        } elseif (is_string($offset)) {
-            $offset = Slice::of($offset);
-        }
-
-        return $offset;
-    }
-
     protected function setData(array $data): static
     {
         $this->data = $data;
@@ -130,51 +106,6 @@ class pList extends pMutableSequence implements JsonSerializable, Stringable
         } finally {
             $this->data = array_values($this->data);
         }
-    }
-
-    public function offsetGet(mixed $offset): mixed
-    {
-        if ( ! $this->count()) {
-            throw IndexError::for($offset, $this);
-        }
-
-
-        $offset = $this->getOffset($offset);
-
-        if (is_int($offset)) {
-            if ( ! in_range($offset, 0, $this->count() - 1)) {
-                throw IndexError::for($offset, $this);
-            }
-
-            return $this->data[$offset];
-        }
-
-        return $this->withData($offset->slice($this));
-    }
-
-    public function __serialize(): array
-    {
-        return [$this->data];
-    }
-
-    public function __unserialize(array $data)
-    {
-        [$this->data] = $data;
-    }
-
-    public function __debugInfo(): array
-    {
-        return $this->data;
-    }
-
-    public function jsonSerialize(): mixed
-    {
-        return $this->data;
-    }
-
-    public function __toString(): string
-    {
-        return json_encode($this, JSON_UNESCAPED_LINE_TERMINATORS | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 
 }
