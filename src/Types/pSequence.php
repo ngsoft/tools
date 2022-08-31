@@ -31,7 +31,6 @@ abstract class pSequence extends pCollection
     protected function __iter__(): iterable
     {
 
-
         try {
 
             foreach (Range::of($this) as $offset) {

@@ -19,8 +19,6 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
     use Sized,
         Container;
 
-    protected array $data = [];
-
     ////////////////////////////   Not in Python (we are using PHP)   ////////////////////////////
 
     /**
@@ -28,7 +26,7 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
      */
     public function toArray(): array
     {
-        return $this->data;
+        return $this->__get_data__();
     }
 
     /**
@@ -40,6 +38,11 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
     }
 
     ////////////////////////////   Python Methods   ////////////////////////////
+
+
+    abstract protected function __get_data__(): array;
+
+    abstract protected function __set_data__(array $data): void;
 
     /**
      * Return a shallow copy of the list
@@ -58,7 +61,7 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
     {
 
         if ($value instanceof self) {
-            return $value->data;
+            return $value->__get_data__();
         }
 
         return $value;
@@ -66,7 +69,9 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
 
     protected function setData(array $data): static
     {
-        $this->data = $data;
+
+
+        $this->__set_data__($data);
 
         return $this;
     }
@@ -91,12 +96,12 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
 
     public function __serialize(): array
     {
-        return [$this->data];
+        return $this->__get_data__();
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->data] = $data;
+        $this->__set_data__($data);
     }
 
     public function __debugInfo(): array
