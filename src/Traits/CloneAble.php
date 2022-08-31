@@ -8,18 +8,21 @@ namespace NGSOFT\Traits;
  * Make Class Cloning simpler
  * @phan-file-suppress PhanTypeMismatchReturn
  */
-trait CloneWith
+trait CloneAble
 {
 
-    protected function getClone(): static
+    /**
+     * Get a copy of the current object
+     */
+    public function copy(): static
     {
         return clone $this;
     }
 
-    protected function cloneWith(array $properties = []): static
+    protected function with(array $properties = []): static
     {
 
-        $clone = $this->getClone();
+        $clone = $this->copy();
 
         $propertyList = array_keys(get_object_vars($this));
 

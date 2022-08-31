@@ -7,7 +7,7 @@ namespace NGSOFT\Types\Iterators;
 use ArrayAccess,
     Countable;
 use NGSOFT\{
-    Tools\TypeCheck, Types\pReversible, Types\Range, Types\Traits\IsReversible, Types\ValueError
+    Tools\TypeCheck, Traits\ObjectLock, Types\pReversible, Types\Range, Types\Traits\IsReversible, Types\ValueError
 };
 use Stringable,
     Traversable;
@@ -21,7 +21,8 @@ use function get_debug_type,
 class pIterator implements pReversible, Countable
 {
 
-    use IsReversible;
+    use IsReversible,
+        ObjectLock;
 
     protected array $keys = [];
     protected array $values = [];
@@ -70,6 +71,8 @@ class pIterator implements pReversible, Countable
 
                 $iterator->append($offset, $value[$offset]);
             }
+
+            $iterator->lock();
         }
 
 
@@ -93,8 +96,11 @@ class pIterator implements pReversible, Countable
      */
     protected function append(mixed $key, mixed $value): void
     {
-        $this->keys[] = $key;
-        $this->values[] = $value;
+
+        if ( ! $this->isLocked()) {
+            $this->keys[] = $key;
+            $this->values[] = $value;
+        }
     }
 
     /**
@@ -107,12 +113,11 @@ class pIterator implements pReversible, Countable
 
     protected function getOffsets(): array
     {
-        if (is_null($this->offsets)) {
+        if ( ! $this->isLocked()) {
             foreach ($this->iterator as $key => $value) {
                 $this->append($key, $value);
             }
         }
-
 
         return Range::of($this->keys)->toArray();
     }

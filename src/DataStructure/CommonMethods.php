@@ -36,20 +36,7 @@ trait CommonMethods
      */
     protected function cloneArray(array $array): array
     {
-
-        foreach ($array as $offset => $value) {
-
-            if (is_object($value)) {
-                $array[$offset] = clone $value;
-            }
-
-
-            if (is_array($value)) {
-                $array[$offset] = $this->cloneArray($value);
-            }
-        }
-
-        return $array;
+        return Tools::cloneArray($array);
     }
 
     /**

@@ -76,7 +76,7 @@ class Range implements pReversible, ArrayAccess, Countable, JsonSerializable, St
         return $this->step;
     }
 
-    public function getReverseIterator(): \Traversable
+    public function getReverseIterator(): Traversable
     {
         if ($this->isEmpty()) {
             return;

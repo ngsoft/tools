@@ -6,6 +6,9 @@ namespace NGSOFT\Traits;
 
 use RuntimeException;
 
+/**
+ * Adds Locking capability
+ */
 trait ObjectLock
 {
 

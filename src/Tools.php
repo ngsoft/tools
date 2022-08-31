@@ -314,13 +314,37 @@ final class Tools
     }
 
     /**
+     * Clone all objects of an array recursively
+     */
+    public static function cloneArray(array $array, bool $recursive = true): array
+    {
+
+        $result = [];
+
+        foreach ($array as $offset => $value) {
+
+            if (is_object($value)) {
+                $result[$offset] = clone $value;
+            }
+
+
+            if (is_array($value) && $recursive) {
+                $result[$offset] = self::cloneArray($value, $recursive);
+                continue;
+            }
+
+            $result[$offset] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
      * Converts an iterable to an array recursively
      * if the keys are not string the will be indexed
      */
     public static function iterableToArray(iterable $iterable): array
     {
-
-
         $new = [];
         foreach ($iterable as $key => $value) {
 
