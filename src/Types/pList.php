@@ -95,7 +95,7 @@ class pList extends MutableSequence implements JsonSerializable, Stringable
     {
 
         if ( ! is_int($offset) && ! is_null($offset)) {
-            parent::offsetSet($offset, $value);
+            throw IndexError::for($offset, $this);
         }
 
         if (is_int($offset)) {
@@ -103,11 +103,9 @@ class pList extends MutableSequence implements JsonSerializable, Stringable
             $_offset = $this->getOffset($offset);
 
             if ( ! in_range($_offset, 0, $this->count() - 1)) {
-                parent::offsetSet($offset, $value);
+                throw IndexError::for($offset, $this);
             }
-        } elseif (is_null($offset)) {
-            $_offset = $this->count();
-        }
+        } else { $_offset = $this->count(); }
 
         $this->data[$_offset] = $value;
     }
