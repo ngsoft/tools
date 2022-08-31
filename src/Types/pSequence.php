@@ -25,14 +25,11 @@ abstract class pSequence implements pReversible, pCollection
     public function contains(mixed $value): bool
     {
 
-        foreach ($this as $_value) {
-
-            if ($value === $_value) {
-                return true;
-            }
+        if (is_null($value)) {
+            return false;
         }
 
-        return false;
+        return $this->count($value) > 0;
     }
 
     protected function getValue(mixed $value): mixed
@@ -86,15 +83,19 @@ abstract class pSequence implements pReversible, pCollection
 
     public function count(mixed $value = null): int
     {
-        return count($this->data);
-    }
 
-    /**
-     * return number of occurrences of value
-     */
-    public function countValue(mixed $value): int
-    {
-        return Tools::countValue($value, $this);
+        if (is_null($value)) {
+            return count($this->data);
+        }
+
+        $value = $this->getValue($value);
+        $cnt = 0;
+        foreach ($this as $_value) {
+            if ($value === $this->getValue($value)) {
+                $cnt ++;
+            }
+        }
+        return $cnt;
     }
 
     protected function getOffset(Slice|int|string|null $offset): Slice|int
