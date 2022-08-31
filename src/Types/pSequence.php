@@ -66,7 +66,7 @@ abstract class pSequence implements pReversible, pCollection
 
     public function count(): int
     {
-        return 0;
+        return count($this->data);
     }
 
     /**
@@ -79,6 +79,8 @@ abstract class pSequence implements pReversible, pCollection
 
     public function offsetGet(mixed $offset): mixed
     {
+
+
         throw IndexError::for($offset, $this);
     }
 

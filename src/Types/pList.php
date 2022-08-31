@@ -86,11 +86,6 @@ class pList extends pMutableSequence implements JsonSerializable, Stringable
         array_splice($this->data, $offset, 0, $value);
     }
 
-    public function count(): int
-    {
-        return count($this->data);
-    }
-
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
@@ -140,7 +135,7 @@ class pList extends pMutableSequence implements JsonSerializable, Stringable
     public function offsetGet(mixed $offset): mixed
     {
         if ( ! $this->count()) {
-            parent::offsetGet($offset);
+            throw IndexError::for($offset, $this);
         }
 
 
@@ -148,7 +143,7 @@ class pList extends pMutableSequence implements JsonSerializable, Stringable
 
         if (is_int($offset)) {
             if ( ! in_range($offset, 0, $this->count() - 1)) {
-                parent::offsetGet($offset);
+                throw IndexError::for($offset, $this);
             }
 
             return $this->data[$offset];
