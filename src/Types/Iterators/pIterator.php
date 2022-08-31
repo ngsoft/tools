@@ -7,7 +7,7 @@ namespace NGSOFT\Types\Iterators;
 use ArrayAccess,
     Countable;
 use NGSOFT\{
-    Tools\TypeCheck, Traits\ObjectLock, Types\pReversible, Types\Range, Types\Traits\IsReversible, Types\ValueError
+    Tools\TypeCheck, Traits\ObjectLock, Types\pReversible, Types\Range, Types\ValueError
 };
 use Stringable,
     Traversable;
@@ -18,11 +18,10 @@ use function get_debug_type,
 /**
  * Basic (Reverse) Iterator Proxy
  */
-class pIterator implements pReversible, Countable
+class pIterator extends pReversible implements Countable
 {
 
-    use IsReversible,
-        ObjectLock;
+    use ObjectLock;
 
     protected array $keys = [];
     protected array $values = [];

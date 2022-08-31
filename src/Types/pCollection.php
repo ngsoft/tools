@@ -79,8 +79,6 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
     ////////////////////////////   Interfaces   ////////////////////////////
 
 
-
-
     public function offsetExists(mixed $offset): bool
     {
 

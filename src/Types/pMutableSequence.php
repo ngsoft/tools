@@ -16,40 +16,53 @@ abstract class pMutableSequence extends pSequence
 
     abstract protected function __delitem__(int $offset): void;
 
+    /**
+     * Insert an item at a given position.
+     * The first argument is the index of the element before which to insert, so a.insert(0, x) inserts at the front of the list,
+     * and a.insert(len(a), x) is equivalent to a.append(x).
+     */
+    abstract public function insert(int $offset, mixed $value): void;
+
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
-        if ( ! is_int($offset) && ! is_null($offset)) {
-            throw IndexError::for($offset, $this);
-        }
-
-        if (is_int($offset)) {
-
-            $_offset = $this->getOffset($offset);
-
-            if ( ! in_range($_offset, 0, $this->count() - 1)) {
-                throw IndexError::for($offset, $this);
+        try {
+            if (is_null($offset)) {
+                $this->__setitem__($this->__len__(), $this->getValue($value));
+                return;
             }
-        } else { $_offset = $this->count(); }
 
-        $this->__setitem__($offset, $value);
+            $offset = $this->getOffset($offset);
+            $max = $this->__len__() - 1;
+
+            if (is_int($offset = $this->getOffset($offset))) {
+                $offsets = [$offset];
+            } else { $offsets = $offset->getIteratorFor($this); }
+
+            foreach ($offsets as $_offset) {
+                if ( ! in_range($offset, 0, $max)) {
+                    throw IndexError::for($offset, $this);
+                }
+                $this->__setitem__($offset, $this->getValue($value));
+            }
+        } finally {
+            $this->data = array_values($this->data);
+        }
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        $offset = $this->getOffset($offset);
-        $max = $this->count() - 1;
+
         try {
 
-            if (is_int($offset)) {
-                if ( ! in_range($offset, 0, $max)) {
-                    throw IndexError::for($offset, $this);
-                }
+            $offset = $this->getOffset($offset);
+            $max = $this->__len__() - 1;
 
-                $this->__delitem__($offset);
-                return;
-            }
-            foreach ($offset->getIteratorFor($this) as $_offset) {
+            if (is_int($offset = $this->getOffset($offset))) {
+                $offsets = [$offset];
+            } else { $offsets = $offset->getIteratorFor($this); }
+
+            foreach ($offsets as $_offset) {
 
                 if ( ! in_range($_offset, 0, $max)) {
                     throw IndexError::for($_offset, $this);
@@ -63,18 +76,11 @@ abstract class pMutableSequence extends pSequence
     }
 
     /**
-     * Insert an item at a given position.
-     * The first argument is the index of the element before which to insert, so a.insert(0, x) inserts at the front of the list,
-     * and a.insert(len(a), x) is equivalent to a.append(x).
-     */
-    abstract public function insert(int $offset, mixed $value): void;
-
-    /**
      * Append value to the end of the sequence
      */
     public function append(mixed $value): void
     {
-        $this->insert($this->count(), $value);
+        $this->insert($this->__len__(), $value);
     }
 
     /**
@@ -82,14 +88,7 @@ abstract class pMutableSequence extends pSequence
      */
     public function clear(): void
     {
-        try {
-
-            while ($this->count()) {
-                $this->pop();
-            }
-        } catch (Throwable) {
-
-        }
+        $this->data = [];
     }
 
     /**
@@ -97,11 +96,7 @@ abstract class pMutableSequence extends pSequence
      */
     public function reverse(): void
     {
-
-        $len = $this->count();
-        foreach (Range::create((int) floor($len / 2)) as $i) {
-            [$this->data[$i], $this->data[$len - $i - 1]] = [$this->data[$len - $i - 1], $this->data[$i]];
-        }
+        $this->data = array_reverse($this->data);
     }
 
     /**
@@ -109,11 +104,6 @@ abstract class pMutableSequence extends pSequence
      */
     public function extend(iterable $values): void
     {
-
-        if ($values instanceof self) {
-            $values = $values->data;
-        }
-
         foreach ($values as $value) {
             $this->append($value);
         }
@@ -125,9 +115,11 @@ abstract class pMutableSequence extends pSequence
      */
     public function pop(int $offset = -1): mixed
     {
-        $value = $this[$offset];
-        unset($this->data[$offset]);
-        return $value;
+        try {
+            return $this[$offset];
+        } finally {
+            unset($this[$offset]);
+        }
     }
 
     /**
@@ -136,8 +128,7 @@ abstract class pMutableSequence extends pSequence
      */
     public function remove(mixed $value): void
     {
-        $offset = $this->index($value);
-        unset($this->data[$offset]);
+        unset($this[$this->index($value)]);
     }
 
 }

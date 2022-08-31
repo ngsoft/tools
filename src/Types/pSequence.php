@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use NGSOFT\Types\Traits\IsSliceable,
-    Throwable,
+use Throwable,
     Traversable;
 use function in_range;
 
@@ -16,8 +15,6 @@ use function in_range;
  */
 abstract class pSequence extends pCollection
 {
-
-    use IsSliceable;
 
     abstract protected function __getitem__(int $offset): mixed;
 
@@ -109,6 +106,34 @@ abstract class pSequence extends pCollection
             }
         }
         return $cnt;
+    }
+
+    /**
+     * Translate negative offset as real offset,
+     * Slice offset as list of offsets
+     */
+    protected function getOffset(Slice|int|string|null $offset): Slice|int
+    {
+
+        if (is_null($offset)) {
+            return $this->count();
+        }
+        if (is_string($offset) && ! Slice::isValid($offset)) {
+            throw IndexError::for($offset, $this);
+        }
+
+
+        if (is_int($offset) && $offset < 0) {
+            $offset += $this->count();
+
+            if ($offset === -1 && ! $this->count()) {
+                $offset = 0;
+            }
+        } elseif (is_string($offset)) {
+            $offset = Slice::of($offset);
+        }
+
+        return $offset;
     }
 
     public function offsetGet(mixed $offset): mixed
