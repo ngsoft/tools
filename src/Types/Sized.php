@@ -14,4 +14,12 @@ trait Sized
         return $this->__len__();
     }
 
+    /**
+     * Check if object is empty
+     */
+    public function isEmpty(): bool
+    {
+        return $this->__len__() === 0;
+    }
+
 }

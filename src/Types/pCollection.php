@@ -39,14 +39,6 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
         return json_encode($this, $flags);
     }
 
-    /**
-     * Check if pCollection is empty
-     */
-    public function isEmpty(): bool
-    {
-        return $this->count() === 0;
-    }
-
     ////////////////////////////   Python Methods   ////////////////////////////
 
     /**
