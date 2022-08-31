@@ -7,16 +7,20 @@ namespace NGSOFT\Types;
 /**
  * Python like Reversible
  */
-interface pReversible extends \IteratorAggregate
+abstract class pReversible extends pIterable
 {
 
     /**
      * Iterate in reverse
      */
-    public function getReverseIterator(): \Traversable;
+    abstract protected function __reversed__(): iterable;
 
     /**
      * Access Entries with Sorting method
      */
-    public function entries(Sort $sort): iterable;
+    public function entries(Sort $sort): iterable
+    {
+        yield from $sort->is(Sort::ASC) ? $this->getIterator() : $this->getReverseIterator();
+    }
+
 }

@@ -47,6 +47,11 @@ abstract class pCollection implements Countable, IteratorAggregate, ArrayAccess,
 
     ////////////////////////////   Python Methods   ////////////////////////////
 
+
+    abstract protected function __len__(): int;
+
+    abstract protected function __iter__(): iterable;
+
     /**
      * Return a shallow copy of the list
      */
@@ -78,7 +83,7 @@ abstract class pCollection implements Countable, IteratorAggregate, ArrayAccess,
 
         // Countable __len__()
         if (is_null($value)) {
-            return count($this->data);
+            return $this->__len__();
         }
 
         $value = $this->getValue($value);

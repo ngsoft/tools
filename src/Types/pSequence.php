@@ -22,6 +22,8 @@ abstract class pSequence extends pCollection implements pReversible
     use IsReversible,
         IsSliceable;
 
+    abstract protected function __getitem__(int $offset): mixed;
+
     /**
      * Return first offset of value.
      * Raises ValueError if the value is not present.

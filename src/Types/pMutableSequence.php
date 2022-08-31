@@ -12,6 +12,10 @@ use Throwable;
 abstract class pMutableSequence extends pSequence
 {
 
+    abstract protected function __setitem__(int $offset, mixed $value): void;
+
+    abstract protected function __delitem__(int $offset): void;
+
     public function offsetSet(mixed $offset, mixed $value): void
     {
         throw IndexError::for($offset, $this);
