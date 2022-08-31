@@ -46,6 +46,9 @@ class pIterator implements pReversible, Countable
         return new static($value === '' ? [] : mb_str_split($value));
     }
 
+    /**
+     * Creates an iterator from a list
+     */
     public static function ofList(mixed $value): static
     {
 
