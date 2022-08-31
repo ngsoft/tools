@@ -86,11 +86,6 @@ class pList extends pMutableSequence implements JsonSerializable, Stringable
         array_splice($this->data, $offset, 0, $value);
     }
 
-    public function __len__(): int
-    {
-        $this->count();
-    }
-
     public function count(): int
     {
         return count($this->data);

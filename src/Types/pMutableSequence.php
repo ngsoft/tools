@@ -12,8 +12,6 @@ use Throwable;
 abstract class pMutableSequence extends pSequence
 {
 
-    protected array $data = [];
-
     public function offsetSet(mixed $offset, mixed $value): void
     {
         throw IndexError::for($offset, $this);

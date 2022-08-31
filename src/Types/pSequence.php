@@ -19,6 +19,8 @@ abstract class pSequence implements pReversible, pCollection
 
     use IsReversible;
 
+    protected array $data = [];
+
     /** {@inheritdoc} */
     public function contains(mixed $value): bool
     {

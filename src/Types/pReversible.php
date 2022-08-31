@@ -14,6 +14,4 @@ interface pReversible extends pIterable
      * Iterate in reverse
      */
     public function getReverseIterator(): \Traversable;
-
-    public function __len__(): int;
 }
