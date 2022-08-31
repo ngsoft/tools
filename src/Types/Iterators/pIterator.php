@@ -9,7 +9,8 @@ use NGSOFT\{
     Tools\TypeCheck, Types\pReversible, Types\Range, Types\Traits\IsReversible, Types\ValueError
 };
 use Traversable;
-use function mb_str_split,
+use function get_debug_type,
+             mb_str_split,
              NGSOFT\Types\is_list,
              str_val;
 
@@ -36,7 +37,7 @@ class pIterator implements pReversible, Countable
     }
 
     /**
-     * Creates a new pIterator that iterates eche
+     * Creates a new pIterator that iterates each chars
      */
     public static function ofStringable(mixed $value): static
     {
@@ -98,7 +99,7 @@ class pIterator implements pReversible, Countable
      */
     protected function yieldOffset(int $offset): iterable
     {
-        if ($this->offsets[$offset] ?? null === null) {
+        if (is_null($this->getOffsets()[$offset] ?? null)) {
             throw new StopIteration();
         }
 
@@ -131,7 +132,7 @@ class pIterator implements pReversible, Countable
         }
     }
 
-    public function getReverseIterator(): \Traversable
+    public function getReverseIterator(): Traversable
     {
         foreach (array_reverse($this->getOffsets()) as $offset) {
             yield from $this->yieldOffset($offset);
@@ -145,7 +146,7 @@ class pIterator implements pReversible, Countable
 
     public function count(): int
     {
-        return iterator_count($this->iterator);
+        return count($this->getOffsets());
     }
 
 }
