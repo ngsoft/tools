@@ -12,10 +12,8 @@ use function in_range;
  *
  * @link https://docs.python.org/3/tutorial/datastructures.html
  */
-class iList extends MutableSequence implements JsonSerializable, Stringable
+class pList extends MutableSequence implements JsonSerializable, Stringable
 {
-
-    protected array $data = [];
 
     public function __construct(
             iterable $list = []

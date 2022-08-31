@@ -7,13 +7,8 @@ namespace NGSOFT\Types;
 /**
  * Python like Reversible
  */
-interface Reversible extends \IteratorAggregate
+interface pReversible extends pIterable
 {
-
-    /**
-     * Access Entries with Sorting method
-     */
-    public function entries(Sort $sort): iterable;
 
     /**
      * Iterate in reverse

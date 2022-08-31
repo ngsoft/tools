@@ -14,7 +14,7 @@ use function NGSOFT\Tools\some;
 /**
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
-abstract class Sequence implements Reversible, Collection
+abstract class Sequence implements pReversible, pCollection
 {
 
     use IsReversible;

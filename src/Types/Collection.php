@@ -7,7 +7,7 @@ namespace NGSOFT\Types;
 /**
  * Python like Collection
  */
-interface Collection extends \Countable, \Traversable, \ArrayAccess
+interface pCollection extends \Countable, \Traversable, \ArrayAccess
 {
 
     /**

@@ -7,7 +7,7 @@ namespace NGSOFT\Types;
 class IndexError extends \OutOfRangeException
 {
 
-    public static function for(mixed $index, object|string $class = Collection::class): static
+    public static function for(mixed $index, object|string $class = pCollection::class): static
     {
 
         if (is_object($index)) {

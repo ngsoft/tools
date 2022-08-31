@@ -7,7 +7,7 @@ namespace NGSOFT\Types;
 class ValueError extends \ValueError
 {
 
-    public static function for(mixed $value, object|string $class = Collection::class): static
+    public static function for(mixed $value, object|string $class = pCollection::class): static
     {
 
         if (is_object($value)) {

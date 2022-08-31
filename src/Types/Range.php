@@ -17,7 +17,7 @@ use ArrayAccess,
  * @link https://docs.python.org/3/library/stdtypes.html#range
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
-class Range implements Reversible, ArrayAccess, Countable, JsonSerializable, Stringable
+class Range implements pReversible, ArrayAccess, Countable, JsonSerializable, Stringable
 {
 
     use IsReversible;

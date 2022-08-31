@@ -12,6 +12,8 @@ use Throwable;
 abstract class MutableSequence extends Sequence
 {
 
+    protected array $data = [];
+
     public function offsetSet(mixed $offset, mixed $value): void
     {
         throw IndexError::for($offset, $this);
@@ -61,7 +63,7 @@ abstract class MutableSequence extends Sequence
 
         $len = $this->count();
         foreach (Range::create((int) floor($len / 2)) as $i) {
-            [$this[$i], $this[$len - $i - 1]] = [$this[$len - $i - 1], $this[$i]];
+            [$this->data[$i], $this->data[$len - $i - 1]] = [$this->data[$len - $i - 1], $this->data[$i]];
         }
     }
 
@@ -72,7 +74,7 @@ abstract class MutableSequence extends Sequence
     {
 
         if ($values instanceof self) {
-            $values = iterator_to_array($values);
+            $values = $values->data;
         }
 
         foreach ($values as $value) {
@@ -87,7 +89,7 @@ abstract class MutableSequence extends Sequence
     public function pop(int $offset = -1): mixed
     {
         $value = $this[$offset];
-        unset($this[$offset]);
+        unset($this->data[$offset]);
         return $value;
     }
 
@@ -97,7 +99,8 @@ abstract class MutableSequence extends Sequence
      */
     public function remove(mixed $value): void
     {
-        unset($this[$this->index($value)]);
+        $offset = $this->index($value);
+        unset($this->data[$offset]);
     }
 
 }
