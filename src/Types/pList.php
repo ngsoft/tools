@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use JsonSerializable,
-    Stringable;
 use function in_range;
 
 /**
@@ -20,26 +18,6 @@ class pList extends pMutableSequence
     )
     {
         $this->extend($list);
-    }
-
-    /**
-     * Insert an item at a given position.
-     * The first argument is the index of the element before which to insert, so a.insert(0, x) inserts at the front of the list,
-     * and a.insert(len(a), x) is equivalent to a.append(x).
-     */
-    public function insert(int $offset, mixed $value): void
-    {
-        $offset = $this->getOffset($offset);
-
-        if ( ! in_range($offset, 0, $this->count())) {
-            throw IndexError::for($offset, $this);
-        }
-
-        if ($offset === $this->count()) {
-            $this->data[] = $value;
-            return;
-        }
-        array_splice($this->data, $offset, 0, $value);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
