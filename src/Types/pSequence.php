@@ -19,8 +19,7 @@ use function in_range;
 abstract class pSequence extends pCollection
 {
 
-    use IsReversible,
-        IsSliceable;
+    use IsSliceable;
 
     abstract protected function __getitem__(int $offset): mixed;
 
