@@ -17,6 +17,8 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
 
     protected array $data = [];
 
+    ////////////////////////////   Not in Python (we are using PHP)   ////////////////////////////
+
     /**
      * Exports pCollection to array
      */
@@ -24,6 +26,13 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
     {
         return $this->data;
     }
+
+    public function toJson(int $flags = JSON_UNESCAPED_LINE_TERMINATORS | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR): string
+    {
+        return json_encode($this, $flags);
+    }
+
+    ////////////////////////////   Python Methods   ////////////////////////////
 
     /**
      * Checks if collection has value
@@ -46,6 +55,7 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
     public function count(mixed $value = null): int
     {
 
+        // Countable __len__()
         if (is_null($value)) {
             return count($this->data);
         }
@@ -79,6 +89,17 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
 
 
 
+
+    public function offsetExists(mixed $offset): bool
+    {
+
+        try {
+            return $this[$offset] !== null;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     public function __serialize(): array
     {
         return [$this->data];
@@ -101,7 +122,7 @@ abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSer
 
     public function __toString(): string
     {
-        return json_encode($this, JSON_UNESCAPED_LINE_TERMINATORS | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        return $this->toJson();
     }
 
 }

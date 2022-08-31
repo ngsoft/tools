@@ -46,10 +46,7 @@ abstract class pSequence extends pCollection implements pReversible
         while (is_null($stop) || $offset < $stop) {
 
             try {
-
-                $_value = $this->getValue($this[$offset]);
-
-                if ($_value === $value) {
+                if ($this->getValue($this[$offset]) === $value) {
                     return $offset;
                 }
             } catch (Throwable) {
@@ -79,11 +76,6 @@ abstract class pSequence extends pCollection implements pReversible
         }
 
         return $this->withData($offset->slice($this));
-    }
-
-    public function offsetExists(mixed $offset): bool
-    {
-        return array_key_exists($offset, $this->data);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
