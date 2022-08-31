@@ -11,7 +11,8 @@ use NGSOFT\{
     Tools, Tools\TypeCheck
 };
 use Stringable,
-    Throwable;
+    Throwable,
+    Traversable;
 use function class_basename,
              preg_exec,
              preg_test,
@@ -102,9 +103,9 @@ class Slice implements Stringable
 
     /**
      * @param array|ArrayAccess&Countable $value
-     * @return iterable<int>
+     * @return Traversable<int>
      */
-    public function getIteratorFor($value): iterable
+    public function getIteratorFor($value): Traversable
     {
         TypeCheck::assertTypeMethod(
                 [$this, __FUNCTION__, 0], $value,

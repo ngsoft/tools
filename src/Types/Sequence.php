@@ -84,8 +84,7 @@ abstract class Sequence implements Reversible, Collection
     {
 
         try {
-            $this[$offset];
-            return true;
+            return $this[$offset] !== null;
         } catch (Throwable) {
             return false;
         }

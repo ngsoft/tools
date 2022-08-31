@@ -21,31 +21,40 @@ class iList extends MutableSequence
         $this->extend($list);
     }
 
-    protected function getOffset(Slice|int|string|null $offset): array|int
+    protected function getOffset(Slice|int|string|null $offset): Slice|int
     {
 
         if (is_null($offset)) {
             return $this->count();
         }
-
-        if (is_int($offset)) {
-
-            if ($offset < 0) {
-                $offset += $this->count();
-            }
-
-            return $offset;
+        if (is_string($offset) && ! Slice::isValid($offset)) {
+            throw IndexError::for($offset, $this);
         }
 
-        if (is_string($offset)) {
-            if ( ! Slice::isValid($offset)) {
-                throw IndexError::for($offset, $this);
-            }
 
+        if (is_int($offset) && $offset < 0) {
+            $offset += $this->count();
+
+            if ($offset === -1 && ! $this->count()) {
+                $offset = 0;
+            }
+        } elseif (is_string($offset)) {
             $offset = Slice::of($offset);
         }
 
-        return $offset->getOffsetList($this);
+        return $offset;
+    }
+
+    protected function setData(array $data): static
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    protected function withData(array $data): static
+    {
+        return $this->copy()->setData($data);
     }
 
     /**
@@ -65,9 +74,6 @@ class iList extends MutableSequence
     {
         $offset = $this->getOffset($offset);
 
-        if ($offset === -1) {
-            $offset = $this->count();
-        }
         if ( ! in_range($offset, 0, $this->count())) {
             throw IndexError::for($offset, $this);
         }
@@ -83,6 +89,69 @@ class iList extends MutableSequence
     public function count(): int
     {
         return count($this->data);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+
+        if ( ! is_int($offset) && is_null($offset)) {
+            parent::offsetSet($offset, $value);
+        }
+
+        $offset = $this->getOffset($offset);
+
+        if ( ! in_range($offset, 0, $this->count())) {
+            parent::offsetSet($offset, $value);
+        }
+
+        $this->data[$offset] = $value;
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        $offset = $this->getOffset($offset);
+        $max = $this->count() - 1;
+        try {
+
+            if (is_int($offset)) {
+                if ( ! in_range($offset, 0, $max)) {
+                    parent::offsetUnset($offset);
+                }
+
+                unset($this->data[$offset]);
+                return;
+            }
+            foreach ($offset->getIteratorFor($this) as $_offset) {
+
+                if ( ! in_range($_offset, 0, $max)) {
+                    parent::offsetUnset($_offset);
+                }
+
+                unset($this->data[$offset]);
+            }
+        } finally {
+            $this->data = array_values($this->data);
+        }
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        if ( ! $this->count()) {
+            parent::offsetGet($offset);
+        }
+
+
+        $offset = $this->getOffset($offset);
+
+        if (is_int($offset)) {
+            if ( ! in_range($offset, 0, $this->count() - 1)) {
+                parent::offsetGet($offset);
+            }
+
+            return $this->data[$offset];
+        }
+
+        return $this->withData($offset->slice($this));
     }
 
 }
