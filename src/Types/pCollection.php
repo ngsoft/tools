@@ -101,12 +101,12 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
 
     public function __debugInfo(): array
     {
-        return $this->data;
+        return $this->toArray();
     }
 
     public function jsonSerialize(): mixed
     {
-        return $this->data;
+        return $this->toArray();
     }
 
     public function __toString(): string

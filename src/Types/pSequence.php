@@ -46,7 +46,7 @@ abstract class pSequence extends pCollection
     protected function __reversed__(): Traversable
     {
 
-        foreach (Range::of($this)->getReverseIterator() as $offset) {
+        foreach (Range::of($this)->reverse() as $offset) {
             yield $this[$offset];
         }
     }

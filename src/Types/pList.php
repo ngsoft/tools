@@ -34,4 +34,24 @@ class pList extends pMutableSequence
         } else { array_splice($this->data, $offset, 0, $value); }
     }
 
+    protected function __len__(): int
+    {
+        return count($this->data);
+    }
+
+    protected function __delitem__(int $offset): void
+    {
+        unset($this->data[$offset]);
+    }
+
+    protected function __setitem__(int $offset, mixed $value): void
+    {
+        $this->data[$offset] = $value;
+    }
+
+    protected function __getitem__(int $offset): mixed
+    {
+        return $this->data[$offset];
+    }
+
 }
