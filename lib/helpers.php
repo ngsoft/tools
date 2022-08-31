@@ -326,7 +326,7 @@ if ( ! function_exists('length')) {
             case 'float':
                 return (int) $value;
             case 'string':
-                return mb_strlen($value);
+                return $value === '' ? 0 : mb_strlen($value);
         }
 
         return count($value);
