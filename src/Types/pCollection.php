@@ -14,8 +14,10 @@ use ArrayAccess,
 /**
  * Python like Collection
  */
-abstract class pCollection implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
+abstract class pCollection extends pReversible implements Countable, ArrayAccess, JsonSerializable, Stringable
 {
+
+    use Sized;
 
     protected array $data = [];
 
@@ -46,11 +48,6 @@ abstract class pCollection implements Countable, IteratorAggregate, ArrayAccess,
     }
 
     ////////////////////////////   Python Methods   ////////////////////////////
-
-
-    abstract protected function __len__(): int;
-
-    abstract protected function __iter__(): iterable;
 
     /**
      * Return a shallow copy of the list

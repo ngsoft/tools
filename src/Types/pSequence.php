@@ -16,7 +16,7 @@ use function in_range;
  *
  * @phan-file-suppress PhanUnusedPublicMethodParameter
  */
-abstract class pSequence extends pCollection implements pReversible
+abstract class pSequence extends pCollection
 {
 
     use IsReversible,
@@ -90,7 +90,7 @@ abstract class pSequence extends pCollection implements pReversible
     }
 
     /** {@inheritdoc} */
-    public function getIterator(): Traversable
+    public function __iter__(): iterable
     {
 
 

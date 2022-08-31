@@ -20,7 +20,7 @@ abstract class pReversible extends pIterable
      */
     public function entries(Sort $sort): iterable
     {
-        yield from $sort->is(Sort::ASC) ? $this->getIterator() : $this->getReverseIterator();
+        yield from $sort->is(Sort::ASC) ? $this->__iter__() : $this->__reversed__();
     }
 
 }
