@@ -33,7 +33,7 @@ abstract class pSequence extends pCollection
 
         try {
 
-            foreach (Range::of($this) as $offset) {
+            for ($offset = 0; $offset < $this->__len__(); $offset ++ ) {
                 yield $this[$offset];
             }
         } catch (Throwable) {
@@ -44,6 +44,15 @@ abstract class pSequence extends pCollection
     /** {@inheritdoc} */
     protected function __reversed__(): Traversable
     {
+
+        try {
+
+            for ($offset = -1; $offset >= -$this->__len__(); $offset --) {
+                yield $this[$offset];
+            }
+        } catch (Throwable) {
+            return;
+        }
 
         foreach (Range::of($this)->reverse() as $offset) {
             yield $this[$offset];

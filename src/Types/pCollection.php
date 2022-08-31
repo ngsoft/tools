@@ -44,6 +44,11 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
 
     abstract protected function __set_data__(array $data): void;
 
+    protected function __repr__(): string
+    {
+        return $this->toJson();
+    }
+
     /**
      * Return a shallow copy of the list
      */
@@ -69,10 +74,7 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
 
     protected function setData(array $data): static
     {
-
-
         $this->__set_data__($data);
-
         return $this;
     }
 
@@ -114,9 +116,9 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
         return $this->toArray();
     }
 
-    public function __toString(): string
+    final public function __toString(): string
     {
-        return $this->toJson();
+        return $this->__repr__();
     }
 
 }

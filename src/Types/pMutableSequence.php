@@ -12,6 +12,8 @@ use Throwable;
 abstract class pMutableSequence extends pSequence
 {
 
+    protected array $data = [];
+
     abstract protected function __setitem__(int $offset, mixed $value): void;
 
     abstract protected function __delitem__(int $offset): void;
@@ -73,6 +75,16 @@ abstract class pMutableSequence extends pSequence
         } finally {
             $this->data = array_values($this->data);
         }
+    }
+
+    protected function __get_data__(): array
+    {
+        return $this->data;
+    }
+
+    protected function __set_data__(array $data): void
+    {
+        $this->data = $data;
     }
 
     /**
