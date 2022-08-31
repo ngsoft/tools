@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-class ValueError extends \ValueError
+class ValueError extends \Error
 {
 
     public static function for(mixed $value, object|string $class = pCollection::class): static

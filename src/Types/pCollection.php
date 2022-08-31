@@ -27,9 +27,20 @@ abstract class pCollection implements Countable, \IteratorAggregate, ArrayAccess
         return $this->data;
     }
 
+    /**
+     * Exports pCollection to json
+     */
     public function toJson(int $flags = JSON_UNESCAPED_LINE_TERMINATORS | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR): string
     {
         return json_encode($this, $flags);
+    }
+
+    /**
+     * Check if pCollection is empty
+     */
+    public function isEmpty(): bool
+    {
+        return $this->count() === 0;
     }
 
     ////////////////////////////   Python Methods   ////////////////////////////
