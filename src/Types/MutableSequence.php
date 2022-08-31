@@ -71,8 +71,8 @@ abstract class MutableSequence extends Sequence
     public function extend(iterable $values): void
     {
 
-        if ($values === $this) {
-            $values = new iList($this);
+        if ($values instanceof self) {
+            $values = iterator_to_array($values);
         }
 
         foreach ($values as $value) {

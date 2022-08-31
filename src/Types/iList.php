@@ -6,6 +6,9 @@ namespace NGSOFT\Types;
 
 use Throwable;
 
+/**
+ * @link https://docs.python.org/3/tutorial/datastructures.html
+ */
 class iList extends MutableSequence
 {
 
@@ -18,16 +21,6 @@ class iList extends MutableSequence
         $this->extend($list);
     }
 
-    public function count(): int
-    {
-        return count($this->data);
-    }
-
-    public function copy(): static
-    {
-        return new self($this);
-    }
-
     protected function getOffset(Slice|int|string|null $offset): array|int
     {
 
@@ -38,7 +31,7 @@ class iList extends MutableSequence
         if (is_int($offset)) {
 
             if ($offset < 0) {
-                return $offset + $this->count() + 1;
+                $offset += $this->count();
             }
 
             return $offset;
@@ -56,29 +49,40 @@ class iList extends MutableSequence
     }
 
     /**
-     * Helper to be used with __clone() method
+     * Return a shallow copy of the list
      */
-    protected function cloneArray(array $array): array
+    public function copy(): static
     {
-
-        foreach ($array as $offset => $value) {
-
-            if (is_object($value)) {
-                $array[$offset] = clone $value;
-            }
-
-
-            if (is_array($value)) {
-                $array[$offset] = $this->cloneArray($value);
-            }
-        }
-
-        return $array;
+        return clone $this;
     }
 
-    public function __clone()
+    /**
+     * Insert an item at a given position.
+     * The first argument is the index of the element before which to insert, so a.insert(0, x) inserts at the front of the list,
+     * and a.insert(len(a), x) is equivalent to a.append(x).
+     */
+    public function insert(int $offset, mixed $value): void
     {
-        $this->list = $this->cloneArray($this->list);
+        $offset = $this->getOffset($offset);
+
+        if ($offset === -1) {
+            $offset = $this->count();
+        }
+        if ( ! in_range($offset, 0, $this->count())) {
+            throw IndexError::for($offset, $this);
+        }
+
+        if ($offset === $this->count()) {
+            $this->data[] = $offset;
+            return;
+        }
+
+        array_splice($this->data, $offset, 0, $value);
+    }
+
+    public function count(): int
+    {
+        return count($this->data);
     }
 
 }
