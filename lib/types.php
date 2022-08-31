@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\Types;
 
 use NGSOFT\Tools\TypeCheck,
-    Throwable;
-use function array_is_list;
+    Throwable,
+    TypeError;
+use function array_is_list,
+             get_debug_type;
 
 /**
  * Creates a new list
@@ -58,7 +60,7 @@ function is_list(mixed $value): bool
 
     // ArrayAccess&Countable
 
-    for ($offset = 0; $offset < count($value); $offset ++) {
+    for ($offset = 0; $offset < count($value); $offset ++ ) {
 
         // isset can return false negative
         try {

@@ -25,7 +25,6 @@ class pIterator implements pReversible, Countable
 
     protected array $keys = [];
     protected array $values = [];
-    protected ?array $offsets = null;
 
     ////////////////////////////   Static Methods   ////////////////////////////
 
@@ -96,7 +95,6 @@ class pIterator implements pReversible, Countable
     {
         $this->keys[] = $key;
         $this->values[] = $value;
-        $this->offsets = array_keys($this->keys);
     }
 
     /**
@@ -104,29 +102,19 @@ class pIterator implements pReversible, Countable
      */
     protected function yieldOffset(int $offset): iterable
     {
-        if (is_null($this->getOffsets()[$offset] ?? null)) {
-            throw new StopIteration();
-        }
-
         yield $this->keys[$offset] => $this->values[$offset];
     }
 
     protected function getOffsets(): array
     {
         if (is_null($this->offsets)) {
-
-
             foreach ($this->iterator as $key => $value) {
-                $this->keys[] = $key;
-                $this->values[] = $value;
+                $this->append($key, $value);
             }
-
-
-            $this->offsets = array_keys($this->keys);
         }
 
 
-        return $this->offsets;
+        return Range::of($this->keys)->toArray();
     }
 
     public function getIterator(): Traversable
