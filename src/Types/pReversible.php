@@ -7,7 +7,7 @@ namespace NGSOFT\Types;
 /**
  * Python like Reversible
  */
-interface pReversible extends pIterable
+interface pReversible extends \IteratorAggregate
 {
 
     /**

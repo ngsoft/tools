@@ -12,7 +12,7 @@ use ArrayAccess,
 /**
  * Python like Collection
  */
-abstract class pCollection implements Countable, pIterable, ArrayAccess, JsonSerializable, Stringable
+abstract class pCollection implements Countable, \IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
 {
 
     protected array $data = [];
