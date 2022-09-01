@@ -123,10 +123,18 @@ if ( ! function_exists('is_arrayaccess'))
      */
     function is_arrayaccess(mixed $value): bool
     {
-        return TypeCheck::checkType($value, TypeCheck::TYPE_ARRAYACCESS);
+
+        if (is_array($value))
+        {
+            return true;
+        }
+
+
+        return $value instanceof ArrayAccess && $value instanceof Countable;
     }
 
 }
+
 
 if ( ! function_exists('is_unsigned'))
 {
