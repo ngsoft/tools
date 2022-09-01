@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use Throwable;
+use TypeError;
+use function in_range;
 
 /**
  * @phan-file-suppress PhanUnusedPublicMethodParameter, PhanUnusedPublicNoOverrideMethodParameter
@@ -46,14 +47,25 @@ abstract class pMutableSequence extends pSequence
             $max = $this->__len__() - 1;
 
             if (is_int($offset = $this->getOffset($offset))) {
-                $offsets = [$offset];
-            } else { $offsets = $offset->getIteratorFor($this); }
 
-            foreach ($offsets as $_offset) {
-                if ( ! in_range($_offset, 0, $max)) {
-                    throw IndexError::for($_offset, $this);
-                }
                 $this->__setitem__($offset, $this->getValue($value));
+                return;
+            }
+
+
+            if ( ! is_iterable($value)) {
+
+                throw new TypeError('can only assign an iterable');
+            }
+
+
+            $replace = $offset->getOffsetList($this);
+
+            $count = 0;
+
+            foreach ($value as $_value) {
+                $this[$replace[$count] ?? null] = $value;
+                $count ++;
             }
         } finally {
             $this->data = array_values($this->data);
