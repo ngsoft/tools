@@ -26,14 +26,6 @@ abstract class pMutableSequence extends pSequence
      */
     abstract public function insert(int $offset, mixed $value): void;
 
-    protected function getValue(mixed $value): mixed
-    {
-        if ($value instanceof self) {
-            return $value->data;
-        }
-        return parent::getValue($value);
-    }
-
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
@@ -76,7 +68,7 @@ abstract class pMutableSequence extends pSequence
 
             foreach ($value as $_value) {
                 $_offset = $replace[$count]  ?? ++ $_offset;
-                $this->__setitem__($_offset, $_value);
+                $this->__setitem__($_offset, $this->getValue($_value));
                 $count ++;
             }
         } finally {
