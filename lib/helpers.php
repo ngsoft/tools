@@ -6,23 +6,28 @@ use NGSOFT\{
     Tools, Tools\TypeCheck
 };
 
-if ( ! defined('NAMESPACE_SEPARATOR')) {
+if ( ! defined('NAMESPACE_SEPARATOR'))
+{
     define('NAMESPACE_SEPARATOR', '\\');
 }
 
-if ( ! defined('PHP_EXT')) {
+if ( ! defined('PHP_EXT'))
+{
     define('PHP_EXT', '.php');
 }
 
-if ( ! defined('SCRIPT_START')) {
+if ( ! defined('SCRIPT_START'))
+{
     define('SCRIPT_START', $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true));
 }
 
-if ( ! defined('DATE_DB')) {
+if ( ! defined('DATE_DB'))
+{
     define('DATE_DB', 'Y-m-d H:i:s');
 }
 
-if ( ! function_exists('class_namespace')) {
+if ( ! function_exists('class_namespace'))
+{
 
     /**
      * Get the namespace from a class
@@ -33,7 +38,8 @@ if ( ! function_exists('class_namespace')) {
     function class_namespace(string|object $class): string
     {
         $class = is_object($class) ? get_class($class) : $class;
-        if ( ! str_contains($class, NAMESPACE_SEPARATOR)) {
+        if ( ! str_contains($class, NAMESPACE_SEPARATOR))
+        {
             return '';
         }
         return substr($class, 0, strrpos($class, NAMESPACE_SEPARATOR));
@@ -42,18 +48,22 @@ if ( ! function_exists('class_namespace')) {
 }
 
 
-if ( ! function_exists('is_stringable')) {
+if ( ! function_exists('is_stringable'))
+{
 
     function is_stringable(mixed $value): bool
     {
-        if (is_scalar($value) || is_null($value)) {
+        if (is_scalar($value) || is_null($value))
+        {
             return true;
         }
-        if ($value instanceof Stringable) {
+        if ($value instanceof Stringable)
+        {
             return true;
         }
 
-        if (is_object($value) && method_exists($value, '__toString')) {
+        if (is_object($value) && method_exists($value, '__toString'))
+        {
             return true;
         }
 
@@ -63,31 +73,37 @@ if ( ! function_exists('is_stringable')) {
 }
 
 
-if ( ! function_exists('str_val')) {
+if ( ! function_exists('str_val'))
+{
 
     /**
      * Get string value of a variable
      */
     function str_val(mixed $value): string
     {
-        if (is_string($value)) {
+        if (is_string($value))
+        {
             return $value;
         }
 
-        if (is_null($value)) {
+        if (is_null($value))
+        {
             return '';
         }
 
-        if (is_bool($value)) {
+        if (is_bool($value))
+        {
             return $value ? 'true' : 'false';
         }
 
-        if (is_numeric($value)) {
+        if (is_numeric($value))
+        {
             return (string) $value;
         }
 
 
-        if ( ! is_stringable($value)) {
+        if ( ! is_stringable($value))
+        {
             throw new InvalidArgumentException(sprintf('Text of type %s is not stringable.', get_debug_type($value)));
         }
 
@@ -99,7 +115,8 @@ if ( ! function_exists('str_val')) {
 
 
 
-if ( ! function_exists('is_arrayaccess')) {
+if ( ! function_exists('is_arrayaccess'))
+{
 
     /**
      * Check if value is Array like
@@ -111,7 +128,8 @@ if ( ! function_exists('is_arrayaccess')) {
 
 }
 
-if ( ! function_exists('is_unsigned')) {
+if ( ! function_exists('is_unsigned'))
+{
 
     /**
      * Checks if value is positive
@@ -124,7 +142,8 @@ if ( ! function_exists('is_unsigned')) {
 
 }
 
-if ( ! function_exists('uses_trait')) {
+if ( ! function_exists('uses_trait'))
+{
 
     /**
      * Checks recursively if a class uses a trait
@@ -141,7 +160,8 @@ if ( ! function_exists('uses_trait')) {
 }
 
 
-if ( ! function_exists('implements_class')) {
+if ( ! function_exists('implements_class'))
+{
 
     /**
      * Get class implementing given parent class from the loaded classes
@@ -159,7 +179,8 @@ if ( ! function_exists('implements_class')) {
 }
 
 
-if ( ! function_exists('get_class_constants')) {
+if ( ! function_exists('get_class_constants'))
+{
 
 
     /**
@@ -177,7 +198,8 @@ if ( ! function_exists('get_class_constants')) {
 }
 
 
-if ( ! function_exists('is_instanciable')) {
+if ( ! function_exists('is_instanciable'))
+{
 
     function is_instanciable(string $class): bool
     {
@@ -186,7 +208,8 @@ if ( ! function_exists('is_instanciable')) {
 
 }
 
-if ( ! function_exists('random_string')) {
+if ( ! function_exists('random_string'))
+{
 
     /**
      * Generate a more truly "random" alpha-numeric string.
@@ -202,7 +225,8 @@ if ( ! function_exists('random_string')) {
 }
 
 
-if ( ! function_exists('preg_valid')) {
+if ( ! function_exists('preg_valid'))
+{
 
     /**
      * Check if regular expression is valid
@@ -217,7 +241,8 @@ if ( ! function_exists('preg_valid')) {
             return $pattern !== ltrim($pattern, '%#/') && preg_match($pattern, '') !== false; // must be >=0 to be correct
         } catch (ErrorException $error)
         {
-            if ($exception) {
+            if ($exception)
+            {
                 $msg = str_replace('_match', '_valid', $error->getMessage());
                 throw new WarningException($msg, previous: $error);
             }
@@ -228,7 +253,8 @@ if ( ! function_exists('preg_valid')) {
 
 }
 
-if ( ! function_exists('preg_test')) {
+if ( ! function_exists('preg_test'))
+{
 
     /**
      * Test if subject matches the pattern
@@ -241,7 +267,8 @@ if ( ! function_exists('preg_test')) {
 
 }
 
-if ( ! function_exists('preg_exec')) {
+if ( ! function_exists('preg_exec'))
+{
 
     /**
      * Perform a regular expression match
@@ -257,14 +284,17 @@ if ( ! function_exists('preg_exec')) {
 
         $limit = max(0, $limit);
 
-        if (preg_match_all($pattern, $subject, $matches, PREG_SET_ORDER) > 0) {
+        if (preg_match_all($pattern, $subject, $matches, PREG_SET_ORDER) > 0)
+        {
 
 
-            if ($limit === 0) {
+            if ($limit === 0)
+            {
                 $limit = count($matches);
             }
 
-            if ($limit === 1) {
+            if ($limit === 1)
+            {
                 return $matches[0];
             }
 
@@ -280,7 +310,8 @@ if ( ! function_exists('preg_exec')) {
 
 }
 
-if ( ! function_exists('in_range')) {
+if ( ! function_exists('in_range'))
+{
 
     /**
      * Checks if number is in range
@@ -289,15 +320,18 @@ if ( ! function_exists('in_range')) {
     {
 
 
-        if ($min === $max) {
+        if ($min === $max)
+        {
             return $number === $min;
         }
 
-        if ($min > $max) {
+        if ($min > $max)
+        {
             [$min, $max] = [$max, $min];
         }
 
-        if ($inclusive) {
+        if ($inclusive)
+        {
 
             return $number >= $min && $number <= $max;
         }
@@ -309,7 +343,8 @@ if ( ! function_exists('in_range')) {
 }
 
 
-if ( ! function_exists('length')) {
+if ( ! function_exists('length'))
+{
 
     /**
      * Get the length of a scalar|array|Countable
@@ -317,7 +352,8 @@ if ( ! function_exists('length')) {
     function length(mixed $value): int
     {
 
-        if ( ! is_scalar($value) && ! is_countable($value)) {
+        if ( ! is_scalar($value) && ! is_countable($value))
+        {
             throw new TypeError(sprintf('object of type %s has no length.', get_debug_type($value)));
         }
 
@@ -327,9 +363,8 @@ if ( ! function_exists('length')) {
             case 'bool':
                 return $value ? 1 : 0;
             case 'int':
-                return $value;
             case 'float':
-                return (int) $value;
+                return $value > 0 ? (int) $value : 0;
             case 'string':
                 return $value === '' ? 0 : mb_strlen($value);
         }
@@ -340,7 +375,8 @@ if ( ! function_exists('length')) {
 }
 
 
-if ( ! function_exists('wait')) {
+if ( ! function_exists('wait'))
+{
 
     /**
      * Wait for a given amount of time
@@ -350,7 +386,8 @@ if ( ! function_exists('wait')) {
      */
     function wait(int $ms = 0): void
     {
-        if ($ms === 0) {
+        if ($ms === 0)
+        {
             $ms = 100 + random_int(-10, 10);
         }
 
@@ -359,7 +396,8 @@ if ( ! function_exists('wait')) {
 
 }
 
-if ( ! function_exists('until')) {
+if ( ! function_exists('until'))
+{
 
 
     /**
@@ -375,7 +413,8 @@ if ( ! function_exists('until')) {
 
         while ($times > 0)
         {
-            if (filled($condition())) {
+            if (filled($condition()))
+            {
                 return true;
             }
             wait($waitMs);
@@ -387,7 +426,8 @@ if ( ! function_exists('until')) {
 }
 
 
-if ( ! function_exists('call_private_method')) {
+if ( ! function_exists('call_private_method'))
+{
 
     /**
      * Call a non static method inside an object ignoring its restrictions
@@ -400,7 +440,8 @@ if ( ! function_exists('call_private_method')) {
 }
 
 
-if ( ! function_exists('require_package')) {
+if ( ! function_exists('require_package'))
+{
 
 
     /**
@@ -419,11 +460,13 @@ if ( ! function_exists('require_package')) {
 
         list($name) = explode(':', $package);
 
-        if (preg_match('#^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]?|-{0,2})[a-z0-9]+)*$#', $name) === false) {
+        if (preg_match('#^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]?|-{0,2})[a-z0-9]+)*$#', $name) === false)
+        {
             throw new InvalidArgumentException("Invalid package name: {$name}");
         }
 
-        if ( ! class_exists($classCheck) && ! interface_exists($classCheck) && ! trait_exists($classCheck)) {
+        if ( ! class_exists($classCheck) && ! interface_exists($classCheck) && ! trait_exists($classCheck))
+        {
             throw new $exceptionClass(
                             sprintf('Composer package %s not installed, please run: composer require %s', $name, $package)
             );
