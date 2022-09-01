@@ -51,6 +51,9 @@ if ( ! function_exists('class_namespace'))
 if ( ! function_exists('is_stringable'))
 {
 
+    /**
+     * Checks if value can be converted to string
+     */
     function is_stringable(mixed $value): bool
     {
         if (is_scalar($value) || is_null($value))
