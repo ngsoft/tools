@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use NGSOFT\Tools\TypeCheck,
-    Throwable,
+use NGSOFT\{
+    Tools\TypeCheck, Types\Iterators\pIterator
+};
+use Throwable,
     TypeError;
 use function array_is_list,
              get_debug_type;
@@ -87,4 +89,12 @@ function len(mixed $countable): int
     }
 
     throw new TypeError(sprintf('object of type %s has no len()', get_debug_type($countable)));
+}
+
+/**
+ * Get a reversed iterable
+ */
+function reversed(iterable $seq): iterable
+{
+    return pIterator::of($seq)->entries(Sort::DESC);
 }
