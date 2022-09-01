@@ -211,16 +211,19 @@ if ( ! function_exists('preg_valid')) {
      */
     function preg_valid(string $pattern, bool $exception = false): bool
     {
-        try {
+        try
+        {
             set_default_error_handler();
             return $pattern !== ltrim($pattern, '%#/') && preg_match($pattern, '') !== false; // must be >=0 to be correct
-        } catch (ErrorException $error) {
+        } catch (ErrorException $error)
+        {
             if ($exception) {
                 $msg = str_replace('_match', '_valid', $error->getMessage());
                 throw new WarningException($msg, previous: $error);
             }
             return false;
-        } finally { restore_error_handler(); }
+        } finally
+        { restore_error_handler(); }
     }
 
 }
@@ -265,7 +268,8 @@ if ( ! function_exists('preg_exec')) {
                 return $matches[0];
             }
 
-            while (count($matches) > $limit) {
+            while (count($matches) > $limit)
+            {
                 array_pop($matches);
             }
             return $matches;
@@ -317,7 +321,8 @@ if ( ! function_exists('length')) {
             throw new TypeError(sprintf('object of type %s has no length.', get_debug_type($value)));
         }
 
-        switch (get_debug_type($value)) {
+        switch (get_debug_type($value))
+        {
 
             case 'bool':
                 return $value ? 1 : 0;
@@ -368,7 +373,8 @@ if ( ! function_exists('until')) {
     function until(callable $condition, int $times = 1000, int $waitMs = 10): bool
     {
 
-        while ($times > 0) {
+        while ($times > 0)
+        {
             if (filled($condition())) {
                 return true;
             }

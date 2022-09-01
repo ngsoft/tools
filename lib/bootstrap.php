@@ -17,9 +17,11 @@ $scripts = [
     'types',
 ];
 
-foreach ($scripts as $name) {
+foreach ($scripts as $name)
+{
     require_once __DIR__ . DIRECTORY_SEPARATOR . $name . '.php';
 }
+
 
 
 

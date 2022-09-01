@@ -86,7 +86,8 @@ function require_file(string $file, array $data = [], bool $once = false): mixed
         return null;
     }
 
-    $closure = static function (array $___data): mixed {
+    $closure = static function (array $___data): mixed
+    {
         extract($___data);
         unset($___data);
         return func_get_arg(2) ? // $once
@@ -94,13 +95,16 @@ function require_file(string $file, array $data = [], bool $once = false): mixed
         require func_get_arg(1); // $file
     };
     // Warnings will be thrown as ErrorException
-    set_error_handler(function ($type, $msg, $file, $line) {
+    set_error_handler(function ($type, $msg, $file, $line)
+    {
         if ( ! (error_reporting() & $type)) { return false; }
         throw new ErrorException($msg, 0, $type, $file, $line);
     });
-    try {
+    try
+    {
         return $closure($data, $file, $once);
-    } finally { restore_error_handler(); }
+    } finally
+    { restore_error_handler(); }
 }
 
 /**
@@ -131,7 +135,8 @@ function require_all(string|iterable $files, array $data = [], bool $once = fals
     }
     $result = [];
 
-    foreach ($files as $file) {
+    foreach ($files as $file)
+    {
 
         if ( ! is_string($file)) {
             throw new ValueError(sprintf('Invalid type %s for requested type string.', get_debug_type($file)));
@@ -151,7 +156,8 @@ function require_all(string|iterable $files, array $data = [], bool $once = fals
             continue;
         }
 
-        foreach (list_files_recursive($file, 'php') as $path => $file) {
+        foreach (list_files_recursive($file, 'php') as $path => $file)
+        {
             $result[$file] = require_file($path, $data, $once);
         }
     }

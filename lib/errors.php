@@ -129,13 +129,15 @@ if ( ! function_exists('list_error_handlers')) {
         $result = [];
 
         // unset/get the handlers
-        while ($handler = get_error_handler()) {
+        while ($handler = get_error_handler())
+        {
             $result[] = $handler;
             restore_error_handler();
         }
         // reset the handlers
         $stack = $result;
-        while ($handler = array_pop($stack)) {
+        while ($handler = array_pop($stack))
+        {
             set_error_handler($handler);
         }
         return $result;
@@ -154,9 +156,11 @@ if ( ! function_exists('get_error_handler')) {
     function get_error_handler(): ?callable
     {
 
-        try {
+        try
+        {
             return set_error_handler(fn() => null);
-        } finally {
+        } finally
+        {
             restore_error_handler();
         }
     }
@@ -165,6 +169,7 @@ if ( ! function_exists('get_error_handler')) {
 
 
 if ( ! function_exists('set_default_error_handler')) {
+
 
     /**
      * Set error handler to throw targeted exceptions
@@ -211,7 +216,8 @@ if ( ! function_exists('set_default_error_handler')) {
                     string $errstr,
                     string $errfile,
                     int $errline
-            )use ($errors, $levels, $log): bool {
+            )use ($errors, $levels, $log): bool
+            {
 
                 if ( ! (error_reporting() & $errno)) {
                     return false;

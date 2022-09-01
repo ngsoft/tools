@@ -31,7 +31,9 @@ declare(strict_types=1);
  * @phan-file-suppress PhanTypeMismatchDeclaredParam, PhanTypeMismatchDeclaredReturn, PhanTemplateTypeNotDeclaredInFunctionParams, PhanRedefineClass
  */
 
-namespace Symfony\Contracts\EventDispatcher {
+namespace Symfony\Contracts\EventDispatcher
+{
+
 
     // if symfony/event-dispatcher imported no need to load file
     if (interface_exists(EventDispatcherInterface::class)) {
@@ -115,7 +117,8 @@ namespace Symfony\Contracts\EventDispatcher {
 
 }
 
-namespace Symfony\Component\EventDispatcher {
+namespace Symfony\Component\EventDispatcher
+{
 
     use Symfony\Contracts\EventDispatcher\EventDispatcherInterface as ContractsEventDispatcherInterface;
 
@@ -212,7 +215,8 @@ namespace Symfony\Component\EventDispatcher {
 
 }
 
-namespace Symfony\Component\EventDispatcher\Attribute {
+namespace Symfony\Component\EventDispatcher\Attribute
+{
 
     /**
      * Service tag to autoconfigure event listeners.
