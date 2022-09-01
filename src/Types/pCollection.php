@@ -26,7 +26,17 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
      */
     public function toArray(): array
     {
-        return iterator_to_array($this);
+
+        $array = [];
+
+        foreach ($this as $offset => $value) {
+            if ($value instanceof self) {
+                $value = $value->toArray();
+            }
+            $array [$offset] = $value;
+        }
+
+        return $array;
     }
 
     /**
@@ -53,6 +63,23 @@ abstract class pCollection extends pReversible implements Countable, ArrayAccess
     public function copy(): static
     {
         return clone $this;
+    }
+
+    /**
+     * Checks if a value is a collection with the same items as current
+     */
+    public function equals(mixed $value): bool
+    {
+
+        if ($value instanceof self) {
+            $value = $value->toArray();
+        }
+
+        if (is_array($value)) {
+            return $value === $this->toArray();
+        }
+
+        return false;
     }
 
     ////////////////////////////   Interfaces   ////////////////////////////

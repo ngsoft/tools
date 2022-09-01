@@ -33,7 +33,7 @@ abstract class pSequence extends pCollection
 
         try {
 
-            for ($offset = 0; $offset < $this->__len__(); $offset ++) {
+            for ($offset = 0; $offset < $this->__len__(); $offset ++ ) {
                 yield $this[$offset];
             }
         } catch (Throwable) {
@@ -47,7 +47,7 @@ abstract class pSequence extends pCollection
 
         try {
 
-            for ($offset = -1; $offset >= -$this->__len__(); $offset -- ) {
+            for ($offset = -1; $offset >= -$this->__len__(); $offset --) {
                 yield $this[$offset];
             }
         } catch (Throwable) {
@@ -159,7 +159,13 @@ abstract class pSequence extends pCollection
                 throw IndexError::for($offset, $this);
             }
 
-            return $this->__getitem__($offset);
+            $value = $this->__getitem__($offset);
+
+            if (is_array($value) && array_is_list($value)) {
+                $value = plist($value);
+            }
+
+            return $value;
         }
 
         return plist($offset->slice($this));
