@@ -121,15 +121,14 @@ class pIterator extends pReversible implements Countable
         return Range::of($this->keys)->toArray();
     }
 
-    public function getIterator(): Traversable
+    protected function __iter__(): iterable
     {
-
         foreach ($this->getOffsets() as $offset) {
             yield from $this->yieldOffset($offset);
         }
     }
 
-    public function getReverseIterator(): Traversable
+    protected function __reversed__(): iterable
     {
         foreach (array_reverse($this->getOffsets()) as $offset) {
             yield from $this->yieldOffset($offset);

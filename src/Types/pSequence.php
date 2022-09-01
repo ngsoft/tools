@@ -33,7 +33,7 @@ abstract class pSequence extends pCollection
 
         try {
 
-            for ($offset = 0; $offset < $this->__len__(); $offset ++) {
+            for ($offset = 0; $offset < $this->__len__(); $offset ++ ) {
                 yield $this[$offset];
             }
         } catch (Throwable) {
@@ -47,7 +47,7 @@ abstract class pSequence extends pCollection
 
         try {
 
-            for ($offset = -1; $offset >= -$this->__len__(); $offset -- ) {
+            for ($offset = -1; $offset >= -$this->__len__(); $offset --) {
                 yield $this[$offset];
             }
         } catch (Throwable) {
@@ -166,17 +166,6 @@ abstract class pSequence extends pCollection
     protected function getValue(mixed $value): mixed
     {
         return $value;
-    }
-
-    protected function setData(array $data): static
-    {
-        $this->data = $data;
-        return $this;
-    }
-
-    protected function withData(array $data): static
-    {
-        return $this->copy()->setData($data);
     }
 
     public function offsetSet(mixed $offset, mixed $value): void

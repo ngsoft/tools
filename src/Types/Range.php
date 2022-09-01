@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
+use Countable;
+
 class Range extends pSequence
 {
 
@@ -12,9 +14,20 @@ class Range extends pSequence
     public readonly int $step;
     protected ?int $count = null;
 
+    /**
+     * Creates a Range
+     */
     public static function create(int $start, ?int $stop = null, int $step = 1): static
     {
         return new static($start, $stop, $step);
+    }
+
+    /**
+     * Get a range for a Countable
+     */
+    public static function of(Countable|array $countable): static
+    {
+        return new static(0, count($countable));
     }
 
     public function __construct(
@@ -68,11 +81,6 @@ class Range extends pSequence
     public function __repr__(): string
     {
         return sprintf('%s::create(%d, %d, %d)', static::class, $this->start, $this->stop, $this->step);
-    }
-
-    public function toArray(): array
-    {
-        return iterator_to_array($this);
     }
 
 }

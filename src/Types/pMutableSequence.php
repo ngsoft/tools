@@ -25,6 +25,14 @@ abstract class pMutableSequence extends pSequence
      */
     abstract public function insert(int $offset, mixed $value): void;
 
+    protected function getValue(mixed $value): mixed
+    {
+        if ($value instanceof self) {
+            return $value->data;
+        }
+        return parent::getValue($value);
+    }
+
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
@@ -42,8 +50,8 @@ abstract class pMutableSequence extends pSequence
             } else { $offsets = $offset->getIteratorFor($this); }
 
             foreach ($offsets as $_offset) {
-                if ( ! in_range($offset, 0, $max)) {
-                    throw IndexError::for($offset, $this);
+                if ( ! in_range($_offset, 0, $max)) {
+                    throw IndexError::for($_offset, $this);
                 }
                 $this->__setitem__($offset, $this->getValue($value));
             }
@@ -75,16 +83,6 @@ abstract class pMutableSequence extends pSequence
         } finally {
             $this->data = array_values($this->data);
         }
-    }
-
-    protected function __get_data__(): array
-    {
-        return $this->data;
-    }
-
-    protected function __set_data__(array $data): void
-    {
-        $this->data = $data;
     }
 
     /**
