@@ -48,8 +48,17 @@ abstract class pMutableSequence extends pSequence
 
             if (is_int($offset = $this->getOffset($offset))) {
 
+                if ( ! in_range($offset, 0, $max)) {
+                    throw IndexError::for($offset, $this);
+                }
+
                 $this->__setitem__($offset, $this->getValue($value));
                 return;
+            }
+
+
+            if (is_string($value)) {
+                $value = Iterators\pIterator::ofStringable($value);
             }
 
 
@@ -63,8 +72,11 @@ abstract class pMutableSequence extends pSequence
 
             $count = 0;
 
+            $_offset = $max;
+
             foreach ($value as $_value) {
-                $this[$replace[$count] ?? null] = $value;
+                $_offset = $replace[$count]  ?? ++ $_offset;
+                $this->__setitem__($_offset, $_value);
                 $count ++;
             }
         } finally {

@@ -122,6 +122,11 @@ abstract class pSequence extends pCollection
         if (is_null($offset)) {
             return $this->count();
         }
+
+        if (is_numeric($offset) && ! str_contains((string) $offset, '.')) {
+            $offset = (int) $offset;
+        }
+
         if (is_string($offset) && ! Slice::isValid($offset)) {
             throw IndexError::for($offset, $this);
         }
