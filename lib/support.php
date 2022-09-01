@@ -9,7 +9,8 @@ declare(strict_types=1);
  * @link https://github.com/illuminate/support
  */
 
-namespace {
+namespace
+{
     if ( ! function_exists('trait_uses_recursive')) {
 
         /**
@@ -22,7 +23,8 @@ namespace {
         {
             $traits = class_uses($trait) ?: [];
 
-            foreach ($traits as $trait) {
+            foreach ($traits as $trait)
+            {
                 $traits += trait_uses_recursive($trait);
             }
 
@@ -47,7 +49,8 @@ namespace {
 
             $results = [];
 
-            foreach (array_reverse(class_parents($class)) + [$class => $class] as $class) {
+            foreach (array_reverse(class_parents($class)) + [$class => $class] as $class)
+            {
                 $results += trait_uses_recursive($class);
             }
 
@@ -120,7 +123,8 @@ namespace {
                 return $object;
             }
 
-            foreach (explode('.', $key) as $segment) {
+            foreach (explode('.', $key) as $segment)
+            {
                 if ( ! is_object($object) || ! isset($object->{$segment})) {
                     return value($default);
                 }

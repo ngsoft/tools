@@ -51,7 +51,8 @@ function is_list(mixed $value): bool
     if (is_iterable($value)) {
         $nextKey = -1;
 
-        foreach ($value as $k => $_) {
+        foreach ($value as $k => $_)
+        {
             if ($k !== ++ $nextKey) {
                 return false;
             }
@@ -62,14 +63,17 @@ function is_list(mixed $value): bool
 
     // ArrayAccess&Countable
 
-    for ($offset = 0; $offset < count($value); $offset ++ ) {
+    for ($offset = 0; $offset < count($value); $offset ++ )
+    {
 
         // isset can return false negative
-        try {
+        try
+        {
             if ($value[$offset] === null) {
                 return false;
             }
-        } catch (Throwable) {
+        } catch (Throwable)
+        {
             return false;
         }
     }
@@ -96,5 +100,6 @@ function len(mixed $countable): int
  */
 function reversed(iterable $seq): iterable
 {
+
     return pIterator::of($seq)->entries(Sort::DESC);
 }
