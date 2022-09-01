@@ -143,4 +143,14 @@ abstract class pMutableSequence extends pSequence
         unset($this[$this->index($value)]);
     }
 
+    public function __serialize(): array
+    {
+        return $this->data;
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->data = $data;
+    }
+
 }

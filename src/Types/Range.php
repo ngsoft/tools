@@ -12,6 +12,11 @@ class Range extends pSequence
     public readonly int $step;
     protected ?int $count = null;
 
+    public static function create(int $start, ?int $stop = null, int $step = 1): static
+    {
+        return new static($start, $stop, $step);
+    }
+
     public function __construct(
             int $start,
             ?int $stop = null,
@@ -60,33 +65,14 @@ class Range extends pSequence
         return $this->start + ($offset * $this->step);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    public function __repr__(): string
     {
-        if ( ! is_int($offset)) {
-            throw IndexError::for($offset, $this);
-        }
-
-        return parent::offsetGet($offset);
-    }
-
-    public function __toString(): string
-    {
-        return sprintf('%s(%d, %d, %d)', static::class, $this->start, $this->stop, $this->step);
+        return sprintf('%s::create(%d, %d, %d)', static::class, $this->start, $this->stop, $this->step);
     }
 
     public function toArray(): array
     {
         return iterator_to_array($this);
-    }
-
-    public function __serialize(): array
-    {
-        return[$this->start, $this->stop, $this->step, $this->count];
-    }
-
-    public function __unserialize(array $data): void
-    {
-        [$this->start, $this->stop, $this->step, $this->count] = $data;
     }
 
 }
