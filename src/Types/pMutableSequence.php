@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace NGSOFT\Types;
 
-use TypeError;
+use NGSOFT\Types\Iterators\pIterator,
+    TypeError;
 use function in_range;
 
 /**
@@ -48,14 +49,11 @@ abstract class pMutableSequence extends pSequence
                 return;
             }
 
-
             if (is_string($value)) {
-                $value = Iterators\pIterator::ofStringable($value);
+                $value = pIterator::ofStringable($value);
             }
 
-
             if ( ! is_iterable($value)) {
-
                 throw new TypeError('can only assign an iterable');
             }
 
