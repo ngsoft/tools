@@ -7,10 +7,9 @@ namespace NGSOFT\Types\Iterators;
 use ArrayAccess,
     Countable;
 use NGSOFT\{
-    Tools\TypeCheck, Traits\ObjectLock, Types\pReversible, Types\Range, Types\ValueError
+    Tools\TypeCheck, Traits\ObjectLock, Types\pReversible, Types\Range, Types\Sized, Types\ValueError
 };
-use Stringable,
-    Traversable;
+use Stringable;
 use function get_debug_type,
              mb_str_split,
              NGSOFT\Types\is_list;
@@ -21,7 +20,8 @@ use function get_debug_type,
 class pIterator extends pReversible implements Countable
 {
 
-    use ObjectLock;
+    use ObjectLock,
+        Sized;
 
     protected array $keys = [];
     protected array $values = [];
@@ -116,9 +116,10 @@ class pIterator extends pReversible implements Countable
             foreach ($this->iterator as $key => $value) {
                 $this->append($key, $value);
             }
+            $this->lock();
         }
 
-        return Range::of($this->keys)->toArray();
+        return array_keys($this->keys);
     }
 
     protected function __iter__(): iterable
@@ -135,12 +136,7 @@ class pIterator extends pReversible implements Countable
         }
     }
 
-    public function isEmpty(): bool
-    {
-        return $this->count() === 0;
-    }
-
-    public function count(): int
+    public function __len__(): int
     {
         return count($this->getOffsets());
     }
