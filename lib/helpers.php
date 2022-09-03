@@ -141,7 +141,7 @@ if ( ! function_exists('is_unsigned'))
 {
 
     /**
-     * Checks if value is positive
+     * Checks if value is not negative
      */
     function is_unsigned(int|float $value): bool
     {
