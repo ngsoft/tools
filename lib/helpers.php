@@ -332,7 +332,7 @@ if ( ! function_exists('in_range'))
 
         if ($min === $max)
         {
-            return $number === $min;
+            return $number === $min && $inclusive;
         }
 
         if ($min > $max)
