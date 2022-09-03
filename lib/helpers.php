@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use NGSOFT\{
-    Tools, Tools\TypeCheck
-};
+use NGSOFT\Tools;
 
 if ( ! defined('NAMESPACE_SEPARATOR'))
 {
@@ -250,7 +248,8 @@ if ( ! function_exists('preg_valid'))
         {
             set_default_error_handler();
             return $pattern !== ltrim($pattern, '%#/') && preg_match($pattern, '') !== false; // must be >=0 to be correct
-        } catch (ErrorException $error)
+        }
+        catch (ErrorException $error)
         {
             if ($exception)
             {
@@ -258,7 +257,8 @@ if ( ! function_exists('preg_valid'))
                 throw new WarningException($msg, previous: $error);
             }
             return false;
-        } finally
+        }
+        finally
         { restore_error_handler(); }
     }
 
@@ -327,7 +327,7 @@ if ( ! function_exists('in_range'))
     /**
      * Checks if number is in range
      */
-    function in_range(int $number, int $min, int $max, bool $inclusive = true)
+    function in_range(int $number, int $min, int $max, bool $inclusive = true): bool
     {
 
 
