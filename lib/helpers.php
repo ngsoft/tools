@@ -143,10 +143,9 @@ if ( ! function_exists('is_unsigned'))
     /**
      * Checks if value is positive
      */
-    function is_unsigned(mixed $value): bool
+    function is_unsigned(int|float $value): bool
     {
-        $value = str_val($value);
-        return is_numeric($value) && (int) $value >= 0;
+        return (int) $value >= 0;
     }
 
 }
