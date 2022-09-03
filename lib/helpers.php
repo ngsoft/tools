@@ -145,7 +145,7 @@ if ( ! function_exists('is_unsigned'))
      */
     function is_unsigned(int|float $value): bool
     {
-        return (int) $value >= 0;
+        return $value >= 0;
     }
 
 }
