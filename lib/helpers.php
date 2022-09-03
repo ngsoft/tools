@@ -326,7 +326,7 @@ if ( ! function_exists('in_range'))
     /**
      * Checks if number is in range
      */
-    function in_range(int $number, int $min, int $max, bool $inclusive = true): bool
+    function in_range(int|float $number, int|float $min, int|float $max, bool $inclusive = true): bool
     {
 
 
