@@ -19,7 +19,7 @@ trait MacroAble
      */
     public static function macro(string $name, object|callable $macro): void
     {
-        self::$macros[$name] = $macro;
+        static::$macros[$name] = $macro;
     }
 
     /**
@@ -33,9 +33,11 @@ trait MacroAble
                 (new ReflectionClass($mixin))->getMethods(
                         ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED
                 ) as $method
-        ) {
+        )
+        {
 
-            if ($replace || ! isset(static::$macros[$method->getName()])) {
+            if ($replace || ! isset(static::$macros[$method->getName()]))
+            {
                 $method->setAccessible(true);
                 static::$macros[$method->getName()] = $method->invoke($mixin);
             }
@@ -62,7 +64,8 @@ trait MacroAble
 
     public function __call(string $name, array $arguments): mixed
     {
-        if ( ! static::hasMacro($name)) {
+        if ( ! static::hasMacro($name))
+        {
             throw new BadMethodCallException(sprintf(
                                     'Method %s::%s does not exist.', static::class, $name
             ));
@@ -70,7 +73,8 @@ trait MacroAble
 
         $macro = static::$macros[$name];
 
-        if ($macro instanceof Closure) {
+        if ($macro instanceof Closure)
+        {
             $macro = $macro->bindTo($this, static::class);
         }
 
@@ -79,7 +83,8 @@ trait MacroAble
 
     public static function __callStatic(string $name, array $arguments): mixed
     {
-        if ( ! static::hasMacro($name)) {
+        if ( ! static::hasMacro($name))
+        {
             throw new BadMethodCallException(sprintf(
                                     'Method %s::%s does not exist.', static::class, $name
             ));
@@ -87,7 +92,8 @@ trait MacroAble
 
         $macro = static::$macros[$name];
 
-        if ($macro instanceof Closure) {
+        if ($macro instanceof Closure)
+        {
             $macro = $macro->bindTo(null, static::class);
         }
 
