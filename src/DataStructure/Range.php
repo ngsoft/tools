@@ -115,15 +115,14 @@ final class Range implements ReversibleIterator, Stringable
 
             if ($sort === Sort::DESC)
             {
-                for ($offset = -1; $offset >= -$this->count(); $offset -- )
+                for ($offset = -1; $offset >= -$this->count(); $offset --)
                 {
-                    var_dump($offset);
                     yield $this->getOffset($offset);
                 }
             }
             else
             {
-                for ($offset = 0; $offset < $this->count(); $offset ++)
+                for ($offset = 0; $offset < $this->count(); $offset ++ )
                 {
 
                     yield $this->getOffset($offset);
