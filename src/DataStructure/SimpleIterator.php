@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
+use Generator;
 use NGSOFT\{
     Traits\ObjectLock, Type\ReversibleIterator, Type\Sort
 };
-use Traversable;
+use Stringable,
+    Traversable;
+use function mb_str_split;
 
+/**
+ * The SimpleIterator can iterate everything in any order
+ */
 class SimpleIterator implements ReversibleIterator
 {
 
@@ -23,6 +29,27 @@ class SimpleIterator implements ReversibleIterator
     {
 
     }
+
+    ////////////////////////////   Static methods   ////////////////////////////
+
+    /**
+     * Create a new SimpleIterator
+     */
+    public static function of(iterable $iterable): static
+    {
+        return new static($iterable);
+    }
+
+    /**
+     * Creates a new SimpleIterator that iterates each characters
+     */
+    public static function ofStringable(string|Stringable $value): static
+    {
+        $value = (string) $value;
+        return new static($value === '' ? [] : mb_str_split($value));
+    }
+
+    ////////////////////////////   Implementation   ////////////////////////////
 
     /**
      * @internal Used for static method
@@ -40,7 +67,7 @@ class SimpleIterator implements ReversibleIterator
     /**
      * @internal Yield Offsets Value
      */
-    protected function yieldOffsets(array $offsets): \Generator
+    protected function yieldOffsets(array $offsets): Generator
     {
 
         foreach ($offsets as $offset)
