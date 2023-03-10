@@ -414,17 +414,12 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function equals(mixed $value): bool
     {
 
-        if ($value instanceof self)
+        if ($value instanceof self === false)
         {
-            $value = $value->toArray();
+            return false;
         }
 
-        if (is_array($value))
-        {
-            return $value === $this->toArray();
-        }
-
-        return false;
+        return $value->toArray() === $this->toArray();
     }
 
     /**

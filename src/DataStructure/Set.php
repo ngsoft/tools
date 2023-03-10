@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Countable,
-    Generator,
-    IteratorAggregate,
+use Generator,
     JsonSerializable;
 use NGSOFT\{
-    Traits\StringableObject, Type\Sort
+    Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
 };
 use Stringable,
     Traversable;
@@ -17,11 +15,12 @@ use Stringable,
 /**
  * The Set object lets you store unique values of any type, whether primitive values or object references.
  */
-final class Set implements Countable, JsonSerializable, Stringable, IteratorAggregate
+final class Set implements ReversibleIterator, JsonSerializable, Stringable
 {
 
     use StringableObject,
-        CommonMethods;
+        CommonMethods,
+        ReversibleIteratorTrait;
 
     private array $storage = [];
 
