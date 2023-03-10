@@ -24,7 +24,7 @@ trait ReversibleIteratorTrait
 
     public function count(): int
     {
-        return iterator_count($this->entries());
+        return iterator_count($this->getIterator());
     }
 
 }
