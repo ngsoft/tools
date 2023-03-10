@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Generator;
+use ArrayAccess,
+    Countable,
+    Generator;
 use NGSOFT\{
-    Traits\ObjectLock, Type\ReversibleIterator, Type\Sort
+    Tools\TypeCheck, Traits\ObjectLock, Type\ReversibleIterator, Type\Sort
 };
 use Stringable,
-    Traversable;
-use function mb_str_split;
+    Traversable,
+    ValueError;
+use function get_debug_type,
+             is_list,
+             mb_str_split;
 
 /**
  * The SimpleIterator can iterate everything in any order
@@ -47,6 +52,40 @@ class SimpleIterator implements ReversibleIterator
     {
         $value = (string) $value;
         return new static($value === '' ? [] : mb_str_split($value));
+    }
+
+    /**
+     * Creates an iterator from a list
+     *
+     * @param iterable|ArrayAccess&Countable $value
+     */
+    public static function ofList($value): static
+    {
+
+
+        if (is_iterable($value))
+        {
+            return static::of($value);
+        }
+
+        TypeCheck::assertTypeMethod(
+                [static::class, __FUNCTION__, 0], $value,
+                TypeCheck::TYPE_ARRAYACCESS
+        );
+
+        if (is_list($value))
+        {
+            $iterator = new static([]);
+            foreach (Range::of($value) as $offset)
+            {
+                $iterator->append($offset, $value[$offset]);
+            }
+            $iterator->lock();
+
+            return $iterator;
+        }
+
+        throw new ValueError(sprintf('%s cannot determine list of keys.', get_debug_type($value)));
     }
 
     ////////////////////////////   Implementation   ////////////////////////////
