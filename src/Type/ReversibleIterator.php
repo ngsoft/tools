@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace NGSOFT\Type;
 
-interface ReversibleIterator extends \IteratorAggregate
+use Countable,
+    IteratorAggregate,
+    Traversable;
+
+interface ReversibleIterator extends IteratorAggregate, Countable
 {
 
-    public function getReverseIterator(): iterable;
+    public function getReverseIterator(): Traversable;
 
-    public function entries(Sort $sort): iterable;
+    public function entries(Sort $sort = Sort::ASC): iterable;
 }
