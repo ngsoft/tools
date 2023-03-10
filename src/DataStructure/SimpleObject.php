@@ -15,7 +15,10 @@ class SimpleObject extends Collection
      */
     public function search(mixed $value): int|string|null
     {
-        if ($value instanceof self) { $value = $value->storage; }
+        if ($value instanceof self)
+        {
+            $value = $value->storage;
+        }
         $offset = array_search($value, $this->storage, true);
         return $offset === false ? null : $offset;
     }
