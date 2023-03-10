@@ -233,9 +233,9 @@ class Slice implements Stringable
         return sprintf(
                 '%s(%s,%s,%s)',
                 class_basename($this),
-                is_null($this->start) ? 'null' : (string) $this->start,
-                is_null($this->stop) ? 'null' : (string) $this->stop,
-                is_null($this->step) ? 'null' : (string) $this->step
+                json_encode($this->start),
+                json_encode($this->stop),
+                json_encode($this->step),
         );
     }
 
