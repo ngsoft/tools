@@ -5,29 +5,27 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
-    Countable,
     InvalidArgumentException,
-    IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\ObjectLock, Traits\StringableObject, Type\Sort
+    Tools, Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
 };
 use OutOfBoundsException,
     RuntimeException,
     Stringable,
-    Traversable,
     ValueError;
 use function get_debug_type;
 
 /**
  * A base Collection
  */
-abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable, Stringable
+abstract class Collection implements ArrayAccess, ReversibleIterator, JsonSerializable, Stringable
 {
 
     use StringableObject,
         CommonMethods,
-        ObjectLock;
+        ObjectLock,
+        ReversibleIteratorTrait;
 
     protected array $storage = [];
     protected ?self $parent = null;
@@ -90,12 +88,6 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         $this->reload();
         return count($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
-    {
-        yield from $this->entries();
     }
 
     /** {@inheritdoc} */

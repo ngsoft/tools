@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
-    Countable,
-    IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Traits\ObjectLock, Traits\StringableObject, Type\Sort
+    Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
 };
-use Stringable,
-    Traversable;
+use Stringable;
 use function get_debug_type;
 
 /**
@@ -21,12 +18,13 @@ use function get_debug_type;
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map JS Map
  */
-final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable, JsonSerializable
+final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSerializable
 {
 
     use StringableObject,
         CommonMethods,
-        ObjectLock;
+        ObjectLock,
+        ReversibleIteratorTrait;
 
     protected array $keys = [];
     protected array $values = [];
@@ -207,12 +205,6 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     public function count(): int
     {
         return count($this->keys);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
-    {
-        yield from $this->entries();
     }
 
     /** {@inheritdoc} */

@@ -5,27 +5,25 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
-    Countable,
     Generator,
-    IteratorAggregate,
     JsonSerializable;
-use NGSOFT\Traits\{
-    ObjectLock, StringableObject
+use NGSOFT\{
+    Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
 };
 use OutOfBoundsException,
     RuntimeException,
     Stringable,
-    Traversable,
     ValueError;
 
 /**
  * Simulates one to many relationships found in databases
  */
-final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonSerializable, ArrayAccess
+final class OwnedList implements Stringable, ReversibleIterator, JsonSerializable, ArrayAccess
 {
 
     use StringableObject,
-        ObjectLock;
+        ObjectLock,
+        ReversibleIteratorTrait;
 
     private Set $ownedList;
 
@@ -57,10 +55,12 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
     public function add(int|float|string|object $value): static
     {
 
-        if ($this->value === $value) {
+        if ($this->value === $value)
+        {
             throw new ValueError('Value cannot own itself.');
         }
-        if ( ! $this->isLocked()) {
+        if ( ! $this->isLocked())
+        {
             $this->ownedList->add($value);
         }
 
@@ -75,7 +75,8 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
      */
     public function delete(int|float|string|object $value): bool
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return false;
         }
         return $this->ownedList->delete($value);
@@ -99,7 +100,8 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
      */
     public function clear(): void
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
         $this->ownedList->clear();
@@ -110,9 +112,10 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
      *
      * @return Generator
      */
-    public function entries(): Generator
+    public function entries(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->ownedList as $owned) { yield $this->value => $owned; }
+        foreach ($this->ownedList->entries($sort) as $owned)
+        { yield $this->value => $owned; }
     }
 
     /**
@@ -122,19 +125,14 @@ final class OwnedList implements Countable, Stringable, IteratorAggregate, JsonS
      */
     public function values(): Generator
     {
-        foreach ($this->entries() as $value) { yield $value; }
+        foreach ($this->entries() as $value)
+        { yield $value; }
     }
 
     /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->ownedList);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
-    {
-        yield from $this->entries();
     }
 
     public function offsetExists(mixed $offset): bool

@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
-    Countable,
-    IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Traits\ObjectLock, Traits\StringableObject, Type\Sort
+    Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
 };
 use OutOfRangeException,
-    Stringable,
-    Traversable;
+    Stringable;
 
 /**
  * An array with fixed capacity
@@ -21,12 +18,13 @@ use OutOfRangeException,
  * SplFixedArray only works with int offsets (not null or strings)
  *
  */
-final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, JsonSerializable, Stringable
+final class FixedArray implements ReversibleIterator, ArrayAccess, JsonSerializable, Stringable
 {
 
     use StringableObject,
         CommonMethods,
-        ObjectLock;
+        ObjectLock,
+        ReversibleIteratorTrait;
 
     public const DEFAULT_CAPACITY = 8;
 
@@ -115,12 +113,6 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     public function count(): int
     {
         return count($this->storage);
-    }
-
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
-    {
-        yield from $this->entries();
     }
 
     /** {@inheritdoc} */
