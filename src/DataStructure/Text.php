@@ -8,7 +8,7 @@ use ArrayAccess,
     Countable,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Tools\CharMap, Traits\SliceAble, Types\Slice
+    Tools, Tools\CharMap, Traits\SliceAble
 };
 use OutOfRangeException,
     Stringable,
@@ -60,7 +60,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public static function of(mixed $text): static
     {
 
-        if ($text instanceof self) {
+        if ($text instanceof self)
+        {
             return $text;
         }
         return new static($text);
@@ -120,7 +121,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
         $result = [];
 
-        foreach ($chars as $char) {
+        foreach ($chars as $char)
+        {
             $result[0] ??= '';
             $result[0] .= $this->convert($char);
         }
@@ -129,21 +131,26 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
     protected function _indexOf(string $needle, int $offset = 0): array
     {
-        if (preg_valid($needle)) {
+        if (preg_valid($needle))
+        {
 
             //translate char into byte offset
 
-            if (-1 === $offset = CharMap::getByteOffset($this->text, $offset)) {
+            if (-1 === $offset = CharMap::getByteOffset($this->text, $offset))
+            {
                 return [];
             }
 
 
-            if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset)) {
+            if (preg_match($needle, $this->text, $matches, PREG_OFFSET_CAPTURE, $offset))
+            {
 
                 // translate byte into char offset
                 return [$matches[0][0], CharMap::getCharOffset($this->text, $matches[0][1])];
             }
-        } elseif (is_int($pos = mb_strpos($this->text, $needle, $offset))) {
+        }
+        elseif (is_int($pos = mb_strpos($this->text, $needle, $offset)))
+        {
             return [$needle, $pos];
         }
 
@@ -156,7 +163,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $result = [];
 
         //  -1 !== $pos = $this->indexOf($needle, $offset)
-        while ($offset < $this->length && count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1]) {
+        while ($offset < $this->length && count($indexOf = $this->_indexOf($needle, $offset)) > 0 && -1 !== $pos = $indexOf[1])
+        {
             $result = $indexOf;
             $offset = $pos + mb_strlen($indexOf[0]);
         }
@@ -180,11 +188,13 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
         $needle = $this->convert($needle);
 
-        if ($needle === '' || $this->isEmpty()) {
+        if ($needle === '' || $this->isEmpty())
+        {
             return -1;
         }
 
-        if ($offset >= $this->length) {
+        if ($offset >= $this->length)
+        {
             return -1;
         }
 
@@ -217,7 +227,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $offset = $this->translateOffset($offset);
 
-        if ($offset >= $this->length || $offset < 0) {
+        if ($offset >= $this->length || $offset < 0)
+        {
             return '';
         }
 
@@ -230,7 +241,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function concat(mixed ...$strings): static
     {
         $str = $this->text;
-        foreach ($strings as $string) {
+        foreach ($strings as $string)
+        {
             $str .= $this->convert($string);
         }
         return $this->withText($str);
@@ -260,13 +272,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $needle = $this->convert($needle);
 
-        if ('' === $needle) {
+        if ('' === $needle)
+        {
             return false;
         }
 
         $haystack = $this->text;
 
-        if ($ignoreCase) {
+        if ($ignoreCase)
+        {
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
@@ -282,7 +296,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $needle = $this->convert($needle);
 
-        if ('' === $needle) {
+        if ('' === $needle)
+        {
             return false;
         }
 
@@ -290,7 +305,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $haystack = $this->text;
 
-        if ($ignoreCase) {
+        if ($ignoreCase)
+        {
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
@@ -307,13 +323,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $needle = $this->convert($needle);
 
-        if ($needle === '') {
+        if ($needle === '')
+        {
             return false;
         }
 
         $haystack = $this->text;
 
-        if ($ignoreCase) {
+        if ($ignoreCase)
+        {
             $haystack = mb_strtolower($haystack);
             $needle = mb_strtolower($needle);
         }
@@ -364,13 +382,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $total = $length;
         $length -= $this->length;
 
-        if ($length <= 0 || '' === $pad = $this->convert($pad)) {
+        if ($length <= 0 || '' === $pad = $this->convert($pad))
+        {
             return $this;
         }
 
         $str = $this->text;
 
-        while (mb_strlen($str) < $total) {
+        while (mb_strlen($str) < $total)
+        {
             $str = $pad . $str;
         }
 
@@ -387,14 +407,16 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $length -= $this->length;
 
-        if ($length <= 0 || '' === $pad = $this->convert($pad)) {
+        if ($length <= 0 || '' === $pad = $this->convert($pad))
+        {
             return $this;
         }
 
 
         $str = $this->text;
 
-        while (mb_strlen($str) < $total) {
+        while (mb_strlen($str) < $total)
+        {
             $str .= $pad;
         }
 
@@ -409,7 +431,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $total = $length;
         $length -= $this->length;
 
-        if ($length <= 0 || '' === $pad = $this->convert($pad)) {
+        if ($length <= 0 || '' === $pad = $this->convert($pad))
+        {
             return $this;
         }
 
@@ -428,7 +451,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $times = max(0, $times);
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ ) {
+        for ($i = 0; $i < $times; $i ++ )
+        {
             $str .= $this->text;
         }
         return $this->withText($str);
@@ -442,7 +466,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $search = $this->convert($search);
 
-        if ($search === '') {
+        if ($search === '')
+        {
             return $this->copy();
         }
 
@@ -452,7 +477,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $index = $this->indexOf($search);
 
-        if ($index === -1) {
+        if ($index === -1)
+        {
             return $this->copy();
         }
 
@@ -465,13 +491,18 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function replaceAll(mixed $search, mixed $replacement): static
     {
 
-        if (is_iterable($search)) {
+        if (is_iterable($search))
+        {
             $result = $this;
             $index = 0;
-            foreach ($search as $pattern) {
-                if (is_arrayaccess($replacement)) {
+            foreach ($search as $pattern)
+            {
+                if (is_arrayaccess($replacement))
+                {
                     $replace = $replacement[$index] ?? '';
-                } else { $replace = $replacement; }
+                }
+                else
+                { $replace = $replacement; }
                 $result = $result->replaceAll($pattern, $replace);
                 $index ++;
             }
@@ -480,7 +511,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $search = $this->convert($search);
 
-        if ($search === '') {
+        if ($search === '')
+        {
             return $this;
         }
 
@@ -500,28 +532,34 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function substring(int $start = 0, ?int $end = null): static
     {
 
-        if ($start === $end) {
+        if ($start === $end)
+        {
             return $this->withText('');
         }
 
-        if ( ! is_int($end)) {
+        if ( ! is_int($end))
+        {
             $end = $this->length;
         }
 
-        if ($start > $end) {
+        if ($start > $end)
+        {
             [$start, $end] = [$end, $start];
         }
 
 
-        if ($end > $this->length) {
+        if ($end > $this->length)
+        {
             $end = $this->length;
         }
-        if ($start < 0) {
+        if ($start < 0)
+        {
             $start = 0;
         }
 
         $str = '';
-        for ($index = $start; $index < $end; $index ++ ) {
+        for ($index = $start; $index < $end; $index ++ )
+        {
             $str .= $this->at($index);
         }
 
@@ -578,7 +616,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function capitalize(): static
     {
 
-        if ( ! $this->length) {
+        if ( ! $this->length)
+        {
             return $this;
         }
 
@@ -633,24 +672,29 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
         $result = $this;
         $replacements = $replaced = [];
 
-        foreach ($args as $index => $arg) {
+        foreach ($args as $index => $arg)
+        {
             $replacements[$index] = $this->convert($arg);
         }
 
 
-        if ($matches = preg_exec("#{([^}]+)}#", $this->text, 0)) {
+        if ($matches = preg_exec("#{([^}]+)}#", $this->text, 0))
+        {
 
-            foreach ($matches as $matches) {
+            foreach ($matches as $matches)
+            {
 
                 [$sub, $offset] = $matches;
 
-                if (isset($replaced[$sub])) {
+                if (isset($replaced[$sub]))
+                {
                     continue;
                 }
 
                 $offset = is_numeric($offset) ? intval($offset) : $offset;
 
-                if ( ! array_key_exists($offset, $replacements)) {
+                if ( ! array_key_exists($offset, $replacements))
+                {
                     throw new ValueError('Invalid key ' . $sub);
                 }
 
@@ -669,7 +713,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function index(mixed $sub, ?int $start = null, ?int $end = null): int
     {
 
-        if (-1 === $result = $this->find($sub, $start, $end)) {
+        if (-1 === $result = $this->find($sub, $start, $end))
+        {
             throw new ValueError('Substring not found.');
         }
 
@@ -782,7 +827,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function join(mixed $iterable): static
     {
 
-        if ( ! is_iterable($iterable)) {
+        if ( ! is_iterable($iterable))
+        {
             $iterable = mb_str_split($this->convert($iterable));
         }
 
@@ -806,7 +852,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function lstrip(mixed $chars = null): static
     {
         $args = [];
-        if ( ! is_null($chars)) {
+        if ( ! is_null($chars))
+        {
             $args [] = $this->convert($chars);
         }
 
@@ -822,12 +869,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
         $sep = $this->convert($sep);
 
-        if ($sep === '') {
+        if ($sep === '')
+        {
             throw new ValueError('Empty separator.');
         }
 
         $result = $this->_indexOf($sep);
-        if (-1 !== $index = $result[1] ?? -1) {
+        if (-1 !== $index = $result[1] ?? -1)
+        {
             $_sep = $this->withText($result[0]);
             return [$this->slice(0, $index), $_sep, $this->slice($index + count($_sep))];
         }
@@ -841,12 +890,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function removeprefix(mixed $prefix): static
     {
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return $this;
         }
 
 
-        if ($this->startsWith($prefix)) {
+        if ($this->startsWith($prefix))
+        {
             return $this->slice(mb_strlen($this->convert($prefix)));
         }
 
@@ -859,10 +910,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function removeSuffix(mixed $suffix): static
     {
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return $this;
         }
-        if ($this->endsWith($suffix)) {
+        if ($this->endsWith($suffix))
+        {
             return $this->slice(end: - mb_strlen($this->convert($suffix)));
         }
 
@@ -892,7 +945,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function rindex(mixed $sub, ?int $start = null, ?int $end = null): int
     {
-        if (-1 === $result = $this->rfind($sub, $start, $end)) {
+        if (-1 === $result = $this->rfind($sub, $start, $end))
+        {
             throw new ValueError('Substring not found.');
         }
 
@@ -909,13 +963,15 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $sep = $this->convert($sep);
 
-        if ($sep === '') {
+        if ($sep === '')
+        {
             throw new ValueError('Empty separator.');
         }
 
 
         $result = $this->_lastIndexOf($sep);
-        if (-1 !== $index = $result[1] ?? -1) {
+        if (-1 !== $index = $result[1] ?? -1)
+        {
             $_sep = $this->withText($result[0]);
             return [$this->slice(0, $index), $_sep, $this->slice($index + count($_sep))];
         }
@@ -932,7 +988,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function rstrip(mixed $chars = null): static
     {
         $args = [];
-        if ( ! is_null($chars)) {
+        if ( ! is_null($chars))
+        {
             $args [] = $this->convert($chars);
         }
 
@@ -948,7 +1005,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function strip(mixed $chars = null): static
     {
         $args = [];
-        if ( ! is_null($chars)) {
+        if ( ! is_null($chars))
+        {
             $args [] = $this->convert($chars);
         }
 
@@ -998,12 +1056,14 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
         $sep = $this->convert($sep);
 
-        if ($sep === '') {
+        if ($sep === '')
+        {
             throw new ValueError('Empty separator.');
         }
 
 
-        if ($maxsplit === 0) {
+        if ($maxsplit === 0)
+        {
             return [$this->copy()];
         }
 
@@ -1020,17 +1080,20 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function rsplit(mixed $sep = ' ', int $maxsplit = -1): array
     {
 
-        if (-1 === $maxsplit) {
+        if (-1 === $maxsplit)
+        {
             return $this->split($sep);
         }
 
         $sep = $this->convert($sep);
 
-        if ($sep === '') {
+        if ($sep === '')
+        {
             throw new ValueError('Empty separator.');
         }
 
-        if ($maxsplit === 0 || ! $this->contains($sep)) {
+        if ($maxsplit === 0 || ! $this->contains($sep))
+        {
             return [$this->copy()];
         }
 
@@ -1038,10 +1101,12 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $text = $this;
 
-        while (count($result) < $maxsplit) {
+        while (count($result) < $maxsplit)
+        {
 
 
-            if ($resp = $text->_lastIndexOf($sep)) {
+            if ($resp = $text->_lastIndexOf($sep))
+            {
                 [$_sep, $offset] = $resp;
                 $result[] = $text->slice($offset + mb_strlen($_sep));
                 $text = $text->slice(0, $offset);
@@ -1063,7 +1128,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function splitlines(bool $keepends = false): array
     {
 
-        if ($this->isEmpty() || ! preg_test('#\v+#', $this->text)) {
+        if ($this->isEmpty() || ! preg_test('#\v+#', $this->text))
+        {
             return [$this->copy()];
         }
 
@@ -1071,17 +1137,20 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         $text = $this->text;
 
-        while ( ! is_null($text)) {
+        while ( ! is_null($text))
+        {
 
             @list($segment, $delim, $text) = preg_split('#(\v)#', $text, 2, PREG_SPLIT_DELIM_CAPTURE);
 
-            if ( ! $keepends) {
+            if ( ! $keepends)
+            {
                 $delim = '';
             }
 
             $segment .= $delim ?? '';
 
-            if (is_null($text) && $segment === '') {
+            if (is_null($text) && $segment === '')
+            {
                 break;
             }
 
@@ -1101,7 +1170,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function sprintf(mixed ...$args): static
     {
 
-        if (count($args) && $this->indexOf('%') > -1) {
+        if (count($args) && $this->indexOf('%') > -1)
+        {
             return $this->withText(sprintf($this->text, ...$args));
         }
 
@@ -1113,7 +1183,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function ucfirst(): static
     {
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return $this;
         }
 
@@ -1126,7 +1197,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function lcfirst(): static
     {
 
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return $this;
         }
         return $this->withText(mb_strtolower($this->at(0)) . $this->slice(1)->toString());
@@ -1139,7 +1211,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     {
 
         $text = '';
-        foreach ($suffix as $_suffix) {
+        foreach ($suffix as $_suffix)
+        {
             $text .= $this->convert($_suffix);
         }
 
@@ -1153,7 +1226,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function prepend(mixed $prefix): static
     {
         $text = '';
-        foreach ($prefix as $_prefix) {
+        foreach ($prefix as $_prefix)
+        {
             $text .= $this->convert($_prefix);
         }
         return $this->withText($text . $this->text);
@@ -1165,7 +1239,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function isBase64(): bool
     {
 
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return false;
         }
 
@@ -1195,7 +1270,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
      */
     public function splitChars(int $length = 1): array
     {
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return [$this->copy()];
         }
 
@@ -1209,18 +1285,21 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function countChars(mixed $needle, bool $ignoreCase = false): int
     {
 
-        if ($this->isEmpty()) {
+        if ($this->isEmpty())
+        {
             return 0;
         }
 
         [$haystack, $needle] = [$this->text, $this->convert($needle)];
 
-        if (preg_valid($needle)) {
+        if (preg_valid($needle))
+        {
 
             return (int) preg_match_all($needle, $haystack);
         }
 
-        if ($ignoreCase) {
+        if ($ignoreCase)
+        {
             [$haystack, $needle] = [mb_strtolower($haystack), mb_strtolower($needle)];
         }
 
@@ -1236,7 +1315,8 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
 
         [$haystack, $needle] = [$this->text, $this->convert($needle)];
 
-        if ($ignoreCase) {
+        if ($ignoreCase)
+        {
             [$haystack, $needle] = [mb_strtolower($haystack), mb_strtolower($needle)];
         }
 
@@ -1280,21 +1360,26 @@ class Text implements Stringable, Countable, ArrayAccess, JsonSerializable
     public function offsetGet(mixed $offset): static
     {
 
-        if (is_numeric($offset)) {
+        if (is_numeric($offset))
+        {
             $offset = intval($offset);
         }
 
-        if (is_string($offset)) {
+        if (is_string($offset))
+        {
             $offset = $this->getSlice($offset);
         }
 
-        if ($offset instanceof Slice) {
+        if ($offset instanceof Slice)
+        {
             return $this->withText($this->joinSliceValue($offset, $this));
         }
 
-        if (is_int($offset)) {
+        if (is_int($offset))
+        {
 
-            if ('' === $value = $this->at($offset)) {
+            if ('' === $value = $this->at($offset))
+            {
                 throw new OutOfRangeException(sprintf('Offset #%d does not exists.', $offset));
             }
 
