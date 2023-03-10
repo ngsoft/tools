@@ -8,8 +8,8 @@ use Countable,
     Generator,
     IteratorAggregate,
     JsonSerializable;
-use NGSOFT\{
-    Traits\ObjectLock, Traits\StringableObject, Types\Sort
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
 };
 use Stringable,
     Traversable;
@@ -55,12 +55,16 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
     /** @return array[] */
     private function getSorted(): array
     {
-        if (empty($this->storage)) {
+        if (empty($this->storage))
+        {
             return [];
-        } elseif (empty($this->sorted)) {
+        }
+        elseif (empty($this->sorted))
+        {
             $sorted = &$this->sorted;
 
-            foreach ($this->priorities as $offset => $priority) {
+            foreach ($this->priorities as $offset => $priority)
+            {
 
                 $sorted[$priority] ??= [];
                 $sorted[$priority] [] = $offset;
@@ -77,11 +81,13 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
 
         $sorted = $this->getSorted();
 
-        if ($sort->is(Sort::ASC)) {
+        if ($sort->is(Sort::ASC))
+        {
             $sorted = array_reverse($sorted);
         }
 
-        foreach ($sorted as $offsets) {
+        foreach ($sorted as $offsets)
+        {
             yield from $offsets;
         }
     }
@@ -96,13 +102,15 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
     public function add(mixed $value, int|Priority $priority = Priority::MEDIUM): static
     {
 
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return $this;
         }
 
         $priority = is_int($priority) ? $priority : $priority->getValue();
 
-        if ( ! $this->has($value)) {
+        if ( ! $this->has($value))
+        {
             $this->storage[] = $value;
             $this->priorities[$this->indexOf($value)] = max(1, $priority);
             //reset sorted
@@ -115,7 +123,8 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
     {
         $offset = $this->indexOf($value);
 
-        if ($offset < 0) {
+        if ($offset < 0)
+        {
             return $offset;
         }
 
@@ -129,7 +138,8 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function clear(): void
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
 
@@ -145,10 +155,12 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
     public function delete(mixed $value): bool
     {
 
-        if ( ! $this->isLocked()) {
+        if ( ! $this->isLocked())
+        {
 
             $offset = $this->indexOf($value);
-            if ($offset > -1) {
+            if ($offset > -1)
+            {
                 unset($this->storage[$offset], $this->priorities[$offset]);
                 $this->sorted = [];
                 return true;
@@ -162,7 +174,8 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function entries(Sort $sort = Sort::DESC): iterable
     {
-        foreach ($this->getIndexes($sort) as $offset) { yield $this->storage[$offset] => $this->storage[$offset]; }
+        foreach ($this->getIndexes($sort) as $offset)
+        { yield $this->storage[$offset] => $this->storage[$offset]; }
     }
 
     /**
@@ -173,7 +186,8 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function forEach(callable $callable): void
     {
-        foreach ($this->entries() as $value) { $callable($value, $value, $this); }
+        foreach ($this->entries() as $value)
+        { $callable($value, $value, $this); }
     }
 
     /**
@@ -202,7 +216,8 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
      */
     public function values(Sort $sort = Sort::DESC): Generator
     {
-        foreach ($this->entries($sort) as $value) { yield $value; }
+        foreach ($this->entries($sort) as $value)
+        { yield $value; }
     }
 
     /** {@inheritdoc} */

@@ -8,8 +8,8 @@ use ArrayAccess,
     Countable,
     IteratorAggregate,
     JsonSerializable;
-use NGSOFT\{
-    Traits\ObjectLock, Traits\StringableObject, Types\Sort
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
 };
 use OutOfRangeException,
     Stringable,
@@ -77,7 +77,8 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
      */
     public function setSize(int $size): bool
     {
-        if ($size < 1) {
+        if ($size < 1)
+        {
             throw new OutOfRangeException(sprintf('Invalid size int %d < 1', $size));
         }
         $this->size = $size;
@@ -88,19 +89,25 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     protected function append(int|string|null $key, mixed $value): void
     {
 
-        if (null !== $key) {
+        if (null !== $key)
+        {
             unset($this->storage[$key]);
             $this->storage[$key] = $value;
-        } else $this->storage[] = $value;
+        }
+        else $this->storage[] = $value;
         $this->enforceCapacity();
     }
 
     protected function enforceCapacity(): void
     {
-        foreach ($this->keys() as $offset) {
-            if ($this->count() > $this->size) {
+        foreach ($this->keys() as $offset)
+        {
+            if ($this->count() > $this->size)
+            {
                 unset($this->storage[$offset]);
-            } else { break; }
+            }
+            else
+            { break; }
         }
     }
 
@@ -120,7 +127,8 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     public function entries(Sort $sort = Sort::ASC): iterable
     {
 
-        foreach ($this->keys($sort) as $offset) {
+        foreach ($this->keys($sort) as $offset)
+        {
             yield $offset => $this->storage[$offset];
         }
     }
@@ -159,22 +167,26 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     public function &offsetGet(mixed $offset): mixed
     {
 
-        if (null === $offset) {
+        if (null === $offset)
+        {
             $this->assertLocked();
 
             $this->append($offset, []);
             $offset = array_key_last($this->storage);
         }
-        if (array_key_exists($offset, $this->storage)) {
+        if (array_key_exists($offset, $this->storage))
+        {
             $value = &$this->storage[$offset];
-        } else $value = null;
+        }
+        else $value = null;
         return $value;
     }
 
     /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
         $this->append($offset, $value);
@@ -183,7 +195,8 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
         unset($this->storage[$offset]);
@@ -211,7 +224,8 @@ final class FixedArray implements Countable, IteratorAggregate, ArrayAccess, Jso
     public function __clone(): void
     {
         $storage = [];
-        foreach ($this->storage as $key => $value) {
+        foreach ($this->storage as $key => $value)
+        {
             if (is_object($value)) $value = clone $value;
             $storage[$key] = $value;
         }

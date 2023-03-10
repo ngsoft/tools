@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use Countable,
-    LogicException;
-use NGSOFT\{
-    Tools, Types\Sort
-};
+    LogicException,
+    NGSOFT\Tools;
 
 trait CommonMethods
 {
@@ -24,7 +22,8 @@ trait CommonMethods
     protected function sortArray(array $array, Sort $sort): array
     {
 
-        if ($sort->is(Sort::DESC)) {
+        if ($sort->is(Sort::DESC))
+        {
             return array_reverse($array);
         }
 
@@ -68,7 +67,8 @@ trait CommonMethods
      */
     public function isEmpty(): bool
     {
-        if ($this instanceof Countable === false) {
+        if ($this instanceof Countable === false)
+        {
             throw new LogicException(sprintf('%s not an instance of %s', static::class, Countable::class));
         }
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Types;
+namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     Countable,
@@ -41,21 +41,27 @@ class Slice implements Stringable
     {
 
 
-        if ( ! self::isValid($slice)) {
+        if ( ! self::isValid($slice))
+        {
             throw new InvalidArgumentException(sprintf('Invalid slice [%s]', $slice));
         }
 
-        if ($slice === ':' || $slice === '::') {
+        if ($slice === ':' || $slice === '::')
+        {
             return static::create(0);
         }
 
         @list(, $start, $stop, $step) = preg_exec(self::RE_SLICE, $slice);
 
-        foreach ([&$start, &$stop, &$step] as &$value) {
+        foreach ([&$start, &$stop, &$step] as &$value)
+        {
 
-            if (is_numeric($value)) {
+            if (is_numeric($value))
+            {
                 $value = intval($value);
-            } else { $value = null; }
+            }
+            else
+            { $value = null; }
         }
         return self::create($start, $stop, $step);
     }
@@ -66,11 +72,13 @@ class Slice implements Stringable
     public static function isValid(string $slice): bool
     {
 
-        if ( ! str_contains($slice, ':')) {
+        if ( ! str_contains($slice, ':'))
+        {
             return false;
         }
 
-        if ($slice === ':' || $slice === '::') {
+        if ($slice === ':' || $slice === '::')
+        {
             return true;
         }
 
@@ -118,20 +126,25 @@ class Slice implements Stringable
         $stop ??= $step > 0 ? $len : -1;
         $start ??= $step > 0 ? 0 : $len - 1;
 
-        while ($start < 0) {
+        while ($start < 0)
+        {
             $start += $len;
         }
 
-        while ($stop < ($step < 0 ? -1 : 0)) {
+        while ($stop < ($step < 0 ? -1 : 0))
+        {
             $stop += $len;
         }
 
-        foreach (Range::create($start, $stop, $step) as $offset) {
-            if ($offset >= $len && $step > 0) {
+        foreach (Range::create($start, $stop, $step) as $offset)
+        {
+            if ($offset >= $len && $step > 0)
+            {
                 break;
             }
 
-            if ($offset < 0 && $step < 0) {
+            if ($offset < 0 && $step < 0)
+            {
                 break;
             }
 
@@ -165,20 +178,26 @@ class Slice implements Stringable
 
         $result = [];
 
-        if (0 === count($value)) {
+        if (0 === count($value))
+        {
             return $result;
         }
 
-        foreach ($this->getIteratorFor($value) as $offset) {
+        foreach ($this->getIteratorFor($value) as $offset)
+        {
 
-            try {
+            try
+            {
 
-                if (is_null($value[$offset] ?? null)) {
+                if (is_null($value[$offset] ?? null))
+                {
                     continue;
                 }
 
                 $result[] = $value[$offset];
-            } catch (Throwable) {
+            }
+            catch (Throwable)
+            {
 
             }
         }

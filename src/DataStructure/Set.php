@@ -7,11 +7,9 @@ namespace NGSOFT\DataStructure;
 use Countable,
     Generator,
     IteratorAggregate,
-    JsonSerializable;
-use NGSOFT\{
-    Traits\StringableObject, Types\Sort
-};
-use Stringable,
+    JsonSerializable,
+    NGSOFT\Traits\StringableObject,
+    Stringable,
     Traversable;
 
 /**
@@ -57,7 +55,8 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      */
     public function add(mixed $value): static
     {
-        if ( ! $this->has($value)) { $this->storage[] = $value; }
+        if ( ! $this->has($value))
+        { $this->storage[] = $value; }
         return $this;
     }
 
@@ -75,7 +74,8 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
     public function delete(mixed $value): bool
     {
         $offset = $this->indexOf($value);
-        if ($offset > -1) {
+        if ($offset > -1)
+        {
             unset($this->storage[$offset]);
             return true;
         }
@@ -87,7 +87,8 @@ final class Set implements Countable, JsonSerializable, Stringable, IteratorAggr
      */
     public function entries(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->getIndexes($sort) as $offset) {
+        foreach ($this->getIndexes($sort) as $offset)
+        {
             yield $this->storage[$offset] => $this->storage[$offset];
         }
     }

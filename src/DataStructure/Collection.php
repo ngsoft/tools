@@ -10,7 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\ObjectLock, Traits\StringableObject, Types\Sort
+    Tools, Traits\ObjectLock, Traits\StringableObject
 };
 use OutOfBoundsException,
     RuntimeException,
@@ -53,7 +53,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public static function fromJson(string $json, bool $recursive = true): static
     {
-        if (is_array($array = json_decode($json, true, flags: JSON_THROW_ON_ERROR))) {
+        if (is_array($array = json_decode($json, true, flags: JSON_THROW_ON_ERROR)))
+        {
             return static::from($array, $recursive);
         }
         throw new InvalidArgumentException(sprintf('Invalid json return type, array expected, %s given.', get_debug_type($array)));
@@ -64,9 +65,11 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public static function fromJsonFile(string $filename, bool $recursive = true): static
     {
-        if (is_file($filename)) {
+        if (is_file($filename))
+        {
             $string = file_get_contents($filename);
-            if (false !== $string) {
+            if (false !== $string)
+            {
                 return static::fromJson($string, $recursive);
             }
         }
@@ -108,12 +111,14 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
         $this->assertValidOffset($offset);
 
-        if ( ! $this->offsetExists($offset)) {
+        if ( ! $this->offsetExists($offset))
+        {
             $null = null;
             return $null;
         }
 
-        if (is_array($this->storage[$offset]) && $this->recursive) {
+        if (is_array($this->storage[$offset]) && $this->recursive)
+        {
             $instance = $this->getNewInstance($this);
             $instance->storage = &$this->storage[$offset];
             return $instance;
@@ -127,14 +132,18 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
 
-        try {
+        try
+        {
             $this->reload();
             $this->append($offset, $value);
-        } finally {
+        }
+        finally
+        {
             $this->update();
         }
     }
@@ -142,14 +151,18 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
 
-        try {
+        try
+        {
             $this->reload();
             unset($this->storage[$offset]);
-        } finally {
+        }
+        finally
+        {
             $this->update();
         }
     }
@@ -177,13 +190,15 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     protected function assertValidImport(array $array): void
     {
 
-        foreach (array_keys($array) as $offset) {
+        foreach (array_keys($array) as $offset)
+        {
 
             $this->assertValidOffset($offset);
 
             $this->assertValidValue($array[$offset]);
 
-            if ($this->recursive && is_array($array[$offset])) {
+            if ($this->recursive && is_array($array[$offset]))
+            {
                 $this->assertValidImport($array[$offset]);
             }
         }
@@ -194,7 +209,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     protected function assertValidOffset(mixed $offset): void
     {
-        if ( ! is_int($offset) && ! is_string($offset) && ! is_null($offset)) {
+        if ( ! is_int($offset) && ! is_string($offset) && ! is_null($offset))
+        {
             throw new OutOfBoundsException(sprintf('%s only accepts offsets of type string|int|null, %s given.', $this, get_debug_type($offset)));
         }
     }
@@ -205,7 +221,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     protected function assertValidValue(mixed $value): void
     {
         // accepts anything, override this to set your conditions
-        if ( ! is_scalar($value) && ! is_array($value) && ! is_object($value) && ! is_null($value)) {
+        if ( ! is_scalar($value) && ! is_array($value) && ! is_object($value) && ! is_null($value))
+        {
             throw new ValueError(sprintf('%s can only use types string|int|float|bool|null|array|object, %s given.', $this, get_debug_type($value)));
         }
     }
@@ -219,13 +236,15 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
 
         $this->assertValidOffset($offset);
 
-        if ($value instanceof self) {
+        if ($value instanceof self)
+        {
             $value = $value->storage;
         }
 
         $this->assertValidValue($value);
 
-        if (null === $offset) {
+        if (null === $offset)
+        {
             $this->storage[] = $value;
             return array_key_last($this->storage);
         }
@@ -261,12 +280,14 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function saveToJson(string $file): bool
     {
 
-        if (file_exists($file) && ! is_file($file)) {
+        if (file_exists($file) && ! is_file($file))
+        {
             throw new RuntimeException(sprintf('Cannot save directory "%s" as json file.', $file));
         }
 
         $dir = dirname($file);
-        if (is_dir($dir) || mkdir($dir, 0777, true)) {
+        if (is_dir($dir) || mkdir($dir, 0777, true))
+        {
             return file_put_contents($file, $this->toJson(), LOCK_EX) > 0;
         }
         return false;
@@ -278,7 +299,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function entries(Sort $sort = Sort::ASC): iterable
     {
 
-        foreach ($this->keys($sort) as $offset) {
+        foreach ($this->keys($sort) as $offset)
+        {
             yield $offset => $this->offsetGet($offset);
         }
     }
@@ -288,7 +310,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public function values(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->keys($sort) as $offset) {
+        foreach ($this->keys($sort) as $offset)
+        {
             yield $this->offsetGet($offset);
         }
     }
@@ -309,15 +332,18 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         $result = $this->getNewInstance();
 
-        foreach ($this->entries() as $offset => $value) {
+        foreach ($this->entries() as $offset => $value)
+        {
 
             $newValue = $callback($value, $offset, $this);
 
-            if ($newValue === null) {
+            if ($newValue === null)
+            {
                 $newValue = $value;
             }
 
-            if ( ! is_string($offset)) {
+            if ( ! is_string($offset))
+            {
                 $offset = null;
             }
 
@@ -334,12 +360,15 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         $result = $this->getNewInstance();
 
-        foreach ($this->entries() as $offset => $value) {
+        foreach ($this->entries() as $offset => $value)
+        {
 
-            if ( ! $callback($value, $offset, $this)) {
+            if ( ! $callback($value, $offset, $this))
+            {
                 continue;
             }
-            if ( ! is_string($offset)) {
+            if ( ! is_string($offset))
+            {
                 $offset = null;
             }
 
@@ -355,7 +384,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     public function has(mixed $value): bool
     {
 
-        if ($value instanceof self) {
+        if ($value instanceof self)
+        {
             $value = $value->storage;
         }
         return in_array($value, $this->storage, true);
@@ -393,7 +423,8 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
      */
     public function clear(): void
     {
-        if ($this->isLocked()) {
+        if ($this->isLocked())
+        {
             return;
         }
         $array = [];

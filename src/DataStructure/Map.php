@@ -8,8 +8,8 @@ use ArrayAccess,
     Countable,
     IteratorAggregate,
     JsonSerializable;
-use NGSOFT\{
-    Traits\ObjectLock, Traits\StringableObject, Types\Sort
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
 };
 use Stringable,
     Traversable;
@@ -45,7 +45,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
 
     protected function append(mixed $key, mixed $value): static
     {
-        if ( ! $this->isLocked()) {
+        if ( ! $this->isLocked())
+        {
             $this->keys[] = $key;
             $this->values[] = $value;
         }
@@ -60,7 +61,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function clear(): void
     {
-        if ( ! $this->isLocked()) {
+        if ( ! $this->isLocked())
+        {
             $this->keys = $this->values = [];
         }
     }
@@ -73,8 +75,10 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function delete(mixed $key): bool
     {
-        if ( ! $this->isLocked()) {
-            if (($index = $this->indexOf($key)) > -1) {
+        if ( ! $this->isLocked())
+        {
+            if (($index = $this->indexOf($key)) > -1)
+            {
                 unset($this->keys[$index], $this->values[$index]);
                 return true;
             }
@@ -124,7 +128,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     public function add(mixed $key, mixed $value): static
     {
 
-        if ($this->has($key)) {
+        if ($this->has($key))
+        {
             return $this;
         }
         return $this->append($key, $value);
@@ -159,7 +164,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function entries(Sort $sort = Sort::ASC): iterable
     {
-        foreach ($this->sortArray(array_keys($this->keys), $sort) as $offset) {
+        foreach ($this->sortArray(array_keys($this->keys), $sort) as $offset)
+        {
             yield $this->keys[$offset] => $this->values[$offset];
         }
     }
@@ -169,7 +175,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
      */
     public function forEach(callable $callable): void
     {
-        foreach ($this->entries() as $key => $value) { $callable($value, $key, $this); }
+        foreach ($this->entries() as $key => $value)
+        { $callable($value, $key, $this); }
     }
 
     /** {@inheritdoc} */
@@ -219,7 +226,8 @@ final class Map implements ArrayAccess, IteratorAggregate, Countable, Stringable
     {
         $result = [];
 
-        foreach ($this->entries() as $key => $value) {
+        foreach ($this->entries() as $key => $value)
+        {
             $result[is_scalar($key) ? $key : sprintf('%s#%d', get_debug_type($key), spl_object_id($key))] = $value;
         }
 

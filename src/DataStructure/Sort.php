@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Types;
+namespace NGSOFT\DataStructure;
 
 use NGSOFT\Enums\EnumTrait;
 
