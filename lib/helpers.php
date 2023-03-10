@@ -484,3 +484,38 @@ if ( ! function_exists('require_package'))
     }
 
 }
+
+
+if ( ! function_exists('array_get'))
+{
+
+    /**
+     * Get an item from an array like using "dot" notation.
+     * Same as object_get() but works with array like
+     *
+     */
+    function array_get(ArrayAccess|array $array, ?string $key = null, mixed $default = null): mixed
+    {
+
+        if (is_null($key) || trim($key) === '')
+        {
+            return $array;
+        }
+
+
+        foreach (explode('.', $key) as $segment)
+        {
+
+            if ( ! is_array($array) && $array instanceof ArrayAccess === false)
+            {
+                return value($default);
+            }
+
+            $array = $array[$segment] ?? null;
+        }
+
+
+        return $array;
+    }
+
+}
