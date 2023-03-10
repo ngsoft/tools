@@ -32,7 +32,9 @@
             "NGSOFT\\": "src/",
             "": "lib/"
         },
-        "files": ["lib/bootstrap.php"]
+        "files": [
+            "lib/index.php"
+        ]
     },
     "minimum-stability": "dev",
     "prefer-stable": true
