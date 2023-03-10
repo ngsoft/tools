@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Traits;
 
+use NGSOFT\Type\Sort,
+    Traversable;
+
 trait ReversibleIteratorTrait
 {
 
@@ -21,7 +24,7 @@ trait ReversibleIteratorTrait
 
     public function count(): int
     {
-        return iterator_count($this->getIterator());
+        return iterator_count($this->entries());
     }
 
 }

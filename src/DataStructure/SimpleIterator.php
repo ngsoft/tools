@@ -8,10 +8,9 @@ use ArrayAccess,
     Countable,
     Generator;
 use NGSOFT\{
-    Tools\TypeCheck, Traits\ObjectLock, Type\ReversibleIterator, Type\Sort
+    Tools\TypeCheck, Traits\ObjectLock, Traits\ReversibleIteratorTrait, Type\ReversibleIterator, Type\Sort
 };
 use Stringable,
-    Traversable,
     ValueError;
 use function get_debug_type,
              is_list,
@@ -23,7 +22,8 @@ use function get_debug_type,
 class SimpleIterator implements ReversibleIterator
 {
 
-    use ObjectLock;
+    use ObjectLock,
+        ReversibleIteratorTrait;
 
     protected array $keys = [];
     protected array $values = [];
@@ -143,20 +143,10 @@ class SimpleIterator implements ReversibleIterator
 
         if ($sort === Sort::DESC)
         {
-            $offsets = array_reverse($sort);
+            $offsets = array_reverse($offsets);
         }
 
         yield from $this->yieldOffsets($offsets);
-    }
-
-    public function getIterator(): Traversable
-    {
-        yield from $this->entries();
-    }
-
-    public function getReverseIterator(): Traversable
-    {
-        yield from $this->entries(Sort::DESC);
     }
 
 }
