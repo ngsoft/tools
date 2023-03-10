@@ -22,8 +22,8 @@ final class Range implements ReversibleIterator, Stringable
     public readonly int $start;
     public readonly ?int $stop;
     public readonly int $step;
-    protected ?array $values = null;
-    protected ?int $length = null;
+    private ?array $values = null;
+    private ?int $length = null;
 
     public function __construct(
             int $start,
@@ -115,7 +115,7 @@ final class Range implements ReversibleIterator, Stringable
 
             if ($sort === Sort::DESC)
             {
-                for ($offset = -1; $offset >= -$this->count(); $offset --)
+                for ($offset = -1; $offset >= -$this->count(); $offset -- )
                 {
                     var_dump($offset);
                     yield $this->getOffset($offset);
@@ -123,7 +123,7 @@ final class Range implements ReversibleIterator, Stringable
             }
             else
             {
-                for ($offset = 0; $offset < $this->count(); $offset ++ )
+                for ($offset = 0; $offset < $this->count(); $offset ++)
                 {
 
                     yield $this->getOffset($offset);

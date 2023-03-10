@@ -19,17 +19,17 @@ use function get_debug_type,
 /**
  * The SimpleIterator can iterate everything in any order
  */
-class SimpleIterator implements ReversibleIterator
+final class SimpleIterator implements ReversibleIterator
 {
 
     use ObjectLock,
         ReversibleIteratorTrait;
 
-    protected array $keys = [];
-    protected array $values = [];
+    private array $keys = [];
+    private array $values = [];
 
     public function __construct(
-            protected iterable $iterator
+            private iterable $iterator
     )
     {
 
@@ -93,7 +93,7 @@ class SimpleIterator implements ReversibleIterator
     /**
      * @internal Used for static method
      */
-    protected function append(mixed $key, mixed $value): void
+    private function append(mixed $key, mixed $value): void
     {
 
         if ( ! $this->isLocked())
@@ -106,7 +106,7 @@ class SimpleIterator implements ReversibleIterator
     /**
      * @internal Yield Offsets Value
      */
-    protected function yieldOffsets(array $offsets): Generator
+    private function yieldOffsets(array $offsets): Generator
     {
 
         foreach ($offsets as $offset)
@@ -118,7 +118,7 @@ class SimpleIterator implements ReversibleIterator
     /**
      * @internal Get iterator offsets
      */
-    protected function getOffsets(): array
+    private function getOffsets(): array
     {
         if ( ! $this->isLocked())
         {
