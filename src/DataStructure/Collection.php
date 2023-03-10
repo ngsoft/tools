@@ -10,7 +10,7 @@ use ArrayAccess,
     IteratorAggregate,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\ObjectLock, Traits\StringableObject
+    Tools, Traits\ObjectLock, Traits\StringableObject, Type\Sort
 };
 use OutOfBoundsException,
     RuntimeException,
@@ -406,6 +406,25 @@ abstract class Collection implements ArrayAccess, Countable, IteratorAggregate, 
     {
         Tools::concat($this, ...$values);
         return $this;
+    }
+
+    /**
+     * Checks if a value is a collection with the same items as current
+     */
+    public function equals(mixed $value): bool
+    {
+
+        if ($value instanceof self)
+        {
+            $value = $value->toArray();
+        }
+
+        if (is_array($value))
+        {
+            return $value === $this->toArray();
+        }
+
+        return false;
     }
 
     /**

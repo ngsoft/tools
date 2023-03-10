@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use Countable,
-    LogicException,
-    NGSOFT\Tools;
+    LogicException;
+use NGSOFT\{
+    Tools, Type\Sort
+};
 
 trait CommonMethods
 {
