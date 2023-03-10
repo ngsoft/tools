@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Type;
+namespace NGSOFT\DataStructure;
 
 use Countable,
     IteratorAggregate,
