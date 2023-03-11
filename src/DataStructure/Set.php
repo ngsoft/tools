@@ -6,8 +6,8 @@ namespace NGSOFT\DataStructure;
 
 use Generator,
     JsonSerializable;
-use NGSOFT\{
-    Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
+use NGSOFT\Traits\{
+    ReversibleIteratorTrait, StringableObject
 };
 use Stringable,
     Traversable;

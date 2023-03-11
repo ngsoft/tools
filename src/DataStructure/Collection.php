@@ -8,7 +8,7 @@ use ArrayAccess,
     InvalidArgumentException,
     JsonSerializable;
 use NGSOFT\{
-    Tools, Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
+    Tools, Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject
 };
 use OutOfBoundsException,
     RuntimeException,

@@ -8,7 +8,7 @@ use ArrayAccess,
     Countable,
     Generator;
 use NGSOFT\{
-    Tools\TypeCheck, Traits\ObjectLock, Traits\ReversibleIteratorTrait, Type\ReversibleIterator, Type\Sort
+    Tools\TypeCheck, Traits\ObjectLock, Traits\ReversibleIteratorTrait
 };
 use Stringable,
     ValueError;

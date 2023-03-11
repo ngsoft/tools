@@ -6,8 +6,8 @@ namespace NGSOFT\DataStructure;
 
 use ArrayAccess,
     JsonSerializable;
-use NGSOFT\{
-    Traits\ObjectLock, Traits\ReversibleIteratorTrait, Traits\StringableObject, Type\ReversibleIterator, Type\Sort
+use NGSOFT\Traits\{
+    ObjectLock, ReversibleIteratorTrait, StringableObject
 };
 use OutOfRangeException,
     Stringable;

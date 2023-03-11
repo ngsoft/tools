@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Countable;
-use NGSOFT\{
-    Traits\ReversibleIteratorTrait, Type\ReversibleIterator, Type\Sort
-};
-use Stringable,
+use Countable,
+    NGSOFT\Traits\ReversibleIteratorTrait,
+    Stringable,
     ValueError;
 
 /**

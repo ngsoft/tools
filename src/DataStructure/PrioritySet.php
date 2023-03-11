@@ -8,8 +8,8 @@ use Countable,
     Generator,
     IteratorAggregate,
     JsonSerializable;
-use NGSOFT\{
-    Traits\ObjectLock, Traits\StringableObject, Type\Sort
+use NGSOFT\Traits\{
+    ObjectLock, StringableObject
 };
 use Stringable,
     Traversable;
