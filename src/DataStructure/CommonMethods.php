@@ -22,7 +22,7 @@ trait CommonMethods
     protected function sortArray(array $array, Sort $sort): array
     {
 
-        if ($sort->is(Sort::DESC))
+        if ($sort === Sort::DESC)
         {
             return array_reverse($array);
         }

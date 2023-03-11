@@ -81,7 +81,7 @@ class PrioritySet implements Countable, JsonSerializable, Stringable, IteratorAg
 
         $sorted = $this->getSorted();
 
-        if ($sort->is(Sort::ASC))
+        if ($sort === Sort::ASC)
         {
             $sorted = array_reverse($sorted);
         }
