@@ -7,18 +7,18 @@ namespace NGSOFT\Filesystem;
 use ErrorException,
     InvalidArgumentException,
     IteratorAggregate,
-    JsonException;
-use NGSOFT\{
-    Lock\FileSystemLock, Tools
-};
-use Stringable,
+    JsonException,
+    NGSOFT\Lock\FileSystemLock,
+    Stringable,
     Throwable,
     Traversable,
     ValueError;
 use const DATE_DB,
           SCRIPT_START;
 use function blank,
-             get_debug_type;
+             get_debug_type,
+             set_default_error_handler,
+             wait;
 
 /**
  * Manages a File
@@ -36,14 +36,16 @@ class File extends Filesystem implements IteratorAggregate
     )
     {
         parent::__construct($path);
-        if (is_dir($this->path)) {
+        if (is_dir($this->path))
+        {
             throw new InvalidArgumentException(sprintf('%s is a directory.', $path));
         }
     }
 
     public function __destruct()
     {
-        while ($file = array_pop($this->tmpFiles)) {
+        while ($file = array_pop($this->tmpFiles))
+        {
             ! is_file($file) || unlink($file);
         }
     }
@@ -80,15 +82,19 @@ class File extends Filesystem implements IteratorAggregate
         $hash = $this->hash();
         $changed = $this->hash !== $hash;
 
-        try {
+        try
+        {
             // initial value
-            if ($hash && ! $this->hash && $this->exists()) {
+            if ($hash && ! $this->hash && $this->exists())
+            {
                 // check if file modified before script started
                 return $this->mtime() < SCRIPT_START;
             }
 
             return $changed;
-        } finally {
+        }
+        finally
+        {
             $this->hash = $hash;
         }
     }
@@ -100,12 +106,17 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function unlink(): bool
     {
-        try {
+        try
+        {
             set_default_error_handler();
             return ! $this->exists() || unlink($this->path);
-        } catch (Throwable) {
+        }
+        catch (Throwable)
+        {
             return false;
-        } finally {
+        }
+        finally
+        {
             clearstatcache(false, $this->path);
         }
     }
@@ -131,19 +142,28 @@ class File extends Filesystem implements IteratorAggregate
 
         $success = false;
 
-        try {
+        try
+        {
             set_default_error_handler();
 
-            if ($this->exists()) {
+            if ($this->exists())
+            {
                 static::createDir(dirname($dest));
                 // no need to copy if files are the same
-                if ($target->hash() !== $this->hash()) {
+                if ($target->hash() !== $this->hash())
+                {
                     $success = copy($this->path, $dest);
-                } else { $success = true; }
+                }
+                else
+                { $success = true; }
             }
-        } catch (\Throwable) {
+        }
+        catch (\Throwable)
+        {
             $success = false;
-        } finally {
+        }
+        finally
+        {
             restore_error_handler();
         }
 
@@ -166,11 +186,16 @@ class File extends Filesystem implements IteratorAggregate
     public function require(array $data = [], bool $once = false): mixed
     {
 
-        try {
+        try
+        {
             return require_file($this->path, $data, $once);
-        } catch (ErrorException) {
+        }
+        catch (ErrorException)
+        {
             return null;
-        } finally { restore_error_handler(); }
+        }
+        finally
+        { restore_error_handler(); }
     }
 
     /**
@@ -193,9 +218,11 @@ class File extends Filesystem implements IteratorAggregate
 
         $split = explode('.', $this->path);
 
-        if (count($split) > 1) {
+        if (count($split) > 1)
+        {
 
-            if ( ! blank($value = array_pop($split))) {
+            if ( ! blank($value = array_pop($split)))
+            {
                 return $value;
             }
         }
@@ -209,7 +236,8 @@ class File extends Filesystem implements IteratorAggregate
     public function hash(): string|null
     {
 
-        if ( ! $this->exists()) {
+        if ( ! $this->exists())
+        {
             return null;
         }
 
@@ -252,7 +280,8 @@ class File extends Filesystem implements IteratorAggregate
      */
     public function read(): string
     {
-        if ( ! $this->exists()) {
+        if ( ! $this->exists())
+        {
             return '';
         }
 
@@ -267,7 +296,8 @@ class File extends Filesystem implements IteratorAggregate
     public function readAsArray(): array
     {
         $contents = $this->read();
-        if (empty($contents)) {
+        if (empty($contents))
+        {
             return [];
         }
         return explode("\n", $contents);
@@ -281,11 +311,13 @@ class File extends Filesystem implements IteratorAggregate
     public function readJson(): mixed
     {
 
-        if (blank($contents = $this->read())) {
+        if (blank($contents = $this->read()))
+        {
             return null;
         }
         $result = json_decode($contents, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE)
+        {
             throw new JsonException(json_last_error_msg());
         }
         return $result;
@@ -300,16 +332,20 @@ class File extends Filesystem implements IteratorAggregate
     public function write(string|array|Stringable $contents): bool
     {
 
-        if ( ! is_array($contents)) {
+        if ( ! is_array($contents))
+        {
             $contents = [$contents];
         }
 
         $filecontents = '';
 
-        foreach ($contents as $line) {
-            if ( ! blank($filecontents)) { $filecontents .= "\n"; }
+        foreach ($contents as $line)
+        {
+            if ( ! blank($filecontents))
+            { $filecontents .= "\n"; }
 
-            if ( ! is_string($line) && $line instanceof \Stringable === false) {
+            if ( ! is_string($line) && $line instanceof \Stringable === false)
+            {
                 throw new ValueError(sprintf('Cannot save %s, invalid type %s', $this->path, get_debug_type($line)));
             }
 
@@ -321,19 +357,26 @@ class File extends Filesystem implements IteratorAggregate
 
         $retry = 0;
 
-        while ($retry < 3) {
+        while ($retry < 3)
+        {
 
-            try {
+            try
+            {
                 set_default_error_handler();
 
                 $tmpfile = $this->tmpFile ??= $this->tmpFiles[] = $this->dirname() . DIRECTORY_SEPARATOR . uniqid('', true);
 
-                if (file_put_contents($tmpfile, $filecontents) !== false) {
+                if (file_put_contents($tmpfile, $filecontents) !== false)
+                {
                     return rename($tmpfile, $path) && $this->chmod(0777);
                 }
-            } catch (Throwable) {
+            }
+            catch (Throwable)
+            {
                 $this->tmpFile = null;
-            } finally {
+            }
+            finally
+            {
                 restore_error_handler();
             }
             $retry ++;
@@ -351,7 +394,8 @@ class File extends Filesystem implements IteratorAggregate
     {
         $contents = json_encode($data, $flags);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE)
+        {
             throw new JsonException(json_last_error_msg());
         }
 
@@ -377,7 +421,8 @@ class File extends Filesystem implements IteratorAggregate
             'path' => $this->path,
         ];
 
-        if ($this->exists()) {
+        if ($this->exists())
+        {
             $result += [
                 'ctime' => date(DATE_DB, $this->ctime()),
                 'mtime' => date(DATE_DB, $this->mtime()),

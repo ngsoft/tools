@@ -7,7 +7,6 @@ namespace NGSOFT\Filesystem;
 use FilesystemIterator,
     InvalidArgumentException,
     IteratorAggregate,
-    NGSOFT\Tools,
     RecursiveDirectoryIterator,
     RuntimeException,
     Throwable,
@@ -41,22 +40,27 @@ class Directory extends Filesystem implements IteratorAggregate
         static $ignore = ['.', '..'];
         $result = [];
 
-        if ( ! is_dir($dirname)) {
+        if ( ! is_dir($dirname))
+        {
             return $result;
         }
 
-        foreach (scandir($dirname) as $file) {
-            if (in_array($file, $ignore)) {
+        foreach (scandir($dirname) as $file)
+        {
+            if (in_array($file, $ignore))
+            {
                 continue;
             }
             $absolute = $dirname . DIRECTORY_SEPARATOR . $file;
 
-            if ( ! $recursive || ! is_dir($absolute)) {
+            if ( ! $recursive || ! is_dir($absolute))
+            {
                 $result[$absolute] = $absolute;
                 continue;
             }
 
-            if (is_dir($absolute)) {
+            if (is_dir($absolute))
+            {
                 $result += static::scan($absolute, $recursive);
             }
         }
@@ -81,7 +85,8 @@ class Directory extends Filesystem implements IteratorAggregate
 
         return FileList::create(
                         map(
-                                function (string $absolute, &$relative) use ($len) {
+                                function (string $absolute, &$relative) use ($len)
+                                {
                                     $relative = mb_substr($absolute, $len);
                                     return $absolute;
                                 },
@@ -105,15 +110,18 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public static function pushd(string|self $directory): static|false
     {
-        if (is_string($directory)) {
+        if (is_string($directory))
+        {
             $directory = new static($directory);
         }
 
-        if ( ! $directory->exists()) {
+        if ( ! $directory->exists())
+        {
             return false;
         }
 
-        if ($directory->chdir()) {
+        if ($directory->chdir())
+        {
             static::$pushd[] = $directory;
             return $directory;
         }
@@ -125,7 +133,8 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public static function popd(): static|false
     {
-        if ($previous = array_pop(static::$pushd)) {
+        if ($previous = array_pop(static::$pushd))
+        {
             return $previous->chdir() ? $previous : false;
         }
 
@@ -137,12 +146,14 @@ class Directory extends Filesystem implements IteratorAggregate
     )
     {
 
-        if (blank($path)) {
+        if (blank($path))
+        {
             $path = getcwd();
         }
         parent::__construct($path);
 
-        if (is_file($this->path)) {
+        if (is_file($this->path))
+        {
             throw new InvalidArgumentException(sprintf('%s is a regular file.', $path));
         }
     }
@@ -152,41 +163,53 @@ class Directory extends Filesystem implements IteratorAggregate
 
         $destination = (string) $destination;
 
-        if ( ! is_dir($directory)) {
+        if ( ! is_dir($directory))
+        {
             return false;
         }
 
         $directory = realpath($directory);
         $destination = normalize_path($destination);
 
-        if ( ! file_exists($destination)) {
+        if ( ! file_exists($destination))
+        {
             $this->createDir($destination);
-        } elseif ( ! is_dir($destination)) {
+        }
+        elseif ( ! is_dir($destination))
+        {
             throw new RuntimeException(sprintf('Cannot copy files to %s, not a directory.', $destination));
         }
 
-        if (is_dir($destination)) {
+        if (is_dir($destination))
+        {
             $destination = realpath($destination);
-            if ($destination === $directory) {
+            if ($destination === $directory)
+            {
                 return false;
             }
         }
         $destination .= DIRECTORY_SEPARATOR;
 
         /** @var File $file */
-        foreach (static::scanFiles($directory, true) as $relative => $file) {
+        foreach (static::scanFiles($directory, true) as $relative => $file)
+        {
 
             $path = $destination . $relative;
 
-            if ($path === $file->realpath()) {
+            if ($path === $file->realpath())
+            {
                 return false;
             }
-            try {
+            try
+            {
                 $file->copy($path, $success);
-                if ($success === false) {
+                if ($success === false)
+                {
                     return false;
                 }
-            } catch (Throwable) {
+            }
+            catch (Throwable)
+            {
                 return false;
             }
         }
@@ -216,15 +239,21 @@ class Directory extends Filesystem implements IteratorAggregate
         $target = $target instanceof self ? $target : new static($dest);
         $success = false;
 
-        try {
+        try
+        {
             set_default_error_handler();
 
-            if ($this->exists()) {
+            if ($this->exists())
+            {
                 $success = $this->copyDir($this->path, $dest);
             }
-        } catch (\Throwable) {
+        }
+        catch (\Throwable)
+        {
             $success = false;
-        } finally {
+        }
+        finally
+        {
             restore_error_handler();
         }
 
@@ -236,14 +265,16 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function delete(): bool
     {
-        if ( ! $this->exists()) {
+        if ( ! $this->exists())
+        {
             return true;
         }
 
         $result = true;
 
         /** @var File|self $file */
-        foreach (static::scanFiles($this->path) as $file) {
+        foreach (static::scanFiles($this->path) as $file)
+        {
             $result = $file->delete() && $result;
         }
         return $this->rmdir() && $result;
@@ -266,13 +297,17 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function isEmpty(): bool
     {
-        if ($this->exists()) {
+        if ($this->exists())
+        {
             return true;
         }
-        try {
+        try
+        {
             $iterator = new RecursiveDirectoryIterator($this->path, FilesystemIterator::SKIP_DOTS);
             return iterator_count($iterator) === 0;
-        } catch (\Throwable) {
+        }
+        catch (\Throwable)
+        {
             return true;
         }
     }
@@ -294,11 +329,13 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function rmdir(): bool
     {
-        if ( ! $this->exists()) {
+        if ( ! $this->exists())
+        {
             return true;
         }
 
-        if ($this->isLink()) {
+        if ($this->isLink())
+        {
             return unlink($this->path);
         }
 
@@ -310,7 +347,8 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function chdir(): bool
     {
-        if ( ! $this->exists()) {
+        if ( ! $this->exists())
+        {
             return false;
         }
 
@@ -328,25 +366,31 @@ class Directory extends Filesystem implements IteratorAggregate
     protected function filesIterator(FileList $list, string|array $extensions = [], bool $hidden = false): FileList
     {
 
-        if ( ! is_array($extensions)) {
+        if ( ! is_array($extensions))
+        {
             $extensions = empty($extensions) ? [] : [$extensions];
         }
 
         $extensions = map(fn($e) => ! str_starts_with($e, '.') ? ".$e" : $e, $extensions);
 
         return $list->filter(
-                        function (Filesystem $filesystem, string $file) use ($extensions, $hidden) {
-                            if ( ! $filesystem instanceof File) {
+                        function (Filesystem $filesystem, string $file) use ($extensions, $hidden)
+                        {
+                            if ( ! $filesystem instanceof File)
+                            {
                                 return false;
                             }
 
                             if (
                                     ! blank($extensions) &&
-                                    ! some(function ($ext) use ($file) { return str_ends_with($file, $ext); }, $extensions)
-                            ) {
+                                    ! some(function ($ext) use ($file)
+                                    { return str_ends_with($file, $ext); }, $extensions)
+                            )
+                            {
                                 return false;
                             }
-                            if ( ! $hidden && $filesystem->hidden()) {
+                            if ( ! $hidden && $filesystem->hidden())
+                            {
                                 return false;
                             }
 
@@ -360,19 +404,28 @@ class Directory extends Filesystem implements IteratorAggregate
      */
     public function search(string $pattern): FileList
     {
-        if ($this->exists()) {
-            try {
+        if ($this->exists())
+        {
+            try
+            {
                 set_default_error_handler();
 
-                if (preg_valid($pattern)) {
+                if (preg_valid($pattern))
+                {
                     return static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->matches($pattern));
-                } elseif (false !== strpbrk($pattern, '*?[]')) {
+                }
+                elseif (false !== strpbrk($pattern, '*?[]'))
+                {
                     return $this->glob($pattern);
                 }
                 return static::scanFiles($this->path, true)->filter(fn(Filesystem $path) => $path->contains($pattern));
-            } catch (\Throwable) {
+            }
+            catch (\Throwable)
+            {
 
-            } finally {
+            }
+            finally
+            {
                 restore_error_handler();
             }
         }
@@ -386,20 +439,25 @@ class Directory extends Filesystem implements IteratorAggregate
     {
 
         $current = getcwd();
-        try {
+        try
+        {
             set_default_error_handler();
             $list = new FileList();
 
-            if ($this->chdir()) {
+            if ($this->chdir())
+            {
                 $result = glob($pattern, $flags);
-                if ($result === false) {
+                if ($result === false)
+                {
                     return $list;
                 }
                 $list->append($result);
             }
 
             return $list;
-        } finally {
+        }
+        finally
+        {
             restore_error_handler();
             chdir($current);
         }
@@ -438,16 +496,22 @@ class Directory extends Filesystem implements IteratorAggregate
 
         $list = static::scanFiles($this->path);
 
-        if ($recursive) {
+        if ($recursive)
+        {
             $result = new FileList();
 
-            foreach ($list as $dir) {
+            foreach ($list as $dir)
+            {
 
-                if ($dir instanceof Directory) {
+                if ($dir instanceof Directory)
+                {
                     $sub = $dir->directories(true);
-                    if (count($sub) > 0) {
+                    if (count($sub) > 0)
+                    {
                         $result->append($sub);
-                    } else { $result->append($dir); }
+                    }
+                    else
+                    { $result->append($dir); }
                 }
             }
 
@@ -466,7 +530,8 @@ class Directory extends Filesystem implements IteratorAggregate
     {
 
         $path = normalize_path($this->path . DIRECTORY_SEPARATOR . $target);
-        if (is_dir($path)) {
+        if (is_dir($path))
+        {
             return static::create($path);
         }
         return File::create($path);

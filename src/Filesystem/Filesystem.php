@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace NGSOFT\Filesystem;
 
 use Countable,
-    InvalidArgumentException;
-use NGSOFT\{
-    Tools, Traits\ClassUtils
-};
-use RuntimeException,
+    InvalidArgumentException,
+    NGSOFT\Traits\ClassUtils,
+    RuntimeException,
     SplFileInfo,
     SplFileObject,
     Stringable,
@@ -17,6 +15,7 @@ use RuntimeException,
 use const DATE_DB;
 use function blank,
              preg_exec,
+             set_default_error_handler,
              str_contains,
              str_starts_with;
 
@@ -58,7 +57,8 @@ abstract class Filesystem implements Countable, Stringable
 
         $dirname = static::getAbsolute($dirname);
 
-        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true)) {
+        if ( ! is_dir($dirname) && ! mkdir($dirname, 0777, true))
+        {
             throw new RuntimeException(sprintf('Cannot create directory %s', $dirname));
         }
     }
@@ -67,7 +67,8 @@ abstract class Filesystem implements Countable, Stringable
             string $path,
     )
     {
-        if (blank($path)) {
+        if (blank($path))
+        {
             throw new InvalidArgumentException('Filename is empty.');
         }
 
@@ -170,7 +171,8 @@ abstract class Filesystem implements Countable, Stringable
     public function move(string|self $target, bool &$success = null): static
     {
 
-        if (is_object($target) && ! self::isSelf($target)) {
+        if (is_object($target) && ! self::isSelf($target))
+        {
 
             throw new InvalidArgumentException(
                             sprintf(
@@ -184,17 +186,23 @@ abstract class Filesystem implements Countable, Stringable
         $target = $target instanceof static ? $target : new static($dest);
         $success = false;
 
-        try {
+        try
+        {
             set_default_error_handler();
-            if ($this->exists()) {
+            if ($this->exists())
+            {
                 $this->createDir(dirname($dest));
                 $success = rename($this->path, $dest);
             }
-        } catch (Throwable) {
+        }
+        catch (Throwable)
+        {
             //cannot move so we merge
             $this->doCopy($target, $success);
             $success = $success && $this->delete();
-        } finally { restore_error_handler(); }
+        }
+        finally
+        { restore_error_handler(); }
 
         return $target;
     }
@@ -311,7 +319,8 @@ abstract class Filesystem implements Countable, Stringable
             'path' => $this->path,
         ];
 
-        if ($this->exists()) {
+        if ($this->exists())
+        {
             $result += [
                 'ctime' => date(DATE_DB, $this->ctime()),
                 'mtime' => date(DATE_DB, $this->mtime()),

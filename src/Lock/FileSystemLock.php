@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace NGSOFT\Lock;
 
-use NGSOFT\{
-    Filesystem\File, Tools
-};
-use Stringable;
+use NGSOFT\Filesystem\File,
+    Stringable;
+use function set_default_error_handler;
 
 /**
  * Creates a lock file with the same filename and directory as provided file
@@ -26,9 +25,12 @@ class FileSystemLock extends BaseLockStore
     {
         parent::__construct($name, $seconds, $owner, $autoRelease);
 
-        if ($name->extension() === 'lock') {
+        if ($name->extension() === 'lock')
+        {
             $locked = $name->getPath();
-        } else { $locked = $name->dirname() . DIRECTORY_SEPARATOR . $name->name() . '.lock'; }
+        }
+        else
+        { $locked = $name->dirname() . DIRECTORY_SEPARATOR . $name->name() . '.lock'; }
 
         $this->file = new File($locked);
     }
@@ -48,17 +50,21 @@ class FileSystemLock extends BaseLockStore
                 static::KEY_OWNER, var_export($this->getOwner(), true),
         );
 
-        try {
+        try
+        {
             set_default_error_handler();
             return $this->file->write($contents);
-        } finally {
+        }
+        finally
+        {
             restore_error_handler();
         }
     }
 
     public function forceRelease(): void
     {
-        if ($this->file->unlink()) {
+        if ($this->file->unlink())
+        {
             $this->until = 1;
         }
     }

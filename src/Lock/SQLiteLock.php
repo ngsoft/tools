@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace NGSOFT\Lock;
 
 use InvalidArgumentException,
-    NGSOFT\Tools,
     PDO,
     PDOStatement,
     Stringable,
     Throwable;
-use function str_starts_with;
+use function set_default_error_handler,
+             str_starts_with;
 
 /**
  * A SQLite database to manage your locks
@@ -44,17 +44,20 @@ class SQLiteLock extends BaseLockStore
     {
         parent::__construct($name, $seconds, $owner, $autoRelease);
 
-        if (empty($database)) {
+        if (empty($database))
+        {
             $database = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'sqlock.db3';
         }
 
-        if (is_string($database)) {
+        if (is_string($database))
+        {
             $database = new PDO(sprintf('sqlite:%s', $database));
         }
 
         $type = $database->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-        if ($type !== 'sqlite') {
+        if ($type !== 'sqlite')
+        {
             throw new InvalidArgumentException(sprintf('Invalid PDO driver, sqlite requested, %s given.', $type));
         }
         $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -90,11 +93,14 @@ class SQLiteLock extends BaseLockStore
 
     protected function prepare(string $query, array $bindings = []): PDOStatement|false
     {
-        try {
+        try
+        {
             set_default_error_handler();
             $prepared = $this->driver->prepare($query);
-            foreach ($bindings as $index => $value) {
-                if (is_string($index) && ! str_starts_with($index, ':')) {
+            foreach ($bindings as $index => $value)
+            {
+                if (is_string($index) && ! str_starts_with($index, ':'))
+                {
                     $index = ":$index";
                 }
                 if (is_int($index)) $index ++;
@@ -102,15 +108,20 @@ class SQLiteLock extends BaseLockStore
             }
 
             return $prepared;
-        } catch (Throwable $err) {
+        }
+        catch (Throwable $err)
+        {
             return false;
-        } finally { \restore_error_handler(); }
+        }
+        finally
+        { \restore_error_handler(); }
     }
 
     protected function purge(): void
     {
 
-        try {
+        try
+        {
             set_default_error_handler();
 
             $statement = $this->prepare(
@@ -121,9 +132,13 @@ class SQLiteLock extends BaseLockStore
                     ), [$this->timestamp()]);
 
             $statement && $statement->execute();
-        } catch (Throwable) {
+        }
+        catch (Throwable)
+        {
 
-        } finally { \restore_error_handler(); }
+        }
+        finally
+        { \restore_error_handler(); }
     }
 
     protected function read(): array|false
@@ -137,10 +152,13 @@ class SQLiteLock extends BaseLockStore
                         $this->table,
                         self::COLUMN_NAME
                 ), [$this->getHashedName()])
-        ) {
+        )
+        {
 
-            if ($statement->execute()) {
-                if ($arr = $statement->fetch(PDO::FETCH_ASSOC)) {
+            if ($statement->execute())
+            {
+                if ($arr = $statement->fetch(PDO::FETCH_ASSOC))
+                {
                     return [
                         self::KEY_UNTIL => $arr[self::COLUMN_UNTIL],
                         self::KEY_OWNER => $arr[self::COLUMN_OWNER]
@@ -158,9 +176,11 @@ class SQLiteLock extends BaseLockStore
                         'INSERT OR REPLACE INTO %s (%s) VALUES (?, ?, ?)',
                         $this->table, implode(',', $this->getColumns())
                 ), [$this->getHashedName(), $this->getOwner(), $until])
-        ) {
+        )
+        {
 
-            if ($statement->execute()) {
+            if ($statement->execute())
+            {
                 $this->until = $until;
                 return true;
             }
@@ -177,8 +197,10 @@ class SQLiteLock extends BaseLockStore
                         'DELETE FROM %s WHERE %s = ?',
                         $this->table, self::COLUMN_NAME
                 ), [$this->getHashedName()])
-        ) {
-            if ($statement->execute()) {
+        )
+        {
+            if ($statement->execute())
+            {
                 $this->until = 1;
             }
         }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NGSOFT\Container\Resolvers;
 
 use NGSOFT\{
-    Container\Attribute\Inject, Container\Exceptions\ResolverException, Facades\Logger
+    Container\Attribute\Inject, Facades\Logger
 };
 use Psr\Container\ContainerExceptionInterface,
     ReflectionAttribute,
@@ -23,14 +23,18 @@ class InjectProperties extends ContainerResolver
 
     private function getClassParents(object $instance): Traversable
     {
-        try {
+        try
+        {
 
             $reflector = null;
 
-            while (($reflector = is_null($reflector) ? new ReflectionClass($instance) : $reflector->getParentClass() ) !== false) {
+            while (($reflector = is_null($reflector) ? new ReflectionClass($instance) : $reflector->getParentClass() ) !== false)
+            {
                 yield $reflector;
             }
-        } catch (ReflectionException) {
+        }
+        catch (ReflectionException)
+        {
 
         }
     }
@@ -43,7 +47,8 @@ class InjectProperties extends ContainerResolver
             'void', 'never', 'null', 'false',
         ];
 
-        if (is_object($value)) {
+        if (is_object($value))
+        {
 
             $properties = [];
 
@@ -51,42 +56,57 @@ class InjectProperties extends ContainerResolver
             /** @var ReflectionProperty $reflProp */
             /** @var ReflectionAttribute $attribute */
             /** @var Inject $inject */
-            foreach ($this->getClassParents($value) as $reflClass) {
+            foreach ($this->getClassParents($value) as $reflClass)
+            {
 
-                foreach ($reflClass->getProperties() as $reflProp) {
+                foreach ($reflClass->getProperties() as $reflProp)
+                {
                     $name = $reflProp->getName();
-                    if (isset($properties[$name])) {
+                    if (isset($properties[$name]))
+                    {
                         continue;
                     }
                     $properties[$name] = true;
-                    foreach ($reflProp->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+                    foreach ($reflProp->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute)
+                    {
                         $inject = $attribute->newInstance();
 
-                        if (empty($inject->name)) {
-                            if ($type = $reflProp->getType()) {
-                                if ( ! ($type instanceof ReflectionIntersectionType)) {
+                        if (empty($inject->name))
+                        {
+                            if ($type = $reflProp->getType())
+                            {
+                                if ( ! ($type instanceof ReflectionIntersectionType))
+                                {
                                     $inject->name = (string) $type;
                                 }
                             }
                         }
 
-                        if ( ! empty($inject->name)) {
-                            foreach (explode('|', $inject->name) as $dep) {
+                        if ( ! empty($inject->name))
+                        {
+                            foreach (explode('|', $inject->name) as $dep)
+                            {
 
                                 $dep = preg_replace('#^\?#', '', $dep);
 
-                                if ($dep === 'self') {
+                                if ($dep === 'self')
+                                {
                                     $dep = $reflProp->getDeclaringClass()->getName();
-                                } elseif (in_array($dep, $builtin)) {
+                                }
+                                elseif (in_array($dep, $builtin))
+                                {
                                     continue;
                                 }
 
-                                try {
+                                try
+                                {
                                     $entry = $this->container->get($dep);
                                     $reflProp->setAccessible(true);
                                     $reflProp->setValue($value, $entry);
                                     continue 2;
-                                } catch (ContainerExceptionInterface) {
+                                }
+                                catch (ContainerExceptionInterface)
+                                {
 
                                 }
                             }
