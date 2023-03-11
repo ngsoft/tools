@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use NGSOFT\{
-    DataStructure\SimpleIterator, Tools\TypeCheck, Type\Sort
+    DataStructure\SimpleIterator, DataStructure\Sort, Tools\TypeCheck
 };
 
 /**

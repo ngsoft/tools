@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\Traits;
 
-use NGSOFT\Type\Sort,
+use NGSOFT\DataStructure\Sort,
     Traversable;
 
 trait ReversibleIteratorTrait
