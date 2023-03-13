@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-interface Storage extends \Countable, \ArrayAccess
+interface Storage extends \Countable, \ArrayAccess, \JsonSerializable
 {
 
     /**
