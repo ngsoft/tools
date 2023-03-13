@@ -35,6 +35,11 @@ final class SimpleIterator implements ReversibleIterator
 
     }
 
+    public function __debugInfo(): array
+    {
+        return [];
+    }
+
     ////////////////////////////   Static methods   ////////////////////////////
 
     /**
