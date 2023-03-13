@@ -108,6 +108,13 @@ final class SimpleIterator implements ReversibleIterator
         }
     }
 
+    private function reset(): void
+    {
+        $this->keys = [];
+        $this->values = [];
+        $this->unlock();
+    }
+
     /**
      * @internal Yield Offsets Value
      */
@@ -118,6 +125,8 @@ final class SimpleIterator implements ReversibleIterator
         {
             yield $this->keys[$offset] => $this->values[$offset];
         }
+
+        $this->reset();
     }
 
     /**
