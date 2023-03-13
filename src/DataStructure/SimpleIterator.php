@@ -28,8 +28,13 @@ final class SimpleIterator implements ReversibleIterator
     private array $keys = [];
     private array $values = [];
 
+    /**
+     * @param iterable $iterator The iterable to iterate
+     * @param bool $static True if the state of the iterator cannot change
+     */
     public function __construct(
-            private iterable $iterator
+            private iterable $iterator,
+            private bool $static = false
     )
     {
 
@@ -45,9 +50,9 @@ final class SimpleIterator implements ReversibleIterator
     /**
      * Create a new SimpleIterator
      */
-    public static function of(iterable $iterable): static
+    public static function of(iterable $iterable, bool $static = false): static
     {
-        return new static($iterable);
+        return new static($iterable, $static);
     }
 
     /**
@@ -56,7 +61,7 @@ final class SimpleIterator implements ReversibleIterator
     public static function ofStringable(string|Stringable $value): static
     {
         $value = (string) $value;
-        return new static($value === '' ? [] : mb_str_split($value));
+        return new static($value === '' ? [] : mb_str_split($value), true);
     }
 
     /**
@@ -80,7 +85,7 @@ final class SimpleIterator implements ReversibleIterator
 
         if (is_list($value))
         {
-            $iterator = new static([]);
+            $iterator = new static([], true);
             foreach (Range::of($value) as $offset)
             {
                 $iterator->append($offset, $value[$offset]);
@@ -110,9 +115,12 @@ final class SimpleIterator implements ReversibleIterator
 
     private function reset(): void
     {
-        $this->keys = [];
-        $this->values = [];
-        $this->unlock();
+        if ( ! $this->static)
+        {
+            $this->keys = [];
+            $this->values = [];
+            $this->unlock();
+        }
     }
 
     /**
