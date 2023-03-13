@@ -28,7 +28,7 @@ final class Tools
     /**
      * Package Version Information
      */
-    public const VERSION = '3.0';
+    public const VERSION = '3.0.1';
 
     /**
      * URL Parser Regex
@@ -71,10 +71,13 @@ final class Tools
      */
     public static function safe_exec(callable $callback, mixed ...$args): mixed
     {
-        try {
+        try
+        {
             self::suppress_errors();
             return $callback(...$args);
-        } finally { restore_error_handler(); }
+        }
+        finally
+        { restore_error_handler(); }
     }
 
     /**
@@ -109,13 +112,15 @@ final class Tools
      */
     public static function normalize_path(string $path): string
     {
-        if (empty($path)) {
+        if (empty($path))
+        {
             return $path;
         }
 
         $path = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $path);
 
-        if (in_array($path[-1], ['\\', '/'])) {
+        if (in_array($path[-1], ['\\', '/']))
+        {
             $path = mb_substr($path, 0, -1);
         }
 
@@ -156,7 +161,8 @@ final class Tools
     public static function each(callable $callback, iterable $iterable): iterable
     {
 
-        foreach ($iterable as $key => $value) {
+        foreach ($iterable as $key => $value)
+        {
             $result = $callback($value, $key, $iterable);
             yield $key => $result;
         }
@@ -170,8 +176,10 @@ final class Tools
 
         $result = [];
 
-        foreach ($iterable as $index => $value) {
-            if ( ! is_string($index)) {
+        foreach ($iterable as $index => $value)
+        {
+            if ( ! is_string($index))
+            {
                 $result[] = $value;
                 continue;
             }
@@ -192,12 +200,15 @@ final class Tools
     {
         $new = [];
 
-        foreach ($iterable as $key => $value) {
-            if ( ! $callback($value, $key, $iterable)) {
+        foreach ($iterable as $key => $value)
+        {
+            if ( ! $callback($value, $key, $iterable))
+            {
                 continue;
             }
 
-            if ( ! is_string($key)) {
+            if ( ! is_string($key))
+            {
                 $new[] = $value;
                 continue;
             }
@@ -215,8 +226,10 @@ final class Tools
      */
     public static function search(callable $callback, iterable $iterable): mixed
     {
-        foreach ($iterable as $key => $value) {
-            if ($callback($value, $key, $iterable)) {
+        foreach ($iterable as $key => $value)
+        {
+            if ($callback($value, $key, $iterable))
+            {
                 return $value;
             }
         }
@@ -232,17 +245,20 @@ final class Tools
     public static function map(callable $callback, iterable $iterable): array
     {
         $new = [];
-        foreach ($iterable as $key => $value) {
+        foreach ($iterable as $key => $value)
+        {
 
             // key can be passed by reference
             $result = $callback($value, $key, $iterable);
 
             //no return value? $value passed by reference?
-            if ($result === null) {
+            if ($result === null)
+            {
                 $result = $value;
             }
 
-            if ( ! is_string($key)) {
+            if ( ! is_string($key))
+            {
                 $new[] = $result;
                 continue;
             }
@@ -260,8 +276,10 @@ final class Tools
      */
     public static function some(callable $callback, iterable $iterable): bool
     {
-        foreach ($iterable as $key => $value) {
-            if ( ! $callback($value, $key, $iterable)) {
+        foreach ($iterable as $key => $value)
+        {
+            if ( ! $callback($value, $key, $iterable))
+            {
                 continue;
             }
             return true;
@@ -279,8 +297,10 @@ final class Tools
     public static function every(callable $callback, iterable $iterable): bool
     {
 
-        foreach ($iterable as $key => $value) {
-            if ( ! $callback($value, $key, $iterable)) {
+        foreach ($iterable as $key => $value)
+        {
+            if ( ! $callback($value, $key, $iterable))
+            {
                 return false;
             }
         }
@@ -293,11 +313,14 @@ final class Tools
     public static function pull(iterable|string|int $keys, array|ArrayAccess &$iterable): mixed
     {
 
-        if (is_iterable($keys)) {
+        if (is_iterable($keys))
+        {
             $result = [];
-            foreach ($keys as $key) {
+            foreach ($keys as $key)
+            {
 
-                if (is_iterable($key)) {
+                if (is_iterable($key))
+                {
                     $result += static::pull($key, $iterable);
                     continue;
                 }
@@ -321,14 +344,17 @@ final class Tools
 
         $result = [];
 
-        foreach ($array as $offset => $value) {
+        foreach ($array as $offset => $value)
+        {
 
-            if (is_object($value)) {
+            if (is_object($value))
+            {
                 $result[$offset] = clone $value;
             }
 
 
-            if (is_array($value) && $recursive) {
+            if (is_array($value) && $recursive)
+            {
                 $result[$offset] = self::cloneArray($value, $recursive);
                 continue;
             }
@@ -346,13 +372,16 @@ final class Tools
     public static function iterableToArray(iterable $iterable): array
     {
         $new = [];
-        foreach ($iterable as $key => $value) {
+        foreach ($iterable as $key => $value)
+        {
 
-            if (is_iterable($value)) {
+            if (is_iterable($value))
+            {
                 $value = self::iterableToArray($value);
             }
 
-            if ( ! is_string($key)) {
+            if ( ! is_string($key))
+            {
                 $new[] = $value;
                 continue;
             }
@@ -372,25 +401,32 @@ final class Tools
     {
 
         static $check;
-        $check ??= static function (mixed $value): bool {
+        $check ??= static function (mixed $value): bool
+        {
             return (is_array($value) || $value instanceof ArrayAccess);
         };
 
-        foreach ($values as $value) {
+        foreach ($values as $value)
+        {
 
-            if (is_iterable($value)) {
-                foreach ($value as $_key => $_value) {
-                    if ( ! is_string($_key) && is_array($iterable)) {
+            if (is_iterable($value))
+            {
+                foreach ($value as $_key => $_value)
+                {
+                    if ( ! is_string($_key) && is_array($iterable))
+                    {
                         $iterable[] = $_value;
                         continue;
                     }
-                    if (is_int($_key)) {
+                    if (is_int($_key))
+                    {
                         $iterable[] = $_value;
                         continue;
                     }
 
                     // merge iterable together
-                    if ($check($iterable[$_key]) && is_iterable($_value)) {
+                    if ($check($iterable[$_key]) && is_iterable($_value))
+                    {
                         $iterable[$_key] = static::concat($iterable[$_key], $_value);
                         continue;
                     }
@@ -414,8 +450,10 @@ final class Tools
 
         $count = 0;
 
-        foreach ($iterable as $_value) {
-            if ($value === $_value) {
+        foreach ($iterable as $_value)
+        {
+            if ($value === $_value)
+            {
                 $count ++;
             }
         }
@@ -453,7 +491,8 @@ final class Tools
      */
     public static function toCamelCase(string $snake_case): string
     {
-        return preg_replace_callback('/(^|_|\.)+(.)/', function ($match) {
+        return preg_replace_callback('/(^|_|\.)+(.)/', function ($match)
+        {
             return ('.' === $match[1] ? '_' : '') . strtoupper($match[2]);
         }, $snake_case);
     }
@@ -519,7 +558,8 @@ final class Tools
         static $units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $step = 1024;
         $i = 0;
-        while (($size / $step) >= 1) {
+        while (($size / $step) >= 1)
+        {
             $size = $size / $step;
             $i ++;
         }
@@ -537,7 +577,8 @@ final class Tools
 
         $string = '';
 
-        while (($len = strlen($string)) < $length) {
+        while (($len = strlen($string)) < $length)
+        {
             $size = $length - $len;
 
             $bytes = random_bytes($size);
@@ -556,8 +597,10 @@ final class Tools
 
         $string = (string) $string;
         $len = 0;
-        foreach (preg_split('#[\h\v]+#', $string) as $word) {
-            if (($wlen = mb_strlen($word)) > $len) {
+        foreach (preg_split('#[\h\v]+#', $string) as $word)
+        {
+            if (($wlen = mb_strlen($word)) > $len)
+            {
                 $len = $wlen;
             }
         }
@@ -577,7 +620,8 @@ final class Tools
 
         $string = preg_replace('#[\v\h]+#', ' ', (string) $string);
 
-        if ( ! is_int($length)) {
+        if ( ! is_int($length))
+        {
             $length = 0;
         }
 
@@ -585,7 +629,8 @@ final class Tools
 
         $strlen = mb_strlen($string);
 
-        if ($length === 0 || $strlen < $length) {
+        if ($length === 0 || $strlen < $length)
+        {
             $length = ! $length ? $strlen : $length;
             return [$string];
         }
@@ -595,23 +640,31 @@ final class Tools
         // get the longer word length
         $maxLength = max($length, self::getWordSize($string));
 
-        if ($maxLength > $length) {
+        if ($maxLength > $length)
+        {
             $length = $maxLength;
         }
 
         $line = '';
-        foreach ($words as $index => $word) {
+        foreach ($words as $index => $word)
+        {
 
             $lineLength = mb_strlen($line);
 
-            if ($lineLength === 0) {
+            if ($lineLength === 0)
+            {
                 $line = $word;
-            } elseif ($lineLength + mb_strlen($word) + 1 > $length) {
+            }
+            elseif ($lineLength + mb_strlen($word) + 1 > $length)
+            {
                 $result[] = $line;
                 $line = $word;
-            } else { $line .= " {$word}"; }
+            }
+            else
+            { $line .= " {$word}"; }
 
-            if ( ! isset($words[$index + 1])) {
+            if ( ! isset($words[$index + 1]))
+            {
                 $result[] = $line;
             }
         }
@@ -629,7 +682,8 @@ final class Tools
 
         $result = [];
 
-        foreach ($values as $value) {
+        foreach ($values as $value)
+        {
             $result[] = str_val($value);
         }
 
@@ -653,19 +707,23 @@ final class Tools
 
         $value = str_val($value);
 
-        if ($limit === 0) {
+        if ($limit === 0)
+        {
             return [$value];
         }
 
-        if ($limit > 0 && $limit < PHP_INT_MAX) {
+        if ($limit > 0 && $limit < PHP_INT_MAX)
+        {
             $limit ++;
         }
 
         $method = 'preg_split';
-        if ( ! preg_valid($separator)) {
+        if ( ! preg_valid($separator))
+        {
 
             $method = 'explode';
-            if ($limit < 0) {
+            if ($limit < 0)
+            {
                 $limit = PHP_INT_MAX;
             }
         }
@@ -699,7 +757,8 @@ final class Tools
          * Note: Values larger than 1000000 (i.e. sleeping for more than a second) may not be supported by the operating system.
          * Use sleep() instead.
          */
-        if ($seconds <= 0) {
+        if ($seconds <= 0)
+        {
             return;
         }
 
@@ -707,11 +766,13 @@ final class Tools
         $seconds -= $iseconds;
         $microseconds = (int) round($seconds / static::MICROSECOND);
 
-        if ($iseconds > 0) {
+        if ($iseconds > 0)
+        {
             sleep($iseconds);
         }
 
-        if ($microseconds > 0) {
+        if ($microseconds > 0)
+        {
             usleep($microseconds);
         }
     }
@@ -749,22 +810,26 @@ final class Tools
 
         $instanciable = (int) $instanciable;
 
-        if (is_object($parentClass)) {
+        if (is_object($parentClass))
+        {
             $parentClass = get_class($parentClass);
         }
 
-        if ( ! class_exists($parentClass) && ! interface_exists($parentClass)) {
+        if ( ! class_exists($parentClass) && ! interface_exists($parentClass))
+        {
             throw new InvalidArgumentException(sprintf('Invalid class %s', $parentClass));
         }
 
         $iterator = array_reverse(get_declared_classes());
 
-        if (count($iterator) !== $count) {
+        if (count($iterator) !== $count)
+        {
             $cache = [];
             $count = count($iterator);
         }
 
-        if (isset($cache[$parentClass])) {
+        if (isset($cache[$parentClass]))
+        {
             return $cache[$parentClass][$instanciable];
         }
 
@@ -772,11 +837,14 @@ final class Tools
 
         $result = &$cache[$parentClass];
 
-        foreach ($iterator as $class) {
+        foreach ($iterator as $class)
+        {
 
-            if (is_a($class, $parentClass, true)) {
+            if (is_a($class, $parentClass, true))
+            {
                 $result[0][$class] = $class;
-                if ((new \ReflectionClass($class))->isInstantiable()) {
+                if ((new \ReflectionClass($class))->isInstantiable())
+                {
                     $result[1][$class] = $class;
                 }
             }
@@ -799,25 +867,32 @@ final class Tools
             [], []
         ];
 
-        if (is_object($class)) {
+        if (is_object($class))
+        {
             $class = get_class($class);
         }
 
-        if ( ! class_exists($class) && ! interface_exists($class)) {
+        if ( ! class_exists($class) && ! interface_exists($class))
+        {
             return [];
         }
 
         $cache = &$parsed[(int) $public];
 
-        if ( ! isset($cache[$class])) {
+        if ( ! isset($cache[$class]))
+        {
 
-            try {
+            try
+            {
                 $result = [];
                 $filter = $public ? ReflectionClassConstant::IS_PUBLIC : null;
-                foreach (array_reverse(class_parents($class) ?: []) + [$class => $class] as $className) {
+                foreach (array_reverse(class_parents($class) ?: []) + [$class => $class] as $className)
+                {
                     $reflector = new ReflectionClass($className);
-                    foreach ($reflector->getConstants($filter) as $constant => $value) {
-                        if (array_key_exists($constant, $result)) {
+                    foreach ($reflector->getConstants($filter) as $constant => $value)
+                    {
+                        if (array_key_exists($constant, $result))
+                        {
                             continue;
                         }
                         $result[$constant] = $value;
@@ -825,7 +900,9 @@ final class Tools
                 }
 
                 $cache[$class] = $result;
-            } catch (ReflectionException) {
+            }
+            catch (ReflectionException)
+            {
                 return $cache[$class] = [];
             }
         }
@@ -838,15 +915,20 @@ final class Tools
 
         $class = get_class($instance);
 
-        if ( ! isset($cache[$class])) {
+        if ( ! isset($cache[$class]))
+        {
             $cache[$class] = [];
         }
 
-        if ( ! is_bool($cache[$class][$method] ?? null)) {
-            try {
+        if ( ! is_bool($cache[$class][$method] ?? null))
+        {
+            try
+            {
                 $reflector = new ReflectionMethod($instance, $method);
                 $cache[$class][$method] = $reflector->isPublic() && ! $reflector->isStatic();
-            } catch (\ReflectionException) {
+            }
+            catch (\ReflectionException)
+            {
                 $cache[$class][$method] = false;
             }
         }
@@ -869,28 +951,36 @@ final class Tools
          */
         static $contexts = [], $baseClosure;
         /** @var object $this */
-        $baseClosure ??= function (string $method, mixed ...$arguments) { return $this->{$method}(...$arguments); };
+        $baseClosure ??= function (string $method, mixed ...$arguments)
+        { return $this->{$method}(...$arguments); };
 
         $class = get_class($instance);
 
-        if ( ! isset($contexts[$class][$method])) {
+        if ( ! isset($contexts[$class][$method]))
+        {
 
-            if (self::isPublicMethod($instance, $method)) {
+            if (self::isPublicMethod($instance, $method))
+            {
                 return $instance->{$method}(...$arguments);
             }
 
             // context for protected method
             $context = $class;
-            try {
+            try
+            {
                 $reflector = new ReflectionMethod($instance, $method);
-                if ($reflector->isStatic()) {
+                if ($reflector->isStatic())
+                {
                     throw new \ReflectionException();
                 }
                 // context for private method
-                if ($reflector->isPrivate()) {
+                if ($reflector->isPrivate())
+                {
                     $context = $reflector->getDeclaringClass()->getName();
                 }
-            } catch (\ReflectionException) {
+            }
+            catch (\ReflectionException)
+            {
                 throw new BadMethodCallException(sprintf('Call to undefined non static method %s::%s()', get_class($instance), $method));
             }
 
