@@ -218,7 +218,7 @@ class ParameterResolver
                     // will catch DNF (ArrayAccess&Countable)|MyOtherType
                     // and IntersectionType  Type1&Type2
                     // so if intersection type but default value available
-                    // that will not throw an error
+                    // will not throw an error
                     if (str_contains($dep, '&'))
                     {
                         continue;
