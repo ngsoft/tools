@@ -4,3 +4,4 @@
 *.lock
 /nbproject/
 /vendor/
+/tests/.*
