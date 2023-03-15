@@ -13,11 +13,11 @@ use Psr\Container\ContainerExceptionInterface,
     ReflectionClass,
     ReflectionException,
     ReflectionFunction,
-    ReflectionIntersectionType,
     ReflectionMethod,
     ReflectionParameter,
     Throwable;
 use function is_instanciable,
+             str_contains,
              str_starts_with;
 
 class ParameterResolver
@@ -74,9 +74,9 @@ class ParameterResolver
         static $builtin = [
             'self', 'parent', 'static',
             'array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed',
-            'void', 'never',
+            'void', 'never', 'null', 'false',
             // php 8.2
-            'true', 'null', 'false',
+            'true',
         ];
 
         $class = $method = null;
