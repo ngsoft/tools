@@ -51,7 +51,8 @@ class Container implements ContainerInterface
     {
         $this->parameterResolver = new ParameterResolver($this);
         $this->containerResolvers = PrioritySet::create();
-        foreach (self::RESOLVERS as $resolver) {
+        foreach (self::RESOLVERS as $resolver)
+        {
             $this->addContainerResolver(new $resolver($this));
         }
 
@@ -67,7 +68,8 @@ class Container implements ContainerInterface
     {
         $alias = array_unique((array) $alias);
 
-        if (in_array($id, $alias)) {
+        if (in_array($id, $alias))
+        {
             throw new ContainerError(sprintf(
                                     '[%s] is aliased to itself.',
                                     $id
@@ -90,16 +92,19 @@ class Container implements ContainerInterface
         $this->loadService($id);
         $abstract = $this->getAlias($id);
 
-        return array_key_exists($abstract, $this->resolved) || array_key_exists($abstract, $this->definitions);
+        return array_key_exists($abstract, $this->resolved) || array_key_exists($abstract, $this->definitions) || $this->canResolve($id);
     }
 
     /** {@inheritdoc} */
     public function get(string $id): mixed
     {
-        try {
+        try
+        {
             $this->loadService($id);
             return $this->resolved[$this->getAlias($id)] ??= $this->resolve($id);
-        } catch (Throwable $prev) {
+        }
+        catch (Throwable $prev)
+        {
             throw NotFound::for($id, $prev);
         }
     }
@@ -107,9 +112,12 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function make(string $id, array $parameters = []): mixed
     {
-        try {
+        try
+        {
             return $this->resolve($id, $parameters);
-        } catch (Throwable $prev) {
+        }
+        catch (Throwable $prev)
+        {
             throw NotFound::for($id, $prev);
         }
     }
@@ -118,9 +126,12 @@ class Container implements ContainerInterface
     public function call(object|array|string $callable, array $parameters = []): mixed
     {
 
-        try {
+        try
+        {
             return $this->resolveCall($callable, $parameters);
-        } catch (Throwable $prev) {
+        }
+        catch (Throwable $prev)
+        {
             throw new ContainerError('Cannot call callable: ' . (is_string($callable) ? $callable : var_export($callable, true)), previous: $prev);
         }
     }
@@ -128,11 +139,13 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function register(ServiceProvider $service): void
     {
-        if (empty($service->provides())) {
+        if (empty($service->provides()))
+        {
             return;
         }
 
-        foreach (array_unique($service->provides()) as $id) {
+        foreach (array_unique($service->provides()) as $id)
+        {
             $this->services[$id] = $service;
             unset($this->resolved[$id], $this->loadedServices[$id]);
         }
@@ -145,7 +158,8 @@ class Container implements ContainerInterface
         $abstract = $this->getAlias($id);
         unset($this->resolved[$abstract]);
 
-        if ($value instanceof Closure) {
+        if ($value instanceof Closure)
+        {
             $this->definitions[$abstract] = $value;
             return;
         }
@@ -156,7 +170,8 @@ class Container implements ContainerInterface
     /** {@inheritdoc} */
     public function setMany(iterable $definitions): void
     {
-        foreach ($definitions as $id => $value) {
+        foreach ($definitions as $id => $value)
+        {
             $this->set($id, $value);
         }
     }
@@ -166,7 +181,8 @@ class Container implements ContainerInterface
      */
     public function addContainerResolver(ContainerResolver $resolver, ?int $priority = null): void
     {
-        if ( ! $priority) {
+        if ( ! $priority)
+        {
             $priority = $resolver->getDefaultPriority();
         }
         $this->containerResolvers->add($resolver, $priority);
@@ -178,9 +194,11 @@ class Container implements ContainerInterface
         if (
                 ! isset($this->loadedServices[$id]) &&
                 $provider = $this->services[$id] ?? null
-        ) {
+        )
+        {
 
-            foreach ($provider->provides() as $service) {
+            foreach ($provider->provides() as $service)
+            {
                 $this->loadedServices[$service] = true;
             }
 
@@ -191,9 +209,11 @@ class Container implements ContainerInterface
     protected function resolveCall(object|array|string $callable, array $providedParams): mixed
     {
         // Class@method(), Class::method()
-        if (is_string($callable)) {
+        if (is_string($callable))
+        {
             $cm = preg_split('#[:@]+#', $callable);
-            switch (count($cm)) {
+            switch (count($cm))
+            {
                 case 2:
                     $callable = $cm;
                     break;
@@ -215,7 +235,8 @@ class Container implements ContainerInterface
 
         $abstract = $this->getAlias($id);
 
-        if (isset($resolving[$abstract])) {
+        if (isset($resolving[$abstract]))
+        {
             throw new CircularDependencyException(
                             sprintf(
                                     'Container is already resolving [%s].',
@@ -226,21 +247,26 @@ class Container implements ContainerInterface
 
         $resolved = null;
 
-        if ($this->canResolve($abstract)) {
+        if ($this->canResolve($abstract))
+        {
 
             $resolving[$abstract] = true;
             $def = $this->definitions[$abstract] ?? null;
 
-            if ($def instanceof \Closure) {
+            if ($def instanceof \Closure)
+            {
                 $resolved = $this->parameterResolver->resolve($def, $providedParams);
-            } elseif (is_instanciable($abstract)) {
+            }
+            elseif (is_instanciable($abstract))
+            {
                 $resolved = $this->parameterResolver->resolve($abstract, $providedParams);
             }
 
             unset($resolving[$abstract]);
         }
 
-        if (is_null($resolved)) {
+        if (is_null($resolved))
+        {
             throw new ResolverException(
                             sprintf(
                                     'Cannot resolve [%s]',
@@ -250,7 +276,8 @@ class Container implements ContainerInterface
         }
 
         /** @var ContainerResolver $resolver */
-        foreach ($this->containerResolvers as $resolver) {
+        foreach ($this->containerResolvers as $resolver)
+        {
             $resolved = $resolver->resolve($resolved);
         }
 
@@ -267,10 +294,12 @@ class Container implements ContainerInterface
 
         $entries = [];
 
-        foreach (array_keys($this->resolved) as $id) {
+        foreach (array_keys($this->resolved) as $id)
+        {
 
             $value = $this->resolved[$id];
-            if (is_object($value)) {
+            if (is_object($value))
+            {
                 $entries[$id] = sprintf('object(%s)#%d', get_class($value), spl_object_id($value));
                 continue;
             }
