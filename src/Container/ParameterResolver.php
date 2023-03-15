@@ -38,24 +38,31 @@ class ParameterResolver
     protected function parseAttributes(ReflectionMethod|ReflectionParameter $reflector, array $providedParameters): array
     {
 
-        try {
+        try
+        {
             /** @var ReflectionAttribute $attribute */
             /** @var Inject $inject */
-            foreach ($reflector->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
+            foreach ($reflector->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute)
+            {
                 $inject = $attribute->newInstance();
-                if ($reflector instanceof ReflectionMethod) {
-                    foreach ($inject->parameters as $index => $id) {
+                if ($reflector instanceof ReflectionMethod)
+                {
+                    foreach ($inject->parameters as $index => $id)
+                    {
                         $providedParameters[$index] ??= $this->container->get($id);
                     }
 
                     continue;
                 }
 
-                if ( ! empty($inject->name)) {
+                if ( ! empty($inject->name))
+                {
                     $providedParameters[$reflector->getName()] ??= $this->container->get($inject->name);
                 }
             }
-        } catch (Throwable $prev) {
+        }
+        catch (Throwable $prev)
+        {
             throw new ResolverException(sprintf('Invalid attribute %s', $inject ?? '#[Inject]'), previous: $prev);
         }
 
@@ -67,29 +74,40 @@ class ParameterResolver
         static $builtin = [
             'self', 'parent', 'static',
             'array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed',
-            'void', 'never', 'null', 'false',
+            'void', 'never',
+            // php 8.2
+            'true', 'null', 'false',
         ];
 
         $class = $method = null;
         $className = null;
 
-        try {
+        try
+        {
 
-            if (is_string($callable)) {
+            if (is_string($callable))
+            {
                 $reflector = new ReflectionClass($className = $class = $callable);
-                if ( ! $reflector->isInstantiable()) {
+                if ( ! $reflector->isInstantiable())
+                {
                     throw new ReflectionException();
                 }
-                if ( ! ($reflector = $reflector->getConstructor())) {
+                if ( ! ($reflector = $reflector->getConstructor()))
+                {
                     return new $class();
                 }
-            } elseif ($callable instanceof Closure) {
+            }
+            elseif ($callable instanceof Closure)
+            {
                 $reflector = new \ReflectionFunction($callable);
-            } elseif (is_object($callable)) {
+            }
+            elseif (is_object($callable))
+            {
                 $callable = [$callable, '__invoke'];
             }
 
-            if (is_array($callable) && count($callable) === 2) {
+            if (is_array($callable) && count($callable) === 2)
+            {
                 [$class, $method] = $callable;
                 $className = is_object($class) ? get_class($class) : $class;
                 $reflector = new ReflectionMethod($class, $method);
@@ -97,10 +115,13 @@ class ParameterResolver
                 $providedParameters = $this->parseAttributes($reflector, $providedParameters);
             }
 
-            if ( ! isset($reflector)) {
+            if ( ! isset($reflector))
+            {
                 throw new ReflectionException();
             }
-        } catch (ReflectionException) {
+        }
+        catch (ReflectionException)
+        {
             throw ResolverException::invalidCallable($callable);
         }
 
@@ -110,9 +131,12 @@ class ParameterResolver
 
         $names = array_map(fn($p) => $p->getName(), $reflParams);
 
-        foreach (array_keys($providedParameters) as $name) {
-            if (is_string($name)) {
-                if ( ! in_array($name, $names)) {
+        foreach (array_keys($providedParameters) as $name)
+        {
+            if (is_string($name))
+            {
+                if ( ! in_array($name, $names))
+                {
                     throw new ResolverException('Invalid provided param name: ' . $name);
                 }
             }
@@ -121,7 +145,8 @@ class ParameterResolver
         $provided = $providedParameters;
         $params = [];
 
-        foreach ($reflParams as $index => $reflParam) {
+        foreach ($reflParams as $index => $reflParam)
+        {
 
             $name = $names[$index];
 
@@ -129,43 +154,51 @@ class ParameterResolver
 
             $nullable = $reflParam->allowsNull();
 
-            if ($reflParam->isVariadic()) {
+            if ($reflParam->isVariadic())
+            {
 
-                if (empty($provided)) {
+                if (empty($provided))
+                {
                     continue;
                 }
 
 
-                if (array_key_exists($name, $provided)) {
+                if (array_key_exists($name, $provided))
+                {
 
                     $providedParams = is_array($provided[$name]) ? $provided[$name] : [$provided[$name]];
 
-                    foreach ($providedParams as $value) {
+                    foreach ($providedParams as $value)
+                    {
                         $params[] = $value;
                     }
                     continue;
                 }
 
-                while ($value = array_shift($provided)) {
+                while ($value = array_shift($provided))
+                {
                     $params[] = $value;
                 }
                 continue;
             }
 
-            if (array_key_exists($name, $provided)) {
+            if (array_key_exists($name, $provided))
+            {
                 $params[$index] = $provided[$name];
                 unset($provided[$name]);
                 continue;
             }
 
-            if (array_key_exists($index, $provided)) {
+            if (array_key_exists($index, $provided))
+            {
                 $params[$index] = $provided[$index];
                 unset($provided[$index]);
                 continue;
             }
 
             // Values passed by reference not working excepts if ignoring param when param as default value
-            if ( ! $reflParam->canBePassedByValue()) {
+            if ( ! $reflParam->canBePassedByValue())
+            {
 
                 throw new ResolverException(
                                 sprintf('Cannot resolve Argument #%d (&$%s) that can only be passed by reference.',
@@ -174,34 +207,47 @@ class ParameterResolver
                 );
             }
 
-            if ($type = $reflParam->getType()) {
-                if ($type instanceof ReflectionIntersectionType) {
-                    throw new ResolverException(
-                                    sprintf('Cannot resolve intersection type param #%d: $%s',
-                                            $index,
-                                            $name
-                                    )
-                    );
-                }
+            if ($type = $reflParam->getType())
+            {
 
                 // a small hack to get union/named type as array
-                foreach (explode('|', (string) $type) as $dep) {
+                foreach (explode('|', (string) $type) as $dep)
+                {
+                    // php 8.2 DNF
+                    // @link https://www.php.net/releases/8.2/en.php
+                    // will catch DNF (ArrayAccess&Countable)|MyOtherType
+                    // and IntersectionType  Type1&Type2
+                    // so if intersection type but default value available
+                    // that will not throw an error
+                    if (str_contains($dep, '&'))
+                    {
+                        continue;
+                    }
+
+
                     // ?ClassName
-                    if (str_starts_with($dep, '?')) {
+                    if (str_starts_with($dep, '?'))
+                    {
                         $dep = substr($dep, 1);
                         $nullable = true;
                     }
                     // careful there on Circular dependency when instanciating
-                    if ($dep === 'self') {
+                    if ($dep === 'self')
+                    {
                         $dep = $reflParam->getDeclaringClass()->getName();
-                    } elseif (in_array($dep, $builtin)) {
+                    }
+                    elseif (in_array($dep, $builtin))
+                    {
                         continue;
                     }
 
-                    try {
+                    try
+                    {
                         $params[$index] = $this->container->get($dep);
                         continue 2;
-                    } catch (ContainerExceptionInterface) {
+                    }
+                    catch (ContainerExceptionInterface)
+                    {
 
                     }
                 }
@@ -209,25 +255,31 @@ class ParameterResolver
 
 
 
-            if ($reflParam->isDefaultValueAvailable()) {
+            if ($reflParam->isDefaultValueAvailable())
+            {
 
-                try {
+                try
+                {
                     $params[$index] = $reflParam->getDefaultValue();
                     continue;
-                } catch (ReflectionException) {
+                }
+                catch (ReflectionException)
+                {
 
                 }
             }
 
 
             // legacy support for Closure without type on first parameter (injects Container)
-            if ($reflector instanceof ReflectionFunction && $index === 0 && ! $type) {
+            if ($reflector instanceof ReflectionFunction && $index === 0 && ! $type)
+            {
                 $params[$index] = $this->container;
                 continue;
             }
 
 
-            if ($nullable) {
+            if ($nullable)
+            {
                 $params[$index] = null;
                 continue;
             }
@@ -244,7 +296,8 @@ class ParameterResolver
 
 
         // Closure(...$params)
-        if ($reflector instanceof ReflectionFunction) {
+        if ($reflector instanceof ReflectionFunction)
+        {
             return $reflector->invokeArgs($params);
         }
 
@@ -252,17 +305,20 @@ class ParameterResolver
 
 
         // new Classname(...$params)
-        if ( ! isset($method)) {
+        if ( ! isset($method))
+        {
             return (new ReflectionClass($class))->newInstanceArgs($params);
         }
 
         // static method
-        if ($reflector->isStatic()) {
+        if ($reflector->isStatic())
+        {
             return $className::{$method}(...array_values($params));
         }
 
         // [Classname, Method]
-        if ( ! is_object($class)) {
+        if ( ! is_object($class))
+        {
             $class = $this->container->get($className);
         }
         // $instance->method(...$params)
