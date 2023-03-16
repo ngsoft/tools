@@ -510,7 +510,7 @@ if ( ! function_exists('array_get'))
                 return value($default);
             }
 
-            $array = $array[$segment] ?? null;
+            $array = $array[$segment];
         }
 
 
