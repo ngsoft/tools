@@ -505,8 +505,7 @@ if ( ! function_exists('array_get'))
 
         foreach (explode('.', $key) as $segment)
         {
-
-            if ( ! is_array($array) && $array instanceof ArrayAccess === false)
+            if ( ! isset($array, $array[$segment]))
             {
                 return value($default);
             }
