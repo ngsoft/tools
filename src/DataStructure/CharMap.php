@@ -205,12 +205,12 @@ class CharMap implements Stringable, Countable
         return $this->count() === 0;
     }
 
-    public function toString(): string
+    public function __toString(): string
     {
         return $this->string;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->string;
     }
