@@ -99,17 +99,17 @@ class CharMap implements Stringable, Countable
     protected function scan(): void
     {
 
-        if ( ! $this->map->isLocked())
+        if ($this->map->isLocked())
         {
             return;
         }
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++)
+        for ($offset = 0; $offset < $this->length; $offset ++ )
         {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++)
+            for ($byte = 0; $byte < strlen($char); $byte ++ )
             {
                 $this->map->add($index, $offset);
                 $index ++;
