@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NGSOFT\Tools;
+namespace NGSOFT\DataStructure;
 
 use Countable,
     NGSOFT\DataStructure\Map,
@@ -35,7 +35,8 @@ class CharMap implements Stringable, Countable
 
         static $empty;
 
-        if ($string !== '') {
+        if ($string !== '')
+        {
             return self::$_instances[$string] ??= new static($string);
         }
 
@@ -48,10 +49,13 @@ class CharMap implements Stringable, Countable
      */
     public static function getCharOffset(string $string, int $byte): int
     {
-        try {
+        try
+        {
 
             return static::create($string)->convertByteOffset($byte);
-        } catch (OutOfRangeException | RuntimeException) {
+        }
+        catch (OutOfRangeException | RuntimeException)
+        {
             return -1;
         }
     }
@@ -62,9 +66,12 @@ class CharMap implements Stringable, Countable
      */
     public static function getByteOffset(string $string, int $char): int
     {
-        try {
+        try
+        {
             return static::create($string)->convertCharacterOffset($char);
-        } catch (OutOfRangeException | RuntimeException) {
+        }
+        catch (OutOfRangeException | RuntimeException)
+        {
             return -1;
         }
     }
@@ -92,15 +99,18 @@ class CharMap implements Stringable, Countable
     protected function scan(): void
     {
 
-        if ( ! $this->map->isLocked()) {
+        if ( ! $this->map->isLocked())
+        {
             return;
         }
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++ ) {
+        for ($offset = 0; $offset < $this->length; $offset ++)
+        {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++ ) {
+            for ($byte = 0; $byte < strlen($char); $byte ++)
+            {
                 $this->map->add($index, $offset);
                 $index ++;
             }
@@ -115,20 +125,24 @@ class CharMap implements Stringable, Countable
     public function convertByteOffset(int $byte): int
     {
 
-        if (0 === $byte) {
+        if (0 === $byte)
+        {
             return $byte;
         }
 
 
-        if ($this->isEmpty() || ! in_range($byte, 0, $this->size - 1)) {
+        if ($this->isEmpty() || ! in_range($byte, 0, $this->size - 1))
+        {
             throw new OutOfRangeException(sprintf('Byte offset %d is invalid [ 0-%d ].', $byte, $this->size - 1));
         }
 
-        if ($this->size === $this->length) {
+        if ($this->size === $this->length)
+        {
             return $byte;
         }
 
-        if (null === $offset = $this->getMap()->get($byte)) {
+        if (null === $offset = $this->getMap()->get($byte))
+        {
 
             throw new RuntimeException(sprintf('Cannot find offset for byte #%d.', $byte));
         }
@@ -141,19 +155,23 @@ class CharMap implements Stringable, Countable
      */
     public function convertCharacterOffset(int $char): int
     {
-        if (0 === $char) {
+        if (0 === $char)
+        {
             return $char;
         }
 
-        if ($this->isEmpty() || ! in_range($char, 0, $this->length - 1)) {
+        if ($this->isEmpty() || ! in_range($char, 0, $this->length - 1))
+        {
             throw new OutOfRangeException(sprintf('Character offset %d is invalid [ 0-%d ].', $char, $this->length - 1));
         }
 
-        if ($this->size === $this->length) {
+        if ($this->size === $this->length)
+        {
             return $char;
         }
 
-        if (null === $offset = $this->getMap()->search($char)) {
+        if (null === $offset = $this->getMap()->search($char))
+        {
             throw new RuntimeException(sprintf('Cannot find offset for character #%d.', $char));
         }
 
