@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\DataStructure;
 
 use Countable,
-    NGSOFT\DataStructure\Map,
     OutOfRangeException,
     RuntimeException,
     Stringable;
@@ -106,10 +105,10 @@ class CharMap implements Stringable, Countable
 
 
         $index = 0;
-        for ($offset = 0; $offset < $this->length; $offset ++ )
+        for ($offset = 0; $offset < $this->length; $offset ++)
         {
             $char = mb_substr($this->string, $offset, 1);
-            for ($byte = 0; $byte < strlen($char); $byte ++ )
+            for ($byte = 0; $byte < strlen($char); $byte ++)
             {
                 $this->map->add($index, $offset);
                 $index ++;
