@@ -191,7 +191,7 @@ class TypeCheck
     protected static function checkOneType(mixed $value, string $type): bool
     {
         static
-        $builtin = ['array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed', 'null', 'false', 'true',],
+        // $builtin = ['array', 'callable', 'bool', 'float', 'int', 'string', 'iterable', 'object', 'mixed', 'null', 'false', 'true',],
         $checks = ['object' => 'is_object', 'iterable' => 'is_iterable', 'callable' => 'is_callable',],
         $aliases = ['boolean' => 'bool', 'integer' => 'int', 'double' => 'float', 'NULL' => 'null',];
 
@@ -221,7 +221,10 @@ class TypeCheck
         {
             return $value === false;
         }
-
+        if ($type === 'true')
+        {
+            return $value === true;
+        }
 
         if (class_exists($type) || interface_exists($type))
         {
