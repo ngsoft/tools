@@ -6,12 +6,13 @@ namespace NGSOFT\Tools;
 
 use ArrayAccess;
 use NGSOFT\{
-    DataStructure\Text, Tools
+    Text, Tools
 };
 use Stringable;
 use const NAMESPACE_SEPARATOR;
 
-if (defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'MICROSECOND')) {
+if (defined(__NAMESPACE__ . NAMESPACE_SEPARATOR . 'MICROSECOND'))
+{
     return;
 }
 

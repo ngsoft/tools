@@ -6,6 +6,9 @@ namespace NGSOFT\Traits;
 
 /**
  * Use this trait for clone utilities
+ *
+ * 
+ * @phan-file-suppress PhanTypeMismatchReturn
  */
 trait CloneUtils
 {
