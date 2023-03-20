@@ -484,4 +484,159 @@ class Text implements Stringable, Countable, IteratorAggregate
         return SimpleIterator::of(preg_exec($pattern, $this->text, 0), true);
     }
 
+    /**
+     * Utility function for pads
+     */
+    protected function getPadding(int $length, string $padString): string
+    {
+
+        if ($padString === '' || $length < 1)
+        {
+            return '';
+        }
+
+        $str = '';
+        while (mb_strlen($str, $this->encoding) < $length)
+        {
+            $str .= $padString;
+        }
+
+        return mb_substr($str, 0, $length, $this->encoding);
+    }
+
+    /**
+     * The padStart() method pads the current string with another string (multiple times, if needed) until the resulting string reaches the given length.
+     * The padding is applied from the start of the current string.
+     */
+    public function padStart(int $targetLength, mixed $padString = ' '): static
+    {
+        $length = $this->length - $targetLength;
+        $padString = str_val($padString);
+
+        if ($length < 1 || '' === $padString)
+        {
+            return $this;
+        }
+
+
+        return $this->withText($this->getPadding($length, $padString) . $this->text);
+    }
+
+    /**
+     * The padEnd() method pads the current string with a given string (repeated, if needed) so that the resulting string reaches a given length.
+     * The padding is applied from the end of the current string.
+     */
+    public function padEnd(int $targetLength, mixed $padString = ' '): static
+    {
+        $length = $this->length - $targetLength;
+        $padString = str_val($padString);
+
+        if ($length < 1 || '' === $padString)
+        {
+            return $this;
+        }
+
+
+        return $this->withText($this->text . $this->getPadding($length, $padString));
+    }
+
+    /**
+     * The padEnd() method pads the current string with a given string (repeated, if needed) so that the resulting string reaches a given length.
+     * The padding is applied to the start and the end of the current string.
+     */
+    public function pad(int $targetLength, mixed $padString = ' '): static
+    {
+
+        $length = $this->length - $targetLength;
+        $padString = str_val($padString);
+
+        if ($length < 1 || '' === $padString)
+        {
+            return $this;
+        }
+
+        $endPad = $this->length + intval(ceil($length / 2));
+
+        return $this->padEnd($endPad, $padString)->padStart($targetLength, $padString);
+    }
+
+    /**
+     * The repeat() method constructs and returns a new string which contains the specified number of copies of the string on which it was called,
+     * concatenated together.
+     */
+    public function repeat(int $times): static
+    {
+
+        if ($times < 2)
+        {
+            return $this;
+        }
+
+        $str = '';
+
+        for ($i = 0; $i < $times; $i ++ )
+        {
+            $str .= $this->text;
+        }
+
+        return $this->withText($str);
+    }
+
+    /**
+     * Replace the first occurrence of a given value in the string.
+     */
+    public function replace(mixed $search, mixed $replacement): static
+    {
+
+        [$str, $index] = $this->indexOfTuple($search = str_val($search), 0);
+
+        if (-1 === $index)
+        {
+            return $this;
+        }
+
+        $replacement = str_val($replacement);
+
+        return $this->withText(
+                        mb_substr($this->text, 0, $index, $this->encoding) .
+                        $replacement .
+                        mb_substr($this->text, $index + mb_strlen($str, $this->encoding), encoding: $this->encoding)
+        );
+    }
+
+    /**
+     * The replaceAll() method returns a new string with all matches of a pattern replaced by a replacement.
+     * The pattern can be a string or a RegExp, and the replacement can be a string or a function to be called for each match.
+     */
+    public function replaceAll(mixed $search, mixed $replacement): static
+    {
+
+        $search = str_val($search);
+
+        if ($search === '')
+        {
+            return $this;
+        }
+
+        if ($replacement instanceof \Closure === false)
+        {
+            $replacement = str_val($replacement);
+        }
+
+
+
+        if (preg_valid($search))
+        {
+
+            if ($replacement instanceof \Closure)
+            {
+                return $this->withText(preg_replace_callback($search, $replacement, $this->text));
+            }
+            return $this->withText(preg_replace($search, $replacement, $this->text));
+        }
+
+
+        return $this->withText(str_replace($search, value($replacement, $search), $this->text));
+    }
+
 }
