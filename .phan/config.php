@@ -85,6 +85,7 @@ return [
         'PhanAbstractStaticMethodCallInStatic',
         'PhanTypeMismatchArgumentNullableInternal',
         'PhanTypeInstantiateAbstractStatic',
+        'PhanParamTooFewInternalUnpack',
     ],
     // If true, seemingly undeclared variables in the global
     // scope will be ignored.
