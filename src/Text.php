@@ -6,11 +6,21 @@ namespace NGSOFT;
 
 use Countable,
     IteratorAggregate;
-use NGSOFT\Traits\{
-    CloneUtils, ReversibleIteratorTrait
+use NGSOFT\{
+    DataStructure\SimpleIterator, Traits\CloneUtils
 };
-use Stringable;
-use function mb_strlen;
+use Stringable,
+    Traversable;
+use function in_range,
+             mb_strlen,
+             mb_strpos,
+             mb_strtolower,
+             mb_strtoupper,
+             mb_substr,
+             NGSOFT\Tools\every,
+             preg_exec,
+             preg_valid,
+             str_val;
 
 /**
  * A String manipulation utility that implements the best of Python and JavaScript
@@ -94,10 +104,10 @@ class Text implements Stringable, Countable, IteratorAggregate
             else
             {
                 // build char map
-                for ($offset = 0; $offset < $this->length; $offset ++)
+                for ($offset = 0; $offset < $this->length; $offset ++ )
                 {
-                    $char = mb_substr($this->text, $offset, 1, $this->encoding);
-                    for ($byte = 0; $byte < strlen($char); $byte ++)
+                    $char = $this->at($offset);
+                    for ($byte = 0; $byte < strlen($char); $byte ++ )
                     {
                         $this->map[] = $offset;
                     }
@@ -131,15 +141,15 @@ class Text implements Stringable, Countable, IteratorAggregate
         return $this->getMap()[$offset] ?? -1;
     }
 
-    public function getIterator(): \Traversable
+    public function getIterator(): Traversable
     {
 
         if ($this->length > 0)
         {
-            for ($offset = 0; $offset < $this->length; $offset ++)
+            for ($offset = 0; $offset < $this->length; $offset ++ )
             {
 
-                yield mb_substr($this->text, $offset, 1, $this->encoding);
+                yield $this->at($offset);
             }
         }
     }
@@ -216,11 +226,27 @@ class Text implements Stringable, Countable, IteratorAggregate
         return $this->size;
     }
 
+    /**
+     * Get a new instance with given text
+     */
+    public function withText(mixed $text): static
+    {
+        return $this->clone()->initialize($text);
+    }
+
+    /**
+     * Get a new instance with specified encoding
+     */
+    public function withEncoding(string $encoding): static
+    {
+        return $this->with(encoding: $encoding)->initialize($this->text);
+    }
+
     ////////////////////////////   JS Implementation (with some modifications)   ////////////////////////////
 
-
-
-
+    /**
+     * returns a tuple [string, int]
+     */
     protected function indexOfTuple(string $needle, int $offset): array
     {
 
@@ -246,6 +272,20 @@ class Text implements Stringable, Countable, IteratorAggregate
         }
 
         return [$needle, $result];
+    }
+
+    /**
+     * transforms negative offsets into positive ones
+     */
+    protected function translateOffset(int $offset): int
+    {
+
+        if ($offset < 0)
+        {
+            $offset += $this->length;
+        }
+
+        return $offset;
     }
 
     /**
@@ -304,6 +344,144 @@ class Text implements Stringable, Countable, IteratorAggregate
 
 
         return $result;
+    }
+
+    /**
+     * The at() method takes an integer value and returns the character located at the specified offset
+     */
+    public function at(int $offset = 0): string
+    {
+
+        $offset = $this->translateOffset($offset);
+
+        if ( ! in_range($offset, 0, $this->length - 1))
+        {
+            return '';
+        }
+
+        return mb_substr($this->text, $offset, 1, $this->encoding);
+    }
+
+    /**
+     * The concat() method concatenates the string arguments to the current Text and returns a new instance
+     */
+    public function concat(mixed ...$strings): static
+    {
+        $str = $this->text;
+        foreach ($strings as $string)
+        {
+            $str .= str_val($string);
+        }
+
+        return $this->withText($str);
+    }
+
+    /**
+     * Converts Text to lower case
+     */
+    public function toLowerCase(): static
+    {
+        return $this->withText(mb_strtolower($this->text, $this->encoding));
+    }
+
+    /**
+     * Converts Text to upper case
+     */
+    public function toUpperCase(): static
+    {
+        return $this->withText(mb_strtoupper($this->text, $this->encoding));
+    }
+
+    /**
+     * Returns a tuple of arguments
+     */
+    protected function caselessArgs(string $needle, bool $caseless): array
+    {
+        if ($caseless)
+        {
+            return [mb_strtolower($this->text, $this->encoding), mb_strtolower($needle, $this->encoding)];
+        }
+
+        return [$this->text, $needle];
+    }
+
+    /**
+     * The endsWith() method determines whether a string ends with the characters of a specified string, returning true or false as appropriate.
+     */
+    public function endsWith(mixed $needle, bool $caseless = false): bool
+    {
+        if ('' === $needle = str_val($needle))
+        {
+            return false;
+        }
+
+
+        return str_ends_with(...$this->caselessArgs($needle, $caseless));
+    }
+
+    /**
+     * The startsWith() method determines whether a string begins with the characters of a specified string, returning true or false as appropriate.
+     */
+    public function startsWith(mixed $needle, bool $caseless = false): bool
+    {
+        if ('' === $needle = str_val($needle))
+        {
+            return false;
+        }
+
+        return str_starts_with(...$this->caselessArgs($needle, $caseless));
+    }
+
+    /**
+     * The contains() method performs a search to determine whether one string may be found within another string/regex,
+     * returning true or false as appropriate.
+     */
+    public function contains(mixed $needle, bool $caseless = false): bool
+    {
+        if ('' === $needle = str_val($needle))
+        {
+            return false;
+        }
+
+        if (preg_valid($needle))
+        {
+            return preg_match($needle, $this->text) > 0;
+        }
+
+        return str_contains(...$this->caselessArgs($needle, $caseless));
+    }
+
+    /**
+     * The includes() method performs a case-sensitive search to determine whether one string may be found within another string, returning true or false as appropriate.
+     */
+    public function includes(mixed $needle): bool
+    {
+        return $this->contains($needle);
+    }
+
+    /**
+     * The containsAll() method performs a search to determine whether one string may be found within multiple other string/regex,
+     * returning true or false as appropriate.
+     */
+    public function containsAll(iterable $needles, bool $caseless = false): bool
+    {
+        return every(fn($needle) => $this->contains($needle, $caseless), $needles);
+    }
+
+    /**
+     * The match() method retrieves the result of matching a string against a regular expression.
+     */
+    public function match(string $pattern): array
+    {
+        return preg_exec($pattern, $this->text);
+    }
+
+    /**
+     * The matchAll() method returns an iterator of all results matching a string against a regular expression, including capturing groups.
+     */
+    public function matchAll(string $pattern): \Traversable
+    {
+        return SimpleIterator::of(preg_exec($pattern, $this->text, 0), true);
     }
 
 }
