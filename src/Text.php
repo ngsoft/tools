@@ -104,10 +104,10 @@ class Text implements Stringable, Countable, IteratorAggregate
             else
             {
                 // build char map
-                for ($offset = 0; $offset < $this->length; $offset ++ )
+                for ($offset = 0; $offset < $this->length; $offset ++)
                 {
                     $char = $this->at($offset);
-                    for ($byte = 0; $byte < strlen($char); $byte ++ )
+                    for ($byte = 0; $byte < strlen($char); $byte ++)
                     {
                         $this->map[] = $offset;
                     }
@@ -146,7 +146,7 @@ class Text implements Stringable, Countable, IteratorAggregate
 
         if ($this->length > 0)
         {
-            for ($offset = 0; $offset < $this->length; $offset ++ )
+            for ($offset = 0; $offset < $this->length; $offset ++)
             {
 
                 yield $this->at($offset);
@@ -574,7 +574,7 @@ class Text implements Stringable, Countable, IteratorAggregate
 
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ )
+        for ($i = 0; $i < $times; $i ++)
         {
             $str .= $this->text;
         }
@@ -623,8 +623,6 @@ class Text implements Stringable, Countable, IteratorAggregate
             $replacement = str_val($replacement);
         }
 
-
-
         if (preg_valid($search))
         {
 
@@ -637,6 +635,88 @@ class Text implements Stringable, Countable, IteratorAggregate
 
 
         return $this->withText(str_replace($search, value($replacement, $search), $this->text));
+    }
+
+    /**
+     * The substring() method returns the part of the string from the start index up to and excluding the end index,
+     * or to the end of the string if no end index is supplied.
+     */
+    public function substring(int $indexStart, ?int $indexEnd = null): static
+    {
+        if (is_null($indexEnd))
+        {
+            $indexEnd = $this->length;
+        }
+
+
+        if ($indexStart === $indexEnd)
+        {
+            return $this->withText('');
+        }
+
+        if ($indexStart > $indexEnd)
+        {
+            [$indexEnd, $indexStart] = [$indexStart, $indexEnd];
+        }
+
+        $str = '';
+        for ($i = $indexStart; $i < $indexEnd; $i ++)
+        {
+
+            if ($i >= $this->length)
+            {
+                break;
+            }
+
+            if ($i < 0)
+            {
+                continue;
+            }
+
+            $str .= $this->at($i);
+        }
+
+
+        return $this->withText($str);
+    }
+
+    /**
+     * The slice() method extracts a section of a string and returns it as a new string
+     */
+    public function slice(int $indexStart, ?int $indexEnd = null): static
+    {
+        if (is_null($indexEnd))
+        {
+            $indexEnd = $this->length;
+        }
+
+        [$indexStart, $indexEnd] = [$this->translateOffset($indexStart), $this->translateOffset($indexEnd)];
+
+        if ($indexEnd <= $indexStart)
+        {
+            return $this->withText('');
+        }
+
+
+        $str = '';
+        for ($i = $indexStart; $i < $indexEnd; $i ++)
+        {
+
+            if ($i >= $this->length)
+            {
+                break;
+            }
+
+            if ($i < 0)
+            {
+                continue;
+            }
+
+            $str .= $this->at($i);
+        }
+
+
+        return $this->withText($str);
     }
 
 }
