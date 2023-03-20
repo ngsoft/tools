@@ -363,6 +363,14 @@ class Text implements Stringable, Countable, IteratorAggregate
     }
 
     /**
+     * The charAt() method takes an integer value and returns the character located at the specified offset as a text instance
+     */
+    public function charAt(int $offset = 0): static
+    {
+        return $this->withText($this->at($offset));
+    }
+
+    /**
      * The concat() method concatenates the string arguments to the current Text and returns a new instance
      */
     public function concat(mixed ...$strings): static
@@ -588,7 +596,7 @@ class Text implements Stringable, Countable, IteratorAggregate
     public function replace(mixed $search, mixed $replacement): static
     {
 
-        [$str, $index] = $this->indexOfTuple($search = str_val($search), 0);
+        [$str, $index] = $this->indexOfTuple(str_val($search), 0);
 
         if (-1 === $index)
         {
@@ -717,6 +725,45 @@ class Text implements Stringable, Countable, IteratorAggregate
 
 
         return $this->withText($str);
+    }
+
+    /**
+     * Helper method for trim
+     */
+    protected function getChars(mixed ...$chars): string
+    {
+
+        if (empty($chars))
+        {
+            // trim default value
+            return " \n\r\t\v\x00";
+        }
+
+        return implode('', array_map(fn(mixed $char): string => str_val($char), $chars));
+    }
+
+    /**
+     * The trim() method removes whitespace from both ends of a string and returns a new string
+     */
+    public function trim(mixed ...$chars): static
+    {
+        return $this->withText(trim($this->text, $this->getChars(...$chars)));
+    }
+
+    /**
+     * The trimStart() method removes whitespace from the beginning of a string and returns a new string
+     */
+    public function trimStart(mixed ...$chars): static
+    {
+        return $this->withText(ltrim($this->text, $this->getChars(...$chars)));
+    }
+
+    /**
+     * The trimEnd() method removes whitespace from the end of a string and returns a new string
+     */
+    public function trimEnd(mixed ...$chars): static
+    {
+        return $this->withText(rtrim($this->text, $this->getChars(...$chars)));
     }
 
 }
