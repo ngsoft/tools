@@ -1251,7 +1251,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
 
         if ( ! is_int($offset))
         {
-            throw new OutOfRangeException(sprintf('Offset does not exists'));
+            throw new OutOfRangeException('Offset does not exists');
         }
         $offset = $this->translateOffset($offset);
 

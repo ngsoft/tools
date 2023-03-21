@@ -11,8 +11,7 @@ use ArrayAccess,
     Stringable,
     Throwable,
     Traversable;
-use function class_basename,
-             preg_exec,
+use function preg_exec,
              preg_test;
 
 /**
@@ -138,7 +137,7 @@ final class Slice implements Stringable
     public function slice(array|ArrayAccess $value): array
     {
 
-        if (is_countable($value))
+        if ( ! is_countable($value))
         {
             throw new InvalidArgumentException('value is not countable.');
         }
