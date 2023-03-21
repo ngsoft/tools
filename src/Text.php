@@ -67,7 +67,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
     protected int $size;
 
     /**
-     * Hosts the multibyte char convertion map
+     * Hosts the multibyte char convertion map (for regex)
      * @var int[]
      */
     protected array $map;
@@ -183,6 +183,10 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
         }
     }
 
+    /**
+     * Count the number of occurences of value
+     * if no value supplied it will returns the lenght of the string (\Countable)
+     */
     public function count(mixed $value = null): int
     {
         if (null === $value)
@@ -597,7 +601,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
         }
 
 
-        return $this->withText($this->getPadding($length, $padString) . $this->text);
+        return $this->withText($this->getPadding($length, $padString), $this->text);
     }
 
     /**
@@ -615,7 +619,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
         }
 
 
-        return $this->withText($this->text . $this->getPadding($length, $padString));
+        return $this->withText($this->text, $this->getPadding($length, $padString));
     }
 
     /**
@@ -676,9 +680,9 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
         $replacement = str_val($replacement);
 
         return $this->withText(
-                        mb_substr($this->text, 0, $index, $this->encoding) .
-                        $replacement .
-                        mb_substr($this->text, $index + mb_strlen($str, $this->encoding), encoding: $this->encoding)
+                        $this->slice(0, $index),
+                        $replacement,
+                        $this->slice($index + mb_strlen($str, $this->encoding))
         );
     }
 
@@ -1011,9 +1015,6 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
             return $this;
         }
 
-
-
-
         if ($this->startsWith($prefix))
         {
             return $this->slice(mb_strlen($prefix, $this->encoding));
@@ -1307,6 +1308,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
         // we remove the slice
         if ($offset instanceof Slice)
         {
+
             // we split the text
             $segments = mb_str_split($this->text, encoding: $this->encoding);
 

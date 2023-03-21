@@ -167,13 +167,30 @@ final class Slice implements Stringable
 
     public function __toString(): string
     {
-        return sprintf(
-                '%s(%s,%s,%s)',
-                get_class($this),
-                json_encode($this->start),
-                json_encode($this->stop),
-                json_encode($this->step),
-        );
+
+
+        $str = '';
+
+        if ( ! is_null($this->start))
+        {
+            $str .= json_encode($this->start);
+        }
+
+        $str .= ':';
+
+        if ( ! is_null($this->stop))
+        {
+            $str .= json_encode($this->stop);
+        }
+
+        $str .= ':';
+
+        if ( ! is_null($this->step))
+        {
+            $str .= json_encode($this->step);
+        }
+
+        return $str;
     }
 
 }
