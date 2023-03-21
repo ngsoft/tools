@@ -133,10 +133,10 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
             else
             {
                 // build char map
-                for ($offset = 0; $offset < $this->length; $offset ++ )
+                for ($offset = 0; $offset < $this->length; $offset ++)
                 {
                     $char = $this->at($offset);
-                    for ($byte = 0; $byte < strlen($char); $byte ++ )
+                    for ($byte = 0; $byte < strlen($char); $byte ++)
                     {
                         $this->map[] = $offset;
                     }
@@ -175,7 +175,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
 
         if ($this->length > 0)
         {
-            for ($offset = 0; $offset < $this->length; $offset ++ )
+            for ($offset = 0; $offset < $this->length; $offset ++)
             {
 
                 yield $this->at($offset);
@@ -652,7 +652,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
 
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++ )
+        for ($i = 0; $i < $times; $i ++)
         {
             $str .= $this->text;
         }
@@ -738,7 +738,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
         }
 
         $str = '';
-        for ($i = $indexStart; $i < $indexEnd; $i ++ )
+        for ($i = $indexStart; $i < $indexEnd; $i ++)
         {
 
             if ($i >= $this->length)
@@ -777,7 +777,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
 
 
         $str = '';
-        for ($i = $indexStart; $i < $indexEnd; $i ++ )
+        for ($i = $indexStart; $i < $indexEnd; $i ++)
         {
 
             if ($i >= $this->length)
@@ -1054,7 +1054,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
 
         $str = '';
 
-        for ($i = -1; $i >= -$this->length; $i -- )
+        for ($i = -1; $i >= -$this->length; $i --)
         {
             $str .= $this->at($i);
         }
@@ -1239,6 +1239,7 @@ class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, Jso
     public function offsetSet(mixed $offset, mixed $value): void
     {
 
+        // we cannot use slice there, that would be illogic (5:10:2 where to replace?)
         if (is_numeric($offset))
         {
             $offset = intval($offset);
