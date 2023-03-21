@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-use Countable,
-    IteratorAggregate;
+use ArrayAccess,
+    Closure,
+    Countable,
+    IteratorAggregate,
+    JsonSerializable;
 use NGSOFT\{
-    DataStructure\SimpleIterator, Traits\CloneUtils
+    DataStructure\SimpleIterator, Text\Slice, Traits\CloneUtils
 };
-use Stringable,
+use OutOfRangeException,
+    Stringable,
     Traversable;
+use const MB_CASE_TITLE;
 use function in_range,
+             mb_convert_case,
+             mb_str_split,
              mb_strlen,
              mb_strpos,
              mb_strtolower,
@@ -19,13 +26,15 @@ use function in_range,
              mb_substr,
              NGSOFT\Tools\every,
              preg_exec,
+             preg_test,
              preg_valid,
-             str_val;
+             str_val,
+             value;
 
 /**
  * A String manipulation utility that implements the best of Python and JavaScript
  */
-class Text implements Stringable, Countable, IteratorAggregate
+class Text implements Stringable, Countable, IteratorAggregate, ArrayAccess, JsonSerializable
 {
 
     use CloneUtils;
@@ -88,6 +97,26 @@ class Text implements Stringable, Countable, IteratorAggregate
         return $this;
     }
 
+    public function __serialize(): array
+    {
+        return [$this->text, $this->encoding];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->encoding = $data[1];
+        $this->initialize($data[0]);
+    }
+
+    public function __debugInfo(): array
+    {
+
+        return [
+            'text' => $this->text,
+            'normalized' => trim(json_encode($this->text, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS), '"')
+        ];
+    }
+
     /**
      * get byte to multibyte char map
      */
@@ -104,10 +133,10 @@ class Text implements Stringable, Countable, IteratorAggregate
             else
             {
                 // build char map
-                for ($offset = 0; $offset < $this->length; $offset ++)
+                for ($offset = 0; $offset < $this->length; $offset ++ )
                 {
                     $char = $this->at($offset);
-                    for ($byte = 0; $byte < strlen($char); $byte ++)
+                    for ($byte = 0; $byte < strlen($char); $byte ++ )
                     {
                         $this->map[] = $offset;
                     }
@@ -146,7 +175,7 @@ class Text implements Stringable, Countable, IteratorAggregate
 
         if ($this->length > 0)
         {
-            for ($offset = 0; $offset < $this->length; $offset ++)
+            for ($offset = 0; $offset < $this->length; $offset ++ )
             {
 
                 yield $this->at($offset);
@@ -179,6 +208,19 @@ class Text implements Stringable, Countable, IteratorAggregate
             $offset += mb_strlen($str, $this->encoding);
         }
         return $count;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->toString();
+    }
+
+    /**
+     * String representation of Text
+     */
+    public function toString(): string
+    {
+        return $this->text;
     }
 
     public function __toString(): string
@@ -227,10 +269,20 @@ class Text implements Stringable, Countable, IteratorAggregate
     }
 
     /**
-     * Get a new instance with given text
+     * Get a new instance with given merged texts
      */
-    public function withText(mixed $text): static
+    public function withText(mixed ...$text): static
     {
+        if (empty($text))
+        {
+            $text = '';
+        }
+        else
+        {
+            $text = implode('', array_map(fn($mixed) => str_val($mixed), $text));
+        }
+
+
         return $this->clone()->initialize($text);
     }
 
@@ -286,6 +338,14 @@ class Text implements Stringable, Countable, IteratorAggregate
         }
 
         return $offset;
+    }
+
+    /**
+     * The valueOf() method returns the primitive value of a Text object
+     */
+    public function valueOf(): string
+    {
+        return $this->text;
     }
 
     /**
@@ -352,9 +412,10 @@ class Text implements Stringable, Countable, IteratorAggregate
     public function at(int $offset = 0): string
     {
 
+
         $offset = $this->translateOffset($offset);
 
-        if ( ! in_range($offset, 0, $this->length - 1))
+        if ($this->isEmpty() || ! in_range($offset, 0, $this->length - 1))
         {
             return '';
         }
@@ -375,13 +436,7 @@ class Text implements Stringable, Countable, IteratorAggregate
      */
     public function concat(mixed ...$strings): static
     {
-        $str = $this->text;
-        foreach ($strings as $string)
-        {
-            $str .= str_val($string);
-        }
-
-        return $this->withText($str);
+        return $this->withText($this->text, ...$strings);
     }
 
     /**
@@ -418,6 +473,11 @@ class Text implements Stringable, Countable, IteratorAggregate
      */
     public function endsWith(mixed $needle, bool $caseless = false): bool
     {
+        if ($this->isEmpty())
+        {
+            return false;
+        }
+
         if ('' === $needle = str_val($needle))
         {
             return false;
@@ -432,6 +492,11 @@ class Text implements Stringable, Countable, IteratorAggregate
      */
     public function startsWith(mixed $needle, bool $caseless = false): bool
     {
+        if ($this->isEmpty())
+        {
+            return false;
+        }
+
         if ('' === $needle = str_val($needle))
         {
             return false;
@@ -446,6 +511,11 @@ class Text implements Stringable, Countable, IteratorAggregate
      */
     public function contains(mixed $needle, bool $caseless = false): bool
     {
+        if ($this->isEmpty())
+        {
+            return false;
+        }
+
         if ('' === $needle = str_val($needle))
         {
             return false;
@@ -582,7 +652,7 @@ class Text implements Stringable, Countable, IteratorAggregate
 
         $str = '';
 
-        for ($i = 0; $i < $times; $i ++)
+        for ($i = 0; $i < $times; $i ++ )
         {
             $str .= $this->text;
         }
@@ -626,7 +696,7 @@ class Text implements Stringable, Countable, IteratorAggregate
             return $this;
         }
 
-        if ($replacement instanceof \Closure === false)
+        if ($replacement instanceof Closure === false)
         {
             $replacement = str_val($replacement);
         }
@@ -634,7 +704,7 @@ class Text implements Stringable, Countable, IteratorAggregate
         if (preg_valid($search))
         {
 
-            if ($replacement instanceof \Closure)
+            if ($replacement instanceof Closure)
             {
                 return $this->withText(preg_replace_callback($search, $replacement, $this->text));
             }
@@ -668,7 +738,7 @@ class Text implements Stringable, Countable, IteratorAggregate
         }
 
         $str = '';
-        for ($i = $indexStart; $i < $indexEnd; $i ++)
+        for ($i = $indexStart; $i < $indexEnd; $i ++ )
         {
 
             if ($i >= $this->length)
@@ -707,7 +777,7 @@ class Text implements Stringable, Countable, IteratorAggregate
 
 
         $str = '';
-        for ($i = $indexStart; $i < $indexEnd; $i ++)
+        for ($i = $indexStart; $i < $indexEnd; $i ++ )
         {
 
             if ($i >= $this->length)
@@ -764,6 +834,490 @@ class Text implements Stringable, Countable, IteratorAggregate
     public function trimEnd(mixed ...$chars): static
     {
         return $this->withText(rtrim($this->text, $this->getChars(...$chars)));
+    }
+
+    /**
+     * The split() method takes a pattern and divides a String into an ordered list of substrings by searching for the pattern,
+     *  puts these substrings into an array, and returns the array.
+     */
+    public function split(mixed $separator = '', int $limit = PHP_INT_MAX): array
+    {
+        if ($limit <= 0)
+        {
+            return [];
+        }
+
+        $result = [];
+        $separator = str_val($separator);
+
+        if ($separator === '')
+        {
+            $result = mb_str_split($this->text, encoding: $this->encoding);
+        }
+        elseif (preg_valid($separator))
+        {
+            $result = preg_split($separator, $this->text);
+        }
+        else
+        {
+            $result = explode($separator, $this->text);
+        }
+
+        while (count($result) > $limit)
+        {
+            array_pop($result);
+        }
+        return array_map(fn(string $str) => $this->withText($str), $result);
+    }
+
+    ////////////////////////////   Python like methods (the ones that are not duplicates of JS)   ////////////////////////////
+
+    /**
+     * Return a copy of the string with its first character capitalized and the rest lowercased.
+     */
+    public function capitalize(): static
+    {
+
+        if ($this->isEmpty())
+        {
+            return $this;
+        }
+
+        return $this->withText($this->charAt()->toUpperCase(), $this->slice(1)->toLowerCase());
+    }
+
+    /**
+     * Return a copy of the string where all tab characters are replaced by one or more spaces
+     */
+    public function expandTabs(int $tabsize = 8): static
+    {
+        return $this->replaceAll('/\t/', $this->getPadding($tabsize, ' '));
+    }
+
+    /**
+     * Return True if all characters in the string are alphanumeric and there is at least one character, False otherwise
+     */
+    public function isAlnum(): bool
+    {
+        return ctype_alnum($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are alphabetic and there is at least one character, False otherwise.
+     */
+    public function isAlpha(): bool
+    {
+        return ctype_alpha($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are decimal characters and there is at least one character, False otherwise
+     */
+    public function isDecimal(): bool
+    {
+        return preg_test('#^\d+$#', $this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are digits and there is at least one character, False otherwise.
+     */
+    public function isDigit(): bool
+    {
+        return ctype_digit($this->text);
+    }
+
+    /**
+     * Return True if all cased characters in the string are lowercase and there is at least one cased character, False otherwise.
+     */
+    public function isLower(): bool
+    {
+        return preg_test('#[a-z]#', $this->text) && ! preg_test('#[A-Z]#', $this->text);
+    }
+
+    /**
+     * Finds whether a variable is a number or a numeric string
+     */
+    public function isNumeric(): bool
+    {
+        return is_numeric($this->text);
+    }
+
+    /**
+     * Return a titlecased version of the string where words start with an uppercase character and the remaining characters are lowercase.
+     */
+    public function title(): static
+    {
+        return $this->withText(mb_convert_case($this->text, MB_CASE_TITLE, $this->encoding));
+    }
+
+    /**
+     * Return True if the string is a titlecased string and there is at least one character,
+     * for example uppercase characters may only follow uncased characters and lowercase characters only cased ones.
+     * Return False otherwise.
+     */
+    public function isTitle(): bool
+    {
+        return preg_test('#[A-Z]#', $this->text) && $this->title()->toString() === $this->text;
+    }
+
+    /**
+     * Return True if there are only whitespace characters in the string and there is at least one character, False otherwise.
+     */
+    public function isSpace(): bool
+    {
+        return ctype_space($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are printable or the string is empty, False otherwise.
+     */
+    public function isPrintable(): bool
+    {
+        return $this->isEmpty() || ctype_print($this->text);
+    }
+
+    /**
+     * Checks if all of the characters in the provided Text,  are punctuation character.
+     */
+    public function isPunct(): bool
+    {
+        return ctype_punct($this->text);
+    }
+
+    /**
+     * Checks if all characters in Text are control characters
+     */
+    public function isControl(): bool
+    {
+        return ctype_cntrl($this->text);
+    }
+
+    /**
+     * Return True if all characters in the string are uppercase and there is at least one lowercase character, False otherwise.
+     */
+    public function isUpper(): bool
+    {
+        return ! preg_test('#[a-z]#', $this->text) && preg_test('#[A-Z]#', $this->text);
+    }
+
+    /**
+     * If the string starts with the prefix string,
+     * return string[len(prefix):]. Otherwise, return a copy of the original string:
+     */
+    public function removePrefix(mixed $prefix): static
+    {
+        if ($this->isEmpty() || empty($prefix = str_val($prefix)))
+        {
+            return $this;
+        }
+
+
+
+
+        if ($this->startsWith($prefix))
+        {
+            return $this->slice(mb_strlen($prefix, $this->encoding));
+        }
+
+        return $this;
+    }
+
+    /**
+     * If the string ends with the suffix string and that suffix is not empty, return string[:-len(suffix)].
+     * Otherwise, return a copy of the original string:
+     */
+    public function removeSuffix(mixed $suffix): static
+    {
+        if ($this->isEmpty() || empty($suffix = str_val($suffix)))
+        {
+            return $this;
+        }
+
+        if ($this->endsWith($suffix))
+        {
+            return $this->slice(0, - mb_strlen($suffix, $this->encoding));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Reverse the string
+     */
+    public function reverse(): static
+    {
+
+        if ($this->isEmpty())
+        {
+            return $this;
+        }
+
+        $str = '';
+
+        for ($i = -1; $i >= -$this->length; $i -- )
+        {
+            $str .= $this->at($i);
+        }
+        return $this->withText($str);
+    }
+
+    /**
+     * Return a copy of the string with uppercase characters converted to lowercase and vice versa.
+     */
+    public function swapCase(): static
+    {
+
+        $text = $this->text;
+        return $this->withText(mb_strtolower($text, $this->encoding) ^ mb_strtoupper($text, $this->encoding) ^ $text);
+    }
+
+    ////////////////////////////   PHP Methods   ////////////////////////////
+
+    /**
+     * Use sprintf to format string
+     *
+     * @phan-suppress PhanPluginPrintfVariableFormatString
+     */
+    public function format(mixed ...$args): static
+    {
+
+        if (count($args) && $this->indexOf('%') > -1)
+        {
+            return $this->withText(sprintf($this->text, ...$args));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use ucfirst on the string
+     */
+    public function upperFirst(): static
+    {
+        if ($this->isEmpty())
+        {
+            return $this;
+        }
+
+        return $this->withText($this->charAt(0)->toUpperCase(), $this->slice(1));
+    }
+
+    /**
+     * Use lcfirst on the string
+     */
+    public function lowerFirst(): static
+    {
+        if ($this->isEmpty())
+        {
+            return $this;
+        }
+
+        return $this->withText($this->charAt(0)->toLowerCase(), $this->slice(1));
+    }
+
+    /**
+     * Returns new Text with suffix added
+     */
+    public function append(mixed ...$suffix): static
+    {
+        return $this->concat(...$suffix);
+    }
+
+    /**
+     * Returns new Text with prefix added
+     */
+    public function prepend(mixed ...$prefix): static
+    {
+        $prefix[] = $this->text;
+        return $this->withText(...$prefix);
+    }
+
+    /**
+     * Checks if Text is base 64 encoded
+     */
+    public function isBase64(): bool
+    {
+
+        if ($this->isEmpty())
+        {
+            return false;
+        }
+
+        $b64 = @base64_decode($this->text, true);
+
+        return $b64 !== false && @base64_encode($b64) === $this->text;
+    }
+
+    /**
+     * Checks if string is hexadecimal number
+     */
+    public function ishexadecimal(): bool
+    {
+        return ctype_xdigit($this->text);
+    }
+
+    /**
+     * Returns a base64 encoded Text
+     */
+    public function toBase64(): static
+    {
+        return $this->withText(base64_encode($this->text));
+    }
+
+    /**
+     * Returns a base64 decoded Text
+     */
+    public function decodeBase64(): static
+    {
+
+        if ($this->isBase64())
+        {
+            return $this->withText(base64_decode($this->text));
+        }
+        return $this;
+    }
+
+    /**
+     * Checks if needle equals current text
+     */
+    public function isEqual(mixed $needle, bool $caseless = false): bool
+    {
+        $needle = str_val($needle);
+        if ($caseless)
+        {
+            return mb_strtolower($needle, $this->encoding) === $this->toLowerCase()->toString();
+        }
+
+        return $needle === $this->text;
+    }
+
+    ////////////////////////////   ArrayAccess/Slices   ////////////////////////////
+
+    public function offsetExists(mixed $offset): bool
+    {
+        return ! $this->offsetGet($offset)->isEmpty();
+    }
+
+    public function offsetGet(mixed $offset): static
+    {
+        if (is_numeric($offset))
+        {
+            $offset = intval($offset);
+        }
+
+        if (is_string($offset))
+        {
+            if ( ! Slice::isValid($offset))
+            {
+                throw new OutOfRangeException(sprintf('Offset %s does not exists', $offset));
+            }
+            $offset = Slice::of($offset);
+        }
+        elseif (is_int($offset))
+        {
+            return $this->charAt($offset);
+        }
+
+        // we can also use slice instances directly as offsets
+
+        if ($offset instanceof Slice)
+        {
+            $str = '';
+
+            foreach ($offset->getIteratorFor($this) as $index)
+            {
+                $str .= $this->at($index);
+            }
+
+            return $this->withText($str);
+        }
+
+        // empty text
+        return $this->withText('');
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+
+        if (is_numeric($offset))
+        {
+            $offset = intval($offset);
+        }
+        elseif (is_null($offset))
+        {
+            $offset = $this->length;
+        }
+
+        if ( ! is_int($offset))
+        {
+            throw new OutOfRangeException(sprintf('Offset does not exists'));
+        }
+        $offset = $this->translateOffset($offset);
+
+        if ($offset < 0)
+        {
+            return;
+        }
+
+        $value = str_val($value);
+
+        if ($offset >= $this->length)
+        {
+            // we add spaces until offset is reached
+            $str = $this->getPadding($offset - $this->length, ' ') . $value;
+            $this->initialize($this->text . $str);
+        }
+        else
+        {
+            // we insert value at offset removing only the char contained at that offset
+            $this->initialize($this->slice(0, $offset)->toString() . $value . $this->slice($offset + 1)->toString());
+        }
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+
+        if (is_numeric($offset))
+        {
+            $offset = intval($offset);
+        }
+
+
+        if (is_string($offset))
+        {
+            if ( ! Slice::isValid($offset))
+            {
+                throw new OutOfRangeException(sprintf('Offset %s does not exists', $offset));
+            }
+            $offset = Slice::of($offset);
+        }
+        elseif (is_int($offset))
+        {
+            $offset = $this->translateOffset($offset);
+
+            if ($offset < 0 || $offset >= $this->length)
+            {
+                return;
+            }
+            // we remove the offset (it gets reassigned)
+            $this->initialize($this->slice(0, $offset)->toString() . $this->slice($offset + 1)->toString());
+        }
+
+        // we remove the slice
+        if ($offset instanceof Slice)
+        {
+            // we split the text
+            $segments = mb_str_split($this->text, encoding: $this->encoding);
+
+            foreach ($offset->getIteratorFor($this) as $index)
+            {
+                // and removes the offsets one per one
+                unset($segments[$index]);
+            }
+
+
+            $this->initialize(implode('', $segments));
+        }
     }
 
 }
