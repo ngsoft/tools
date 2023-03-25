@@ -99,7 +99,7 @@ if ( ! function_exists('str_val'))
 
         if (is_numeric($value))
         {
-            return (string) $value;
+            return json_encode($value);
         }
 
 
@@ -258,7 +258,9 @@ if ( ! function_exists('preg_valid'))
             return false;
         }
         finally
-        { restore_error_handler(); }
+        {
+            restore_error_handler();
+        }
     }
 
 }
