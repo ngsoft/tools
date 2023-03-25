@@ -214,14 +214,6 @@ function safe(callable $callable, mixed ...$arguments): mixed
 }
 
 /**
- * Creates a Stringable from a scallar
- */
-function text(mixed $text): Text
-{
-    return Text::of($text);
-}
-
-/**
  * Joins iterable together using provided glue
  */
 function join(mixed $glue, iterable $values): string

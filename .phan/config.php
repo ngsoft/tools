@@ -1,6 +1,6 @@
 <?php
 
-$stubs = getenv('NBSTUBS') ?: '/mnt/c/shell/usr/lib/netbeans/vendor';
+$stubs = getenv('NBSTUBS') ?: ( DIRECTORY_SEPARATOR === '\\' ? 'c:/shell/usr/lib/netbeans/vendor' : '/mnt/c/shell/usr/lib/netbeans/vendor');
 $stubs .= '/';
 /**
  * This configuration will be read and overlaid on top of the
