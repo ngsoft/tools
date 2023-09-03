@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace NGSOFT\Timer;
 
-use Generator,
-    NGSOFT\DataStructure\Map;
+use NGSOFT\DataStructure\Map;
+use Psr\Clock\ClockInterface;
 
-class WatchFactory
+class WatchFactory implements ClockInterface
 {
-
     public const DEFAULT_WATCH = 'default';
 
     protected Map $map;
@@ -19,13 +18,18 @@ class WatchFactory
         $this->map = new Map();
     }
 
+    public function now(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable();
+    }
+
     /**
-     * Get a watch
+     * Get a watch.
      */
     public function getWatch(mixed $task = self::DEFAULT_WATCH): StopWatch
     {
-
-        if ( ! $this->map->has($task)) {
+        if ( ! $this->map->has($task))
+        {
             $instance = new StopWatch($task, $this->highResolution);
             $this->map->set($task, $instance);
         }
@@ -33,7 +37,7 @@ class WatchFactory
     }
 
     /**
-     * Reads the clock
+     * Reads the clock.
      */
     public function read(mixed $task = self::DEFAULT_WATCH): StopWatchResult
     {
@@ -41,7 +45,7 @@ class WatchFactory
     }
 
     /**
-     * Starts the clock
+     * Starts the clock.
      */
     public function start(mixed $task = self::DEFAULT_WATCH, int|float|null $startTime = null): bool
     {
@@ -49,9 +53,7 @@ class WatchFactory
     }
 
     /**
-     * Resumes the clock (only if paused)
-     *
-     * @return bool
+     * Resumes the clock (only if paused).
      */
     public function resume(mixed $task = self::DEFAULT_WATCH): bool
     {
@@ -59,7 +61,7 @@ class WatchFactory
     }
 
     /**
-     * Resets the clock
+     * Resets the clock.
      */
     public function reset(mixed $task = self::DEFAULT_WATCH): void
     {
@@ -67,7 +69,7 @@ class WatchFactory
     }
 
     /**
-     * Resets all the clocks
+     * Resets all the clocks.
      */
     public function resetAll(): void
     {
@@ -75,7 +77,7 @@ class WatchFactory
     }
 
     /**
-     * Pauses the clock
+     * Pauses the clock.
      */
     public function pause(mixed $task = self::DEFAULT_WATCH, bool &$success = null): StopWatchResult
     {
@@ -83,7 +85,7 @@ class WatchFactory
     }
 
     /**
-     * Stops the clock
+     * Stops the clock.
      */
     public function stop(mixed $task = self::DEFAULT_WATCH, bool &$success = null): StopWatchResult
     {
@@ -91,7 +93,7 @@ class WatchFactory
     }
 
     /**
-     * @return Generator|StopWatchResult[]
+     * @return \Generator|StopWatchResult[]
      */
     public function getLaps(mixed $task = self::DEFAULT_WATCH): iterable
     {
@@ -99,11 +101,10 @@ class WatchFactory
     }
 
     /**
-     * Adds a lap time
+     * Adds a lap time.
      */
     public function lap(mixed $task = self::DEFAULT_WATCH, ?string $label = null): bool
     {
         return $this->getWatch($task)->lap($label);
     }
-
 }
