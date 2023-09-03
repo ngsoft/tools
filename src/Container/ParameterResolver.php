@@ -4,69 +4,20 @@ declare(strict_types=1);
 
 namespace NGSOFT\Container;
 
-use Closure;
-use NGSOFT\Container\{
-    Attribute\Inject, Exceptions\ResolverException
-};
-use Psr\Container\ContainerExceptionInterface,
-    ReflectionAttribute,
-    ReflectionClass,
-    ReflectionException,
-    ReflectionFunction,
-    ReflectionMethod,
-    ReflectionParameter,
-    Throwable;
-use function is_instanciable,
-             str_contains,
-             str_starts_with;
+use NGSOFT\Container\Attribute\Inject;
+use NGSOFT\Container\Exceptions\ResolverException;
+use Psr\Container\ContainerExceptionInterface;
 
 class ParameterResolver
 {
-
     public function __construct(
-            protected ContainerInterface $container
-    )
-    {
-
+        protected ContainerInterface $container
+    ) {
     }
 
     public function canResolve(string $id, mixed $value): bool
     {
-        return is_instanciable($id) || $value !== null;
-    }
-
-    protected function parseAttributes(ReflectionMethod|ReflectionParameter $reflector, array $providedParameters): array
-    {
-
-        try
-        {
-            /** @var ReflectionAttribute $attribute */
-            /** @var Inject $inject */
-            foreach ($reflector->getAttributes(Inject::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute)
-            {
-                $inject = $attribute->newInstance();
-                if ($reflector instanceof ReflectionMethod)
-                {
-                    foreach ($inject->parameters as $index => $id)
-                    {
-                        $providedParameters[$index] ??= $this->container->get($id);
-                    }
-
-                    continue;
-                }
-
-                if ( ! empty($inject->name))
-                {
-                    $providedParameters[$reflector->getName()] ??= $this->container->get($inject->name);
-                }
-            }
-        }
-        catch (Throwable $prev)
-        {
-            throw new ResolverException(sprintf('Invalid attribute %s', $inject ?? '#[Inject]'), previous: $prev);
-        }
-
-        return $providedParameters;
+        return \is_instanciable($id) || null !== $value;
     }
 
     public function resolve(string|array|object $callable, array $providedParameters = []): mixed
@@ -79,57 +30,55 @@ class ParameterResolver
             'true',
         ];
 
-        $class = $method = null;
-        $className = null;
+        $class          = $method = null;
+        $className      = null;
 
         try
         {
-
             if (is_string($callable))
             {
-                $reflector = new ReflectionClass($className = $class = $callable);
+                $reflector = new \ReflectionClass($className = $class = $callable);
+
                 if ( ! $reflector->isInstantiable())
                 {
-                    throw new ReflectionException();
+                    throw new \ReflectionException();
                 }
+
                 if ( ! ($reflector = $reflector->getConstructor()))
                 {
                     return new $class();
                 }
-            }
-            elseif ($callable instanceof Closure)
+            } elseif ($callable instanceof \Closure)
             {
                 $reflector = new \ReflectionFunction($callable);
-            }
-            elseif (is_object($callable))
+            } elseif (is_object($callable))
             {
                 $callable = [$callable, '__invoke'];
             }
 
-            if (is_array($callable) && count($callable) === 2)
+            if (is_array($callable) && 2 === count($callable))
             {
-                [$class, $method] = $callable;
-                $className = is_object($class) ? get_class($class) : $class;
-                $reflector = new ReflectionMethod($class, $method);
+                [$class, $method]   = $callable;
+                $className          = is_object($class) ? get_class($class) : $class;
+                $reflector          = new \ReflectionMethod($class, $method);
 
                 $providedParameters = $this->parseAttributes($reflector, $providedParameters);
             }
 
             if ( ! isset($reflector))
             {
-                throw new ReflectionException();
+                throw new \ReflectionException();
             }
-        }
-        catch (ReflectionException)
+        } catch (\ReflectionException)
         {
             throw ResolverException::invalidCallable($callable);
         }
 
-        /** @var ReflectionMethod|ReflectionFunction $reflector */
-        /** @var ReflectionParameter[] $reflParams */
-        $reflParams = $reflector->getParameters();
+        /** @var \ReflectionFunction|\ReflectionMethod $reflector */
+        /** @var \ReflectionParameter[] $reflParams */
+        $reflParams     = $reflector->getParameters();
 
-        $names = array_map(fn($p) => $p->getName(), $reflParams);
+        $names          = array_map(fn ($p) => $p->getName(), $reflParams);
 
         foreach (array_keys($providedParameters) as $name)
         {
@@ -142,13 +91,12 @@ class ParameterResolver
             }
         }
 
-        $provided = $providedParameters;
-        $params = [];
+        $provided       = $providedParameters;
+        $params         = [];
 
         foreach ($reflParams as $index => $reflParam)
         {
-
-            $name = $names[$index];
+            $name     = $names[$index];
 
             $provided = $this->parseAttributes($reflParam, $provided);
 
@@ -156,16 +104,13 @@ class ParameterResolver
 
             if ($reflParam->isVariadic())
             {
-
                 if (empty($provided))
                 {
                     continue;
                 }
 
-
                 if (array_key_exists($name, $provided))
                 {
-
                     $providedParams = is_array($provided[$name]) ? $provided[$name] : [$provided[$name]];
 
                     foreach ($providedParams as $value)
@@ -199,17 +144,17 @@ class ParameterResolver
             // Values passed by reference not working excepts if ignoring param when param as default value
             if ( ! $reflParam->canBePassedByValue())
             {
-
                 throw new ResolverException(
-                                sprintf('Cannot resolve Argument #%d (&$%s) that can only be passed by reference.',
-                                        $index, $name
-                                )
+                    sprintf(
+                        'Cannot resolve Argument #%d (&$%s) that can only be passed by reference.',
+                        $index,
+                        $name
+                    )
                 );
             }
 
             if ($type = $reflParam->getType())
             {
-
                 // a small hack to get union/named type as array
                 foreach (explode('|', (string) $type) as $dep)
                 {
@@ -219,24 +164,23 @@ class ParameterResolver
                     // and IntersectionType  Type1&Type2
                     // so if intersection type but default value available
                     // will not throw an error
-                    if (str_contains($dep, '&'))
+                    if (\str_contains($dep, '&'))
                     {
                         continue;
                     }
 
-
                     // ?ClassName
-                    if (str_starts_with($dep, '?'))
+                    if (\str_starts_with($dep, '?'))
                     {
-                        $dep = substr($dep, 1);
+                        $dep      = substr($dep, 1);
                         $nullable = true;
                     }
+
                     // careful there on Circular dependency when instanciating
-                    if ($dep === 'self')
+                    if ('self' === $dep)
                     {
                         $dep = $reflParam->getDeclaringClass()->getName();
-                    }
-                    elseif (in_array($dep, $builtin))
+                    } elseif (in_array($dep, $builtin))
                     {
                         continue;
                     }
@@ -245,38 +189,29 @@ class ParameterResolver
                     {
                         $params[$index] = $this->container->get($dep);
                         continue 2;
-                    }
-                    catch (ContainerExceptionInterface)
+                    } catch (ContainerExceptionInterface)
                     {
-
                     }
                 }
             }
 
-
-
             if ($reflParam->isDefaultValueAvailable())
             {
-
                 try
                 {
                     $params[$index] = $reflParam->getDefaultValue();
                     continue;
-                }
-                catch (ReflectionException)
+                } catch (\ReflectionException)
                 {
-
                 }
             }
 
-
             // legacy support for Closure without type on first parameter (injects Container)
-            if ($reflector instanceof ReflectionFunction && $index === 0 && ! $type)
+            if ($reflector instanceof \ReflectionFunction && 0 === $index && ! $type)
             {
                 $params[$index] = $this->container;
                 continue;
             }
-
 
             if ($nullable)
             {
@@ -285,29 +220,27 @@ class ParameterResolver
             }
 
             throw new ResolverException(
-                            sprintf(
-                                    'Cannot resolve %s%s() Argument #%d ($%s) of type %s',
-                                    $className ? "$className::" : '',
-                                    $method ? $method : ($class ? '__construct' : Closure::class),
-                                    $index, $name, $type ?? 'mixed'
-                            )
+                sprintf(
+                    'Cannot resolve %s%s() Argument #%d ($%s) of type %s',
+                    $className ? "{$className}::" : '',
+                    $method ? $method : ($class ? '__construct' : \Closure::class),
+                    $index,
+                    $name,
+                    $type ?? 'mixed'
+                )
             );
         }
 
-
         // Closure(...$params)
-        if ($reflector instanceof ReflectionFunction)
+        if ($reflector instanceof \ReflectionFunction)
         {
             return $reflector->invokeArgs($params);
         }
 
-
-
-
         // new Classname(...$params)
         if ( ! isset($method))
         {
-            return (new ReflectionClass($class))->newInstanceArgs($params);
+            return (new \ReflectionClass($class))->newInstanceArgs($params);
         }
 
         // static method
@@ -325,4 +258,36 @@ class ParameterResolver
         return $reflector->invokeArgs($class, $params);
     }
 
+    protected function parseAttributes(\ReflectionMethod|\ReflectionParameter $reflector, array $providedParameters): array
+    {
+        try
+        {
+            /** @var \ReflectionAttribute $attribute */
+            /* @var Inject $inject */
+            foreach ($reflector->getAttributes(Inject::class, \ReflectionAttribute::IS_INSTANCEOF) as $attribute)
+            {
+                $inject = $attribute->newInstance();
+
+                if ($reflector instanceof \ReflectionMethod)
+                {
+                    foreach ($inject->parameters as $index => $id)
+                    {
+                        $providedParameters[$index] ??= $this->container->get($id);
+                    }
+
+                    continue;
+                }
+
+                if ( ! empty($inject->name))
+                {
+                    $providedParameters[$reflector->getName()] ??= $this->container->get($inject->name);
+                }
+            }
+        } catch (\Throwable $prev)
+        {
+            throw new ResolverException(sprintf('Invalid attribute %s', $inject ?? '#[Inject]'), previous: $prev);
+        }
+
+        return $providedParameters;
+    }
 }
