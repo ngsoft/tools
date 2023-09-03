@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace NGSOFT\Tools;
 
 use NGSOFT\Tools;
-use Stringable;
 
 if (defined(__NAMESPACE__ . \NAMESPACE_SEPARATOR . 'MICROSECOND'))
 {
