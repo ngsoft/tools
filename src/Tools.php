@@ -4,70 +4,53 @@ declare(strict_types=1);
 
 namespace NGSOFT;
 
-use ArrayAccess,
-    BadMethodCallException,
-    InvalidArgumentException,
-    NGSOFT\Filesystem\Directory,
-    ReflectionClass,
-    ReflectionClassConstant,
-    ReflectionException,
-    ReflectionMethod,
-    RuntimeException,
-    Stringable;
-use const SCRIPT_START;
-use function mb_strlen,
-             mb_substr,
-             set_default_error_handler;
-
 /**
- * Useful Functions to use in my projects
+ * Useful Functions to use in my projects.
  */
 final class Tools
 {
+    /**
+     * Package Version Information.
+     */
+    public const VERSION         = '4.0.0';
 
     /**
-     * Package Version Information
+     * URL Parser Regex.
+     *
+     * @see https://gist.github.com/dperini/729294 (with protocol required)
      */
-    public const VERSION = '3.0.4';
-
-    /**
-     * URL Parser Regex
-     * @link https://gist.github.com/dperini/729294 (with protocol required)
-     */
-    public const WEB_URL_REGEX = '/^(?:(?:(?:https?|ftp):)\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\x{00a1}-\x{ffff}][a-z0-9\x{00a1}-\x{ffff}_-]{0,62})?[a-z0-9\x{00a1}-\x{ffff}]\.)+(?:[a-z\x{00a1}-\x{ffff}]{2,}\.?))(?::\d{2,5})?(?:[\/?#]\S*)?$/iu';
+    public const WEB_URL_REGEX   = '/^(?:(?:(?:https?|ftp):)\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\x{00a1}-\x{ffff}][a-z0-9\x{00a1}-\x{ffff}_-]{0,62})?[a-z0-9\x{00a1}-\x{ffff}]\.)+(?:[a-z\x{00a1}-\x{ffff}]{2,}\.?))(?::\d{2,5})?(?:[\/?#]\S*)?$/iu';
     public const LOCAL_URL_REGEX = '/^(?:(?:(?:https?|ftp):)\/\/)(?:\S+(?::\S*)?@)?(?:(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:\.?[a-z0-9\x{00a1}-\x{ffff}][a-z0-9\x{00a1}-\x{ffff}_-]{0,62})?[a-z0-9\x{00a1}-\x{ffff}])+(?:(?:\.[a-z\x{00a1}-\x{ffff}]{2,})\.?)?)(?::\d{2,5})?(?:[\/?#]\S*)?$/iu';
 
     /**
-     * Time Constants (in seconds)
+     * Time Constants (in seconds).
      */
-    public const MICROSECOND = 1e-6;
-    public const MILLISECOND = 1e-3;
-    public const SECOND = 1;
-    public const MINUTE = 60;
-    public const HOUR = 3600;
-    public const DAY = 86400;
-    public const WEEK = 604800;
-    public const MONTH = 2628000;
-    public const YEAR = 31536000;
+    public const MICROSECOND     = 1e-6;
+    public const MILLISECOND     = 1e-3;
+    public const SECOND          = 1;
+    public const MINUTE          = 60;
+    public const HOUR            = 3600;
+    public const DAY             = 86400;
+    public const WEEK            = 604800;
+    public const MONTH           = 2628000;
+    public const YEAR            = 31536000;
 
     /**
      * Size Constants
-     * in bytes
+     * in bytes.
      */
-    public const KB = 1024;
-    public const MB = 1048576;
-    public const GB = 1073741824;
-    public const TB = 1099511627776;
+    public const KB              = 1024;
+    public const MB              = 1048576;
+    public const GB              = 1073741824;
+    public const TB              = 1099511627776;
 
-    ////////////////////////////   Error Handling   ////////////////////////////
+    // //////////////////////////   Error Handling   ////////////////////////////
 
     /**
      * Execute a callback and hides all php errors that can be thrown
-     * Exceptions thrown inside the callback will be preserved
+     * Exceptions thrown inside the callback will be preserved.
      *
-     * @param callable $callback
      * @param mixed $args args to be passed to the callback
-     * @return mixed
      */
     public static function safe_exec(callable $callback, mixed ...$args): mixed
     {
@@ -75,40 +58,36 @@ final class Tools
         {
             self::suppress_errors();
             return $callback(...$args);
+        } finally
+        {
+            restore_error_handler();
         }
-        finally
-        { restore_error_handler(); }
     }
 
     /**
-     * Convenient Function used to convert php errors, warning, ... as Throwable
-     * @return callable|null
+     * Convenient Function used to convert php errors, warning, ... as Throwable.
      */
-    public static function errors_as_exceptions(): callable|null
+    public static function errors_as_exceptions(): null|callable
     {
-        return set_default_error_handler();
+        return \set_default_error_handler();
     }
 
     /**
-     * Set error handler to empty closure (as of php 8.1 @ doesn't works anymore)
+     * Set error handler to empty closure (as of php 8.1 @ doesn't work anymore).
      *
      * @phan-suppress PhanTypeMismatchArgumentInternal
-     * @return callable|null
      */
-    public static function suppress_errors(): callable|null
+    public static function suppress_errors(): null|callable
     {
         static $handler;
-        $handler = $handler ?? static fn() => null;
+        $handler = $handler ?? static fn () => null;
         return set_error_handler($handler);
     }
 
-    ////////////////////////////   Files   ////////////////////////////
+    // //////////////////////////   Files   ////////////////////////////
 
     /**
-     * Normalize pathnames
-     *
-     * @param string $path
-     * @return string
+     * Normalize pathname.
      */
     public static function normalize_path(string $path): string
     {
@@ -121,46 +100,19 @@ final class Tools
 
         if (in_array($path[-1], ['\\', '/']))
         {
-            $path = mb_substr($path, 0, -1);
+            $path = \mb_substr($path, 0, -1);
         }
-
 
         return $path;
     }
 
-    /**
-     * Change the current active directory
-     * And stores the last position, use popd() to return to previous directory
-     * @param string $dir
-     * @return bool
-     */
-    public static function pushd(string $dir): bool
-    {
-        return Directory::pushd($dir) !== false;
-    }
+    // //////////////////////////   Iterables   ////////////////////////////
 
     /**
-     * Restore the last active directory changed by pushd
-     * @return string|false current directory
-     */
-    public static function popd(): string|false
-    {
-        $result = Directory::popd();
-        return $result === false ? false : $result->realpath();
-    }
-
-    ////////////////////////////   Iterables   ////////////////////////////
-
-    /**
-     * Uses callback for each elements of the array and returns the value
-     *
-     * @param callable $callback
-     * @param iterable $iterable
-     * @return iterable
+     * Uses callback for each element of the array and returns the value.
      */
     public static function each(callable $callback, iterable $iterable): iterable
     {
-
         foreach ($iterable as $key => $value)
         {
             $result = $callback($value, $key, $iterable);
@@ -169,11 +121,10 @@ final class Tools
     }
 
     /**
-     * Iterate iterable
+     * Iterate iterable.
      */
     public static function iterateAll(iterable $iterable): array
     {
-
         $result = [];
 
         foreach ($iterable as $index => $value)
@@ -190,11 +141,9 @@ final class Tools
     }
 
     /**
-     * Filters elements of an iterable using a callback function
+     * Filters elements of an iterable using a callback function.
      *
      * @param callable $callback accepts $value, $key, $array
-     * @param iterable $iterable
-     * @return array
      */
     public static function filter(callable $callback, iterable $iterable): array
     {
@@ -218,10 +167,8 @@ final class Tools
     }
 
     /**
-     * Searches an iterable until element is found
+     * Searches an iterable until element is found.
      *
-     * @param callable $callback
-     * @param iterable $iterable
      * @return null|mixed
      */
     public static function search(callable $callback, iterable $iterable): mixed
@@ -237,22 +184,21 @@ final class Tools
     }
 
     /**
-     * Same as the original except callback accepts more arguments and works with string keys
+     * Same as the original except callback accepts more arguments and works with string keys.
+     *
      * @param callable $callback accepts $value, $key, $array
-     * @param iterable $iterable
-     * @return array
      */
     public static function map(callable $callback, iterable $iterable): array
     {
         $new = [];
+
         foreach ($iterable as $key => $value)
         {
-
             // key can be passed by reference
-            $result = $callback($value, $key, $iterable);
+            $result    = $callback($value, $key, $iterable);
 
-            //no return value? $value passed by reference?
-            if ($result === null)
+            // no return value? $value passed by reference?
+            if (null === $result)
             {
                 $result = $value;
             }
@@ -269,10 +215,8 @@ final class Tools
 
     /**
      * Tests if at least one element in the iterable passes the test implemented by the provided function.
-     * @param callable $callback
-     * @param iterable $iterable
-     * @return bool
-     * @throws RuntimeException
+     *
+     * @throws \RuntimeException
      */
     public static function some(callable $callback, iterable $iterable): bool
     {
@@ -289,14 +233,11 @@ final class Tools
 
     /**
      * Tests if all elements in the iterable pass the test implemented by the provided function.
-     * @param callable $callback
-     * @param iterable $iterable
-     * @return bool
-     * @throws RuntimeException
+     *
+     * @throws \RuntimeException
      */
     public static function every(callable $callback, iterable $iterable): bool
     {
-
         foreach ($iterable as $key => $value)
         {
             if ( ! $callback($value, $key, $iterable))
@@ -310,23 +251,21 @@ final class Tools
     /**
      * Get a value(s) from the array, and remove it.
      */
-    public static function pull(iterable|string|int $keys, array|ArrayAccess &$iterable): mixed
+    public static function pull(int|iterable|string $keys, array|\ArrayAccess &$iterable): mixed
     {
-
         if (is_iterable($keys))
         {
             $result = [];
+
             foreach ($keys as $key)
             {
-
                 if (is_iterable($key))
                 {
-                    $result += static::pull($key, $iterable);
+                    $result += self::pull($key, $iterable);
                     continue;
                 }
 
-
-                $result[] = static::pull($key, $iterable);
+                $result[] = self::pull($key, $iterable);
             }
             return $result;
         }
@@ -337,21 +276,20 @@ final class Tools
     }
 
     /**
-     * Clone all objects of an array recursively
+     * Clone all objects of an array recursively.
      */
     public static function cloneArray(array $array, bool $recursive = true): array
     {
-
         $result = [];
 
         foreach ($array as $offset => $value)
         {
-
             if (is_object($value))
             {
                 $result[$offset] = clone $value;
-            }
 
+                continue;
+            }
 
             if (is_array($value) && $recursive)
             {
@@ -367,14 +305,14 @@ final class Tools
 
     /**
      * Converts an iterable to an array recursively
-     * if the keys are not string the will be indexed
+     * if the keys are not string they will be indexed.
      */
     public static function iterableToArray(iterable $iterable): array
     {
         $new = [];
+
         foreach ($iterable as $key => $value)
         {
-
             if (is_iterable($value))
             {
                 $value = self::iterableToArray($value);
@@ -395,20 +333,18 @@ final class Tools
     /**
      * Concatenate multiple values into the iterable provided recursively
      * If a provided value is iterable it will be merged into the iterable
-     * (non numeric keys will be replaced if not iterable into the provided object)
+     * (non-numeric keys will be replaced if not iterable into the provided object).
      */
-    public static function concat(array|ArrayAccess &$iterable, mixed ...$values): array|ArrayAccess
+    public static function concat(array|\ArrayAccess &$iterable, mixed ...$values): array|\ArrayAccess
     {
-
         static $check;
         $check ??= static function (mixed $value): bool
         {
-            return (is_array($value) || $value instanceof ArrayAccess);
+            return is_array($value) || $value instanceof \ArrayAccess;
         };
 
         foreach ($values as $value)
         {
-
             if (is_iterable($value))
             {
                 foreach ($value as $_key => $_value)
@@ -418,6 +354,7 @@ final class Tools
                         $iterable[] = $_value;
                         continue;
                     }
+
                     if (is_int($_key))
                     {
                         $iterable[] = $_value;
@@ -427,7 +364,7 @@ final class Tools
                     // merge iterable together
                     if ($check($iterable[$_key]) && is_iterable($_value))
                     {
-                        $iterable[$_key] = static::concat($iterable[$_key], $_value);
+                        $iterable[$_key] = self::concat($iterable[$_key], $_value);
                         continue;
                     }
 
@@ -443,31 +380,30 @@ final class Tools
     }
 
     /**
-     * Count number of occurences of value
+     * Count number of occurrences of value.
      */
     public static function countValue(mixed $value, iterable $iterable): int
     {
-
         $count = 0;
 
         foreach ($iterable as $_value)
         {
             if ($value === $_value)
             {
-                $count ++;
+                ++$count;
             }
         }
         return $count;
     }
 
-    ////////////////////////////   Strings   ////////////////////////////
+    // //////////////////////////   Strings   ////////////////////////////
 
     /**
-     * Checks if is a valid url
-     * @link https://gist.github.com/dperini/729294
-     * @param string $url
+     * Checks if is a valid url.
+     *
+     * @see https://gist.github.com/dperini/729294
+     *
      * @param bool $webonly Put local urls as invalid ( eg : "http://localhost/index.php" )
-     * @return bool
      */
     public static function isValidUrl(string $url, bool $webonly = false): bool
     {
@@ -475,9 +411,7 @@ final class Tools
     }
 
     /**
-     * Convert CamelCased to camel_cased
-     * @param string $camelCased
-     * @return string
+     * Convert CamelCased to camel_cased.
      */
     public static function to_snake(string $camelCased): string
     {
@@ -485,9 +419,7 @@ final class Tools
     }
 
     /**
-     * Convert snake_case to snakeCase
-     * @param string $snake_case
-     * @return string
+     * Convert snake_case to snakeCase.
      */
     public static function toCamelCase(string $snake_case): string
     {
@@ -498,9 +430,9 @@ final class Tools
     }
 
     /**
-     * Return current Unix timestamp in milliseconds
-     * @link https://stackoverflow.com/questions/3656713/how-to-get-current-time-in-milliseconds-in-php
-     * @return int
+     * Return current Unix timestamp in milliseconds.
+     *
+     * @see https://stackoverflow.com/questions/3656713/how-to-get-current-time-in-milliseconds-in-php
      */
     public static function millitime(): int
     {
@@ -509,77 +441,69 @@ final class Tools
     }
 
     /**
-     * Generates a uuid V4
-     * @link https://stackoverflow.com/questions/2040240/php-function-to-generate-v4-uuid
-     * @return string
+     * Generates a uuid V4.
+     *
+     * @see https://stackoverflow.com/questions/2040240/php-function-to-generate-v4-uuid
      */
     public static function generate_uuid_v4(): string
     {
-        if (function_exists('com_create_guid') === true) return trim(com_create_guid(), '{}');
-        $data = openssl_random_pseudo_bytes(16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
+        if (true === function_exists('com_create_guid'))
+        {
+            return trim(\com_create_guid(), '{}');
+        }
+        $data    = openssl_random_pseudo_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0F | 0x40); // set version to 0100
+        $data[8] = chr(ord($data[8]) & 0x3F | 0x80); // set bits 6-7 to 10
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
     /**
-     * Returns whether this string consists entirely of ASCII characters
-     *
-     * @param string $input
-     * @return bool
+     * Returns whether this string consists entirely of ASCII characters.
      */
     public static function isAscii(string $input): bool
     {
-        return \preg_match('/[^\x00-\x7F]/', $input) === 0;
+        return 0 === \preg_match('/[^\x00-\x7F]/', $input);
     }
 
     /**
-     * Returns whether this string consists entirely of printable ASCII characters
-     *
-     * @param string $input
-     * @return bool
+     * Returns whether this string consists entirely of printable ASCII characters.
      */
     public static function isPrintableAscii(string $input): bool
     {
-        return \preg_match('/[^\x20-\x7E]/', $input) === 0;
+        return 0 === \preg_match('/[^\x20-\x7E]/', $input);
     }
 
     /**
-     * Get Human Readable file size
+     * Get Human Readable file size.
      *
-     * @link https://gist.github.com/liunian/9338301
+     * @see https://gist.github.com/liunian/9338301
+     *
      * @staticvar array $units
-     * @param int|float $size
-     * @param int $precision
-     * @return string
      */
-    public static function getFilesize(int|float $size, int $precision = 2): string
+    public static function getFilesize(float|int $size, int $precision = 2): string
     {
         static $units = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-        $step = 1024;
-        $i = 0;
+        $step         = 1024;
+        $i            = 0;
+
         while (($size / $step) >= 1)
         {
-            $size = $size / $step;
-            $i ++;
+            $size /= $step;
+            ++$i;
         }
         return round($size, $precision) . $units[$i];
     }
 
     /**
      * Generate a more truly "random" alpha-numeric string.
-     *
-     * @param  int  $length
-     * @return string
      */
     public static function randomString(int $length = 16): string
     {
-
         $string = '';
 
         while (($len = strlen($string)) < $length)
         {
-            $size = $length - $len;
+            $size  = $length - $len;
 
             $bytes = random_bytes($size);
 
@@ -590,16 +514,16 @@ final class Tools
     }
 
     /**
-     * Get the size of the longest word on a string
+     * Get the size of the longest word on a string.
      */
-    public static function getWordSize(string|Stringable $string): int
+    public static function getWordSize(string|\Stringable $string): int
     {
-
         $string = (string) $string;
-        $len = 0;
+        $len    = 0;
+
         foreach (preg_split('#[\h\v]+#', $string) as $word)
         {
-            if (($wlen = mb_strlen($word)) > $len)
+            if (($wlen = \mb_strlen($word)) > $len)
             {
                 $len = $wlen;
             }
@@ -609,33 +533,30 @@ final class Tools
     }
 
     /**
-     * Split the string at the given length without cutting words
+     * Split the string at the given length without cutting words.
      *
-     * @param string|Stringable $string
      * @param int &$length
-     * @return array
      */
-    public static function splitString(string|Stringable $string, &$length = null): array
+    public static function splitString(string|\Stringable $string, &$length = null): array
     {
-
-        $string = preg_replace('#[\v\h]+#', ' ', (string) $string);
+        $string    = preg_replace('#[\v\h]+#', ' ', (string) $string);
 
         if ( ! is_int($length))
         {
             $length = 0;
         }
 
-        $length = max(0, $length);
+        $length    = max(0, $length);
 
-        $strlen = mb_strlen($string);
+        $strlen    = \mb_strlen($string);
 
-        if ($length === 0 || $strlen < $length)
+        if (0 === $length || $strlen < $length)
         {
             $length = ! $length ? $strlen : $length;
             return [$string];
         }
-        $result = [];
-        $words = preg_split('#[\h\v]+#', $string);
+        $result    = [];
+        $words     = preg_split('#[\h\v]+#', $string);
 
         // get the longer word length
         $maxLength = max($length, self::getWordSize($string));
@@ -645,23 +566,23 @@ final class Tools
             $length = $maxLength;
         }
 
-        $line = '';
+        $line      = '';
+
         foreach ($words as $index => $word)
         {
+            $lineLength = \mb_strlen($line);
 
-            $lineLength = mb_strlen($line);
-
-            if ($lineLength === 0)
+            if (0 === $lineLength)
             {
                 $line = $word;
-            }
-            elseif ($lineLength + mb_strlen($word) + 1 > $length)
+            } elseif ($lineLength + \mb_strlen($word) + 1 > $length)
             {
                 $result[] = $line;
-                $line = $word;
+                $line     = $word;
+            } else
+            {
+                $line .= " {$word}";
             }
-            else
-            { $line .= " {$word}"; }
 
             if ( ! isset($words[$index + 1]))
             {
@@ -673,12 +594,11 @@ final class Tools
     }
 
     /**
-     * Joins iterable together using provided glue
+     * Joins iterable together using provided glue.
      */
     public static function join(mixed $glue, iterable $values): string
     {
-
-        $glue = str_val($glue);
+        $glue   = str_val($glue);
 
         $result = [];
 
@@ -691,7 +611,7 @@ final class Tools
     }
 
     /**
-     * Try to reproduce python format
+     * Try to reproduce python format.
      */
     public static function format(string $message, mixed ...$args): string
     {
@@ -699,60 +619,56 @@ final class Tools
     }
 
     /**
-     * Split a stringable using provided separator
+     * Split a stringable using provided separator.
      */
     public static function split(mixed $separator, mixed $value, int $limit = -1): array
     {
         $separator = str_val($separator);
 
-        $value = str_val($value);
+        $value     = str_val($value);
 
-        if ($limit === 0)
+        if (0 === $limit)
         {
             return [$value];
         }
 
         if ($limit > 0 && $limit < PHP_INT_MAX)
         {
-            $limit ++;
+            ++$limit;
         }
 
-        $method = 'preg_split';
+        $method    = 'preg_split';
+
         if ( ! preg_valid($separator))
         {
-
             $method = 'explode';
+
             if ($limit < 0)
             {
                 $limit = PHP_INT_MAX;
             }
         }
 
-
         return $method($separator, $value, $limit);
     }
 
-    ////////////////////////////   Time   ////////////////////////////
+    // //////////////////////////   Time   ////////////////////////////
 
     /**
-     * Get script execution time
-     *
-     * @return float|int
+     * Get script execution time.
      */
     public static function getExecutionTime(int $precision = 6): float|int
     {
-        return round(microtime(true) - SCRIPT_START, $precision);
+        return round(microtime(true) - \SCRIPT_START, $precision);
     }
 
     /**
      * Pauses script execution for a given amount of time
-     * combines sleep or usleep
-     *
-     * @param int|float $seconds
+     * combines sleep or usleep.
      */
-    public static function pause(int|float $seconds): void
+    public static function pause(float|int $seconds): void
     {
-        /**
+        /*
          * @link https://www.php.net/manual/en/function.usleep.php
          * Note: Values larger than 1000000 (i.e. sleeping for more than a second) may not be supported by the operating system.
          * Use sleep() instead.
@@ -762,9 +678,9 @@ final class Tools
             return;
         }
 
-        $iseconds = intval(floor($seconds));
+        $iseconds     = intval(floor($seconds));
         $seconds -= $iseconds;
-        $microseconds = (int) round($seconds / static::MICROSECOND);
+        $microseconds = (int) round($seconds / self::MICROSECOND);
 
         if ($iseconds > 0)
         {
@@ -778,37 +694,31 @@ final class Tools
     }
 
     /**
-     * Pauses script execution for a given amount of milliseconds
-     *
-     * @param int $milliseconds
-     * @return void
+     * Pauses script execution for a given amount of milliseconds.
      */
     public static function msleep(int $milliseconds): void
     {
-        static::pause($milliseconds * static::MILLISECOND);
+        self::pause($milliseconds * self::MILLISECOND);
     }
 
-    ////////////////////////////   Classes   ////////////////////////////
+    // //////////////////////////   Classes   ////////////////////////////
 
     /**
-     * Get class implementing given parent class from the loaded classes
+     * Get class implementing given parent class from the loaded classes.
      *
-     * @param string|object $parentClass
-     * @param bool $instanciable
-     * @return array
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
-    public static function implements_class(string|object $parentClass, bool $instanciable = true): array
+    public static function implements_class(object|string $parentClass, bool $instantiable = true): array
     {
-        static $parsed = [
-            'count' => 0,
-            'classes' => []
+        static $parsed       = [
+            'count'   => 0,
+            'classes' => [],
         ];
 
-        $cache = &$parsed['classes'];
-        $count = &$parsed['count'];
+        $cache               = &$parsed['classes'];
+        $count               = &$parsed['count'];
 
-        $instanciable = (int) $instanciable;
+        $instantiable        = (int) $instantiable;
 
         if (is_object($parentClass))
         {
@@ -817,10 +727,10 @@ final class Tools
 
         if ( ! class_exists($parentClass) && ! interface_exists($parentClass))
         {
-            throw new InvalidArgumentException(sprintf('Invalid class %s', $parentClass));
+            throw new \InvalidArgumentException(sprintf('Invalid class %s', $parentClass));
         }
 
-        $iterator = array_reverse(get_declared_classes());
+        $iterator            = array_reverse(get_declared_classes());
 
         if (count($iterator) !== $count)
         {
@@ -830,19 +740,19 @@ final class Tools
 
         if (isset($cache[$parentClass]))
         {
-            return $cache[$parentClass][$instanciable];
+            return $cache[$parentClass][$instantiable];
         }
 
         $cache[$parentClass] = [[], []];
 
-        $result = &$cache[$parentClass];
+        $result              = &$cache[$parentClass];
 
         foreach ($iterator as $class)
         {
-
             if (is_a($class, $parentClass, true))
             {
                 $result[0][$class] = $class;
+
                 if ((new \ReflectionClass($class))->isInstantiable())
                 {
                     $result[1][$class] = $class;
@@ -850,21 +760,20 @@ final class Tools
             }
         }
 
-        return $result[$instanciable];
+        return $result[$instantiable];
     }
 
     /**
-     * Get Constants defined in a class
+     * Get Constants defined in a class.
      *
      * @phan-suppress PhanParamTooManyInternal
-     * @param string|object $class
+     *
      * @param bool $public if True returns only public visibility constants
-     * @return array
      */
-    public static function getClassConstants(string|object $class, bool $public = true): array
+    public static function getClassConstants(object|string $class, bool $public = true): array
     {
         static $parsed = [
-            [], []
+            [], [],
         ];
 
         if (is_object($class))
@@ -877,18 +786,19 @@ final class Tools
             return [];
         }
 
-        $cache = &$parsed[(int) $public];
+        $cache         = &$parsed[(int) $public];
 
         if ( ! isset($cache[$class]))
         {
-
             try
             {
-                $result = [];
-                $filter = $public ? ReflectionClassConstant::IS_PUBLIC : null;
+                $result        = [];
+                $filter        = $public ? \ReflectionClassConstant::IS_PUBLIC : null;
+
                 foreach (array_reverse(class_parents($class) ?: []) + [$class => $class] as $className)
                 {
-                    $reflector = new ReflectionClass($className);
+                    $reflector = new \ReflectionClass($className);
+
                     foreach ($reflector->getConstants($filter) as $constant => $value)
                     {
                         if (array_key_exists($constant, $result))
@@ -900,8 +810,7 @@ final class Tools
                 }
 
                 $cache[$class] = $result;
-            }
-            catch (ReflectionException)
+            } catch (\ReflectionException)
             {
                 return $cache[$class] = [];
             }
@@ -909,11 +818,65 @@ final class Tools
         return $cache[$class];
     }
 
-    protected static function isPublicMethod(object $instance, string $method): bool
+    /**
+     * Call a method within an object ignoring its status.
+     */
+    public static function callPrivateMethod(object $instance, string $method, mixed ...$arguments): mixed
+    {
+        /**
+         * Caches context.
+         */
+        static $contexts = [], $baseClosure;
+
+        $baseClosure ??= function (string $method, mixed ...$arguments)
+        {
+            return $this->{$method}(...$arguments);
+        };
+
+        $class           = get_class($instance);
+
+        if ( ! isset($contexts[$class][$method]))
+        {
+            if (self::isPublicMethod($instance, $method))
+            {
+                return $instance->{$method}(...$arguments);
+            }
+
+            // context for protected method
+            $context                   = $class;
+
+            try
+            {
+                $reflector = new \ReflectionMethod($instance, $method);
+
+                if ($reflector->isStatic())
+                {
+                    throw new \ReflectionException();
+                }
+
+                // context for private method
+                if ($reflector->isPrivate())
+                {
+                    $context = $reflector->getDeclaringClass()->getName();
+                }
+            } catch (\ReflectionException)
+            {
+                throw new \BadMethodCallException(sprintf('Call to undefined non static method %s::%s()', get_class($instance), $method));
+            }
+
+            $contexts[$class][$method] = $context;
+        }
+
+        $closure         = $baseClosure->bindTo($instance, $contexts[$class][$method]);
+
+        return $closure($method, ...$arguments);
+    }
+
+    private static function isPublicMethod(object $instance, string $method): bool
     {
         static $cache = [];
 
-        $class = get_class($instance);
+        $class        = get_class($instance);
 
         if ( ! isset($cache[$class]))
         {
@@ -924,10 +887,9 @@ final class Tools
         {
             try
             {
-                $reflector = new ReflectionMethod($instance, $method);
+                $reflector              = new \ReflectionMethod($instance, $method);
                 $cache[$class][$method] = $reflector->isPublic() && ! $reflector->isStatic();
-            }
-            catch (\ReflectionException)
+            } catch (\ReflectionException)
             {
                 $cache[$class][$method] = false;
             }
@@ -935,63 +897,4 @@ final class Tools
 
         return $cache[$class][$method];
     }
-
-    /**
-     * Call a method within an object ignoring its status
-     *
-     * @param object $instance
-     * @param string $method
-     * @param mixed $arguments
-     * @return mixed
-     */
-    public static function callPrivateMethod(object $instance, string $method, mixed ...$arguments): mixed
-    {
-        /**
-         * Caches context
-         */
-        static $contexts = [], $baseClosure;
-        /** @var object $this */
-        $baseClosure ??= function (string $method, mixed ...$arguments)
-        { return $this->{$method}(...$arguments); };
-
-        $class = get_class($instance);
-
-        if ( ! isset($contexts[$class][$method]))
-        {
-
-            if (self::isPublicMethod($instance, $method))
-            {
-                return $instance->{$method}(...$arguments);
-            }
-
-            // context for protected method
-            $context = $class;
-            try
-            {
-                $reflector = new ReflectionMethod($instance, $method);
-                if ($reflector->isStatic())
-                {
-                    throw new \ReflectionException();
-                }
-                // context for private method
-                if ($reflector->isPrivate())
-                {
-                    $context = $reflector->getDeclaringClass()->getName();
-                }
-            }
-            catch (\ReflectionException)
-            {
-                throw new BadMethodCallException(sprintf('Call to undefined non static method %s::%s()', get_class($instance), $method));
-            }
-
-            $contexts[$class][$method] = $context;
-        }
-
-
-
-        $closure = $baseClosure->bindTo($instance, $contexts[$class][$method]);
-
-        return $closure($method, ...$arguments);
-    }
-
 }

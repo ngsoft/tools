@@ -4,58 +4,59 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use ArrayAccess,
-    JsonSerializable;
-use NGSOFT\Traits\{
-    ObjectLock, ReversibleIteratorTrait, StringableObject
-};
-use Stringable;
-use function get_debug_type;
+use NGSOFT\Traits\ObjectLock;
+use NGSOFT\Traits\ReversibleIteratorTrait;
+use NGSOFT\Traits\StringableObject;
 
 /**
  * The Map object holds key-value pairs and remembers the original insertion order of the keys.
  * Any value (both objects and primitive values) may be used as either a key or a value.
  *
- * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map JS Map
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map JS Map
  */
-final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSerializable
+final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonSerializable
 {
+    use StringableObject;
 
-    use StringableObject,
-        CommonMethods,
-        ObjectLock,
-        ReversibleIteratorTrait;
+    use CommonMethods;
 
-    protected array $keys = [];
+    use ObjectLock;
+
+    use ReversibleIteratorTrait;
+
+    protected array $keys   = [];
     protected array $values = [];
 
-    protected function indexOf(mixed $key): int
+    public function __debugInfo(): array
     {
-        $index = array_search($key, $this->keys, true);
-        return $index !== false ? $index : -1;
-    }
+        $result = [];
 
-    protected function indexOfValue(mixed $value): int
-    {
-        $index = array_search($value, $this->values, true);
-        return $index !== false ? $index : -1;
-    }
-
-    protected function append(mixed $key, mixed $value): static
-    {
-        if ( ! $this->isLocked())
+        foreach ($this->entries() as $key => $value)
         {
-            $this->keys[] = $key;
-            $this->values[] = $value;
+            $result[is_scalar($key) ? $key : sprintf('%s#%d', \get_debug_type($key), spl_object_id($key))] = $value;
         }
 
-        return $this;
+        return $result;
+    }
+
+    public function __serialize(): array
+    {
+        return [$this->keys, $this->values, $this->locked];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        list($this->keys, $this->values, $this->locked) = $data;
+    }
+
+    public function __clone(): void
+    {
+        $this->keys   = $this->cloneArray($this->keys);
+        $this->values = $this->cloneArray($this->values);
     }
 
     /**
      * The clear() method removes all elements from a Map object.
-     *
-     * @return void
      */
     public function clear(): void
     {
@@ -67,9 +68,6 @@ final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSeri
 
     /**
      * The delete() method removes the specified element from a Map object by key.
-     *
-     * @param mixed $key
-     * @return bool
      */
     public function delete(mixed $key): bool
     {
@@ -100,11 +98,10 @@ final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSeri
     }
 
     /**
-     * The search() method returns the first key match from a value
+     * The search() method returns the first key match from a value.
      */
     public function search(mixed $value): mixed
     {
-
         return
                 ($index = $this->indexOfValue($value)) > -1 ?
                 $this->keys[$index] :
@@ -125,7 +122,6 @@ final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSeri
      */
     public function add(mixed $key, mixed $value): static
     {
-
         if ($this->has($key))
         {
             return $this;
@@ -142,7 +138,7 @@ final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSeri
     }
 
     /**
-     * The keys() method returns a new iterator object that contains the keys for each element in the Map object in insertion order
+     * The keys() method returns a new iterator object that contains the keys for each element in the Map object in insertion order.
      */
     public function keys(Sort $sort = Sort::ASC): iterable
     {
@@ -174,76 +170,61 @@ final class Map implements ArrayAccess, ReversibleIterator, Stringable, JsonSeri
     public function forEach(callable $callable): void
     {
         foreach ($this->entries() as $key => $value)
-        { $callable($value, $key, $this); }
+        {
+            $callable($value, $key, $this);
+        }
     }
 
-    /** {@inheritdoc} */
     public function offsetExists(mixed $offset): bool
     {
         return $this->has($offset);
     }
 
-    /** {@inheritdoc} */
     public function offsetGet(mixed $offset): mixed
     {
         return $this->get($offset);
     }
 
-    /** {@inheritdoc} */
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->set($offset, $value);
     }
 
-    /** {@inheritdoc} */
     public function offsetUnset(mixed $offset): void
     {
         $this->delete($offset);
     }
 
-    /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->keys);
     }
 
-    /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
         return [];
     }
 
-    /** {@inheritdoc} */
-    public function __debugInfo(): array
+    protected function indexOf(mixed $key): int
     {
-        $result = [];
+        $index = array_search($key, $this->keys, true);
+        return false !== $index ? $index : -1;
+    }
 
-        foreach ($this->entries() as $key => $value)
+    protected function indexOfValue(mixed $value): int
+    {
+        $index = array_search($value, $this->values, true);
+        return false !== $index ? $index : -1;
+    }
+
+    protected function append(mixed $key, mixed $value): static
+    {
+        if ( ! $this->isLocked())
         {
-            $result[is_scalar($key) ? $key : sprintf('%s#%d', get_debug_type($key), spl_object_id($key))] = $value;
+            $this->keys[]   = $key;
+            $this->values[] = $value;
         }
 
-        return $result;
+        return $this;
     }
-
-    /** {@inheritdoc} */
-    public function __serialize(): array
-    {
-        return [$this->keys, $this->values, $this->locked];
-    }
-
-    /** {@inheritdoc} */
-    public function __unserialize(array $data): void
-    {
-        list($this->keys, $this->values, $this->locked) = $data;
-    }
-
-    /** {@inheritdoc} */
-    public function __clone(): void
-    {
-
-        $this->keys = $this->cloneArray($this->keys);
-        $this->values = $this->cloneArray($this->values);
-    }
-
 }

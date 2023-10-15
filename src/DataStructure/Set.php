@@ -4,51 +4,48 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Generator,
-    JsonSerializable;
-use NGSOFT\Traits\{
-    ReversibleIteratorTrait, StringableObject
-};
-use Stringable,
-    Traversable;
+use NGSOFT\Traits\ReversibleIteratorTrait;
+use NGSOFT\Traits\StringableObject;
 
 /**
  * The Set object lets you store unique values of any type, whether primitive values or object references.
  */
-final class Set implements ReversibleIterator, JsonSerializable, Stringable
+final class Set implements ReversibleIterator, \JsonSerializable, \Stringable
 {
+    use StringableObject;
 
-    use StringableObject,
-        CommonMethods,
-        ReversibleIteratorTrait;
+    use CommonMethods;
+
+    use ReversibleIteratorTrait;
 
     private array $storage = [];
 
+    public function __debugInfo(): array
+    {
+        return $this->storage;
+    }
+
+    public function __serialize(): array
+    {
+        return $this->storage;
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->storage = $data;
+    }
+
+    public function __clone(): void
+    {
+        $this->storage = $this->cloneArray($this->storage);
+    }
+
     /**
-     * Create a new Set
-     *
-     * @return static
+     * Create a new Set.
      */
     public static function create(): static
     {
-        return new static();
-    }
-
-    /**
-     * Get Index of value inside the set
-     *
-     * @param mixed $value
-     * @return int
-     */
-    private function indexOf(mixed $value): int
-    {
-        $index = array_search($value, $this->storage, true);
-        return $index !== false ? $index : -1;
-    }
-
-    private function getIndexes(Sort $sort = Sort::ASC): Generator
-    {
-        yield from $this->sortArray(array_keys($this->storage), $sort);
+        return new self();
     }
 
     /**
@@ -57,7 +54,9 @@ final class Set implements ReversibleIterator, JsonSerializable, Stringable
     public function add(mixed $value): static
     {
         if ( ! $this->has($value))
-        { $this->storage[] = $value; }
+        {
+            $this->storage[] = $value;
+        }
         return $this;
     }
 
@@ -75,6 +74,7 @@ final class Set implements ReversibleIterator, JsonSerializable, Stringable
     public function delete(mixed $value): bool
     {
         $offset = $this->indexOf($value);
+
         if ($offset > -1)
         {
             unset($this->storage[$offset]);
@@ -99,15 +99,15 @@ final class Set implements ReversibleIterator, JsonSerializable, Stringable
      */
     public function has(mixed $value): bool
     {
-        return $this->indexOf($value) !== -1;
+        return -1 !== $this->indexOf($value);
     }
 
     /**
-     * Checks if set is empty
+     * Checks if set is empty.
      */
     public function isEmpty(): bool
     {
-        return $this->count() === 0;
+        return 0 === $this->count();
     }
 
     /**
@@ -118,44 +118,32 @@ final class Set implements ReversibleIterator, JsonSerializable, Stringable
         yield from $this->sortArray(array_values($this->storage), $sort);
     }
 
-    /** {@inheritdoc} */
     public function count(): int
     {
         return count($this->storage);
     }
 
-    /** {@inheritdoc} */
-    public function getIterator(): Traversable
+    public function getIterator(): \Traversable
     {
         yield from $this->values();
     }
 
-    /** {@inheritdoc} */
     public function jsonSerialize(): mixed
     {
         return $this->storage;
     }
 
-    /** {@inheritdoc} */
-    public function __debugInfo(): array
+    /**
+     * Get Index of value inside the set.
+     */
+    private function indexOf(mixed $value): int
     {
-        return $this->storage;
+        $index = array_search($value, $this->storage, true);
+        return false !== $index ? $index : -1;
     }
 
-    public function __serialize(): array
+    private function getIndexes(Sort $sort = Sort::ASC): \Generator
     {
-        return $this->storage;
+        yield from $this->sortArray(array_keys($this->storage), $sort);
     }
-
-    public function __unserialize(array $data): void
-    {
-        $this->storage = $data;
-    }
-
-    /** {@inheritdoc} */
-    public function __clone(): void
-    {
-        $this->storage = $this->cloneArray($this->storage);
-    }
-
 }

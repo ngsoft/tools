@@ -6,7 +6,6 @@ namespace NGSOFT\Traits;
 
 trait StoppableEventTrait
 {
-
     protected bool $propagationStopped = false;
 
     /**
@@ -16,8 +15,8 @@ trait StoppableEventTrait
      * previous listener halted propagation.
      *
      * @return bool
-     *   True if the Event is complete and no further listeners should be called.
-     *   False to continue calling listeners.
+     *              True if the Event is complete and no further listeners should be called.
+     *              False to continue calling listeners.
      */
     public function isPropagationStopped(): bool
     {
@@ -25,14 +24,13 @@ trait StoppableEventTrait
     }
 
     /**
-     * Stop propagation for event
+     * Stop propagation for event.
+     *
      * @phan-suppress PhanTypeMismatchReturn
      */
     public function stopPropagation(): static
     {
-
         $this->propagationStopped = true;
         return $this;
     }
-
 }

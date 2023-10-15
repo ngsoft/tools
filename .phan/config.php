@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This configuration will be read and overlaid on top of the
  * default configuration. Command line arguments will be applied
@@ -80,6 +82,7 @@ return [
         'PhanAbstractStaticMethodCallInStatic',
         'PhanTypeMismatchArgumentNullableInternal',
         'PhanTypeInstantiateAbstractStatic',
+        'PhanUndeclaredThis',
     ],
     // If true, seemingly undeclared variables in the global
     // scope will be ignored.

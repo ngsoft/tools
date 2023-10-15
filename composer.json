@@ -1,43 +1,43 @@
 {
-    "name": "ngsoft/tools",
-    "description": "A set of reusable tools used on my projects.",
-    "keywords": [
-        "arrayaccess", "session", "export", "collection", "list", "map", "set", "container", "di",
-        "psr-11", "enum", "BackedEnum", "attribute", "reflection", "regexp", "timer", "stopwatch"
-    ],
-    "license": "MIT",
-    "authors": [{
-            "name": "Aymeric Anger",
-            "role": "Developer",
-            "homepage": "https://github.com/ngsoft"
-        }],
-    "suggest": {},
-    "provide": {
-        "psr/container-implementation": "^1.1|^2.0"
+  "name": "ngsoft/tools",
+  "description": "A set of reusable tools used on my projects.",
+  "keywords": [
+    "arrayaccess",
+    "session",
+    "export",
+    "collection",
+    "list",
+    "map",
+    "set",
+    "enum",
+    "BackedEnum"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Aymeric Anger",
+      "role": "Developer",
+      "homepage": "https://github.com/ngsoft"
+    }
+  ],
+  "suggest": {},
+  "provide": {},
+  "require-dev": {
+  },
+  "require": {
+    "php": ">=8.1",
+    "ext-mbstring": "*",
+    "psr/log": "^1|^2|^3"
+  },
+  "autoload": {
+    "psr-4": {
+      "NGSOFT\\": "src/",
+      "": "lib/"
     },
-    "require-dev": {
-        "fig/cache-util": "^2",
-        "psr/cache": "^1|^2|^3",
-        "psr/simple-cache": "^1|^2|^3",
-        "symfony/event-dispatcher": "^6.1",
-        "onspli/phpdoc-markdown": "^0.3.3"
-    },
-    "require": {
-        "php": ">=8.1",
-        "symfony/polyfill-mbstring": "^1.25",
-        "psr/log": "^1|^2|^3",
-        "psr/container": "^1.1|^2.0.1",
-        "psr/event-dispatcher": "^1"
-    },
-    "autoload": {
-        "psr-4": {
-            "NGSOFT\\": "src/",
-            "": "lib/"
-        },
-        "files": [
-            "lib/index.php"
-        ]
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "files": [
+      "lib/index.php"
+    ]
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

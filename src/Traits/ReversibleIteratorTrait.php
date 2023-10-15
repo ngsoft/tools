@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace NGSOFT\Traits;
 
-use NGSOFT\DataStructure\Sort,
-    Traversable;
+use NGSOFT\DataStructure\Sort;
 
 trait ReversibleIteratorTrait
 {
-
     abstract public function entries(Sort $sort = Sort::ASC): iterable;
 
-    public function getIterator(): Traversable
+    public function getIterator(): \Traversable
     {
         yield from $this->entries();
     }
 
-    public function getReverseIterator(): Traversable
+    public function getReverseIterator(): \Traversable
     {
         yield from $this->entries(Sort::DESC);
     }
@@ -26,5 +24,4 @@ trait ReversibleIteratorTrait
     {
         return iterator_count($this->getIterator());
     }
-
 }

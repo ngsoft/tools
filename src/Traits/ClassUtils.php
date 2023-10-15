@@ -6,9 +6,8 @@ namespace NGSOFT\Traits;
 
 trait ClassUtils
 {
-
     /**
-     * Alias to static::class
+     * Alias to static::class.
      */
     protected static function class(object|string|null $class = null): string
     {
@@ -16,7 +15,8 @@ trait ClassUtils
         {
             return get_class($class);
         }
-        elseif (is_string($class))
+
+        if (is_string($class))
         {
             return $class;
         }
@@ -25,7 +25,7 @@ trait ClassUtils
     }
 
     /**
-     * Get class name without the namespace
+     * Get class name without the namespace.
      */
     protected static function classname(object|string|null $class = null): string
     {
@@ -33,11 +33,10 @@ trait ClassUtils
     }
 
     /**
-     * Get the namespace of the class
+     * Get the namespace of the class.
      */
     protected static function namespace(object|string|null $class = null): string
     {
-
         $class = static::class($class);
 
         if ( ! str_contains($class, NAMESPACE_SEPARATOR))
@@ -48,11 +47,10 @@ trait ClassUtils
     }
 
     /**
-     * Checks if class extends or is static
+     * Checks if class extends or is static.
      */
     protected static function isSelf(object|string $class): bool
     {
         return is_a($class, static::class, is_string($class));
     }
-
 }

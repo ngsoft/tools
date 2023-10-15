@@ -6,7 +6,6 @@ namespace NGSOFT\DataStructure;
 
 interface Storage extends \Countable, \ArrayAccess, \JsonSerializable
 {
-
     /**
      * When passed a key name, checks if it exists in the storage.
      */
@@ -18,7 +17,7 @@ interface Storage extends \Countable, \ArrayAccess, \JsonSerializable
     public function getItem(string $key, mixed $defaultValue = null): mixed;
 
     /**
-     * When passed a key name and value, will add that key to the storage, or update that key's
+     * When passed a key name and value, will add that key to the storage, or update that key's.
      */
     public function setItem(string $key, mixed $value): void;
 
@@ -38,7 +37,7 @@ interface Storage extends \Countable, \ArrayAccess, \JsonSerializable
     public function key(int $index): ?string;
 
     /**
-     * Count the storage if no value, else count the number of occurences of the value
+     * Count the storage if no value, else count the number of occurences of the value.
      */
     public function count(mixed $value = null): int;
 }

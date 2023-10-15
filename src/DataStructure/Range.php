@@ -4,65 +4,42 @@ declare(strict_types=1);
 
 namespace NGSOFT\DataStructure;
 
-use Countable,
-    NGSOFT\Traits\ReversibleIteratorTrait,
-    Stringable,
-    ValueError;
+use Countable;
+use NGSOFT\Traits\ReversibleIteratorTrait;
 
 /**
  * Returns a sequence of numbers, starting from 0 by default, and increments by 1 (by default), and stops before a specified number.
  */
-final class Range implements ReversibleIterator, Stringable
+final class Range implements ReversibleIterator, \Stringable
 {
-
     use ReversibleIteratorTrait;
 
     public readonly int $start;
     public readonly ?int $stop;
     public readonly int $step;
     private ?array $values = null;
-    private ?int $length = null;
+    private ?int $length   = null;
 
     public function __construct(
-            int $start,
-            ?int $stop = null,
-            int $step = 1
-    )
-    {
-        if ($step === 0)
+        int $start,
+        ?int $stop = null,
+        int $step = 1
+    ) {
+        if (0 === $step)
         {
-            throw new ValueError('Step cannot be 0');
+            throw new \ValueError('Step cannot be 0');
         }
 
         if (is_null($stop))
         {
-            $stop = $start;
+            $stop  = $start;
             $start = 0;
         }
 
         [$this->start, $this->stop, $this->step] = [$start, $stop, $step];
     }
 
-    ////////////////////////////   Static methods   ////////////////////////////
-
-    /**
-     * Creates a Range
-     */
-    public static function create(int $start, ?int $stop = null, int $step = 1): static
-    {
-        return new static($start, $stop, $step);
-    }
-
-    /**
-     * Get a range for a Countable
-     */
-    public static function of(Countable|array $countable): static
-    {
-        return new static(0, count($countable));
-    }
-
-    ////////////////////////////   Implementation   ////////////////////////////
-
+    // //////////////////////////   Implementation   ////////////////////////////
 
     public function __debugInfo(): array
     {
@@ -71,11 +48,29 @@ final class Range implements ReversibleIterator, Stringable
 
     public function __toString(): string
     {
-        return sprintf('%s::create(%d, %d, %d)', static::class, $this->start, $this->stop, $this->step);
+        return sprintf('%s::create(%d, %d, %d)', self::class, $this->start, $this->stop, $this->step);
+    }
+
+    // //////////////////////////   Static methods   ////////////////////////////
+
+    /**
+     * Creates a Range.
+     */
+    public static function create(int $start, ?int $stop = null, int $step = 1): static
+    {
+        return new self($start, $stop, $step);
     }
 
     /**
-     * Checks if empty range
+     * Get a range for a Countable.
+     */
+    public static function of(\Countable|array $countable): static
+    {
+        return new static(0, count($countable));
+    }
+
+    /**
+     * Checks if empty range.
      */
     public function isEmpty(): bool
     {
@@ -84,10 +79,10 @@ final class Range implements ReversibleIterator, Stringable
 
     public function count(): int
     {
-
         if (is_null($this->length))
         {
             $this->length = 0;
+
             if ( ! $this->isEmpty())
             {
                 [$min, $max, $step] = [$this->start, $this->stop, abs($this->step)];
@@ -97,7 +92,7 @@ final class Range implements ReversibleIterator, Stringable
                     [$min, $max] = [$max, $min];
                 }
 
-                $this->length = intval(ceil(($max - $min) / $step));
+                $this->length       = intval(ceil(($max - $min) / $step));
             }
         }
 
@@ -106,23 +101,18 @@ final class Range implements ReversibleIterator, Stringable
 
     public function entries(Sort $sort = Sort::ASC): iterable
     {
-
         if ( ! $this->isEmpty())
         {
-
-
-            if ($sort === Sort::DESC)
+            if (Sort::DESC === $sort)
             {
-                for ($offset = -1; $offset >= -$this->count(); $offset --)
+                for ($offset = -1; $offset >= -$this->count(); --$offset)
                 {
                     yield $this->getOffset($offset);
                 }
-            }
-            else
+            } else
             {
-                for ($offset = 0; $offset < $this->count(); $offset ++ )
+                for ($offset = 0; $offset < $this->count(); ++$offset )
                 {
-
                     yield $this->getOffset($offset);
                 }
             }
@@ -137,5 +127,4 @@ final class Range implements ReversibleIterator, Stringable
         }
         return $this->start + ($offset * $this->step);
     }
-
 }

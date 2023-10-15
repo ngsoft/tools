@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !.phan
+!.php-cs-fixer.php
 *.lock
 /nbproject/
 /vendor/

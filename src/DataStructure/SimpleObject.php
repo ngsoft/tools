@@ -6,12 +6,28 @@ namespace NGSOFT\DataStructure;
 
 class SimpleObject extends Collection
 {
+    public function __get(string $name): mixed
+    {
+        return $this->offsetGet($name);
+    }
+
+    public function __set(string $name, mixed $value): void
+    {
+        $this->offsetSet($name, $value);
+    }
+
+    public function __unset(string $name): void
+    {
+        $this->offsetUnset($name);
+    }
+
+    public function __isset(string $name): bool
+    {
+        return $this->offsetExists($name);
+    }
 
     /**
-     * Searches the array for a given value and returns the first corresponding key if successful
-     *
-     * @param mixed $value
-     * @return int|string|null
+     * Searches the array for a given value and returns the first corresponding key if successful.
      */
     public function search(mixed $value): int|string|null
     {
@@ -20,31 +36,6 @@ class SimpleObject extends Collection
             $value = $value->storage;
         }
         $offset = array_search($value, $this->storage, true);
-        return $offset === false ? null : $offset;
+        return false === $offset ? null : $offset;
     }
-
-    /** {@inheritdoc} */
-    public function __get(string $name): mixed
-    {
-        return $this->offsetGet($name);
-    }
-
-    /** {@inheritdoc} */
-    public function __set(string $name, mixed $value): void
-    {
-        $this->offsetSet($name, $value);
-    }
-
-    /** {@inheritdoc} */
-    public function __unset(string $name): void
-    {
-        $this->offsetUnset($name);
-    }
-
-    /** {@inheritdoc} */
-    public function __isset(string $name): bool
-    {
-        return $this->offsetExists($name);
-    }
-
 }

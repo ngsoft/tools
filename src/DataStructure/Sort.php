@@ -8,10 +8,8 @@ use NGSOFT\Enums\EnumTrait;
 
 enum Sort
 {
-
     use EnumTrait;
 
     case ASC;
     case DESC;
-
 }

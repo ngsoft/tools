@@ -8,9 +8,8 @@ use NGSOFT\DataStructure\Slice;
 
 trait SliceAble
 {
-
     /**
-     * Checks if input is a slice
+     * Checks if input is a slice.
      */
     protected function isSlice(string $input): bool
     {
@@ -18,7 +17,7 @@ trait SliceAble
     }
 
     /**
-     * Create a Slice Instance
+     * Create a Slice Instance.
      */
     protected function getSlice(string $offset): Slice
     {
@@ -26,7 +25,7 @@ trait SliceAble
     }
 
     /**
-     * Access Slice Iterator
+     * Access Slice Iterator.
      */
     protected function getSliceIterator(Slice $slice, mixed $value): iterable
     {
@@ -34,7 +33,7 @@ trait SliceAble
     }
 
     /**
-     * Returns a slice of an array like
+     * Returns a slice of an array like.
      */
     protected function getSliceValue(Slice $slice, mixed $value): array
     {
@@ -42,11 +41,10 @@ trait SliceAble
     }
 
     /**
-     * Returns a string of a slice
+     * Returns a string of a slice.
      */
     protected function joinSliceValue(Slice $slice, mixed $value, mixed $glue = ''): string
     {
         return $slice->join($glue, $value);
     }
-
 }
