@@ -11,72 +11,100 @@ use Psr\Log\LogLevel;
  */
 if ( ! class_exists(WarningException::class))
 {
-    class WarningException extends ErrorException {}
+    class WarningException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(ParseException::class))
 {
-    class ParseException extends ErrorException {}
+    class ParseException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(NoticeException::class))
 {
-    class NoticeException extends ErrorException {}
+    class NoticeException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(CoreErrorException::class))
 {
-    class CoreErrorException extends ErrorException {}
+    class CoreErrorException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(CoreWarningException::class))
 {
-    class CoreWarningException extends ErrorException {}
+    class CoreWarningException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(CompileErrorException::class))
 {
-    class CompileErrorException extends ErrorException {}
+    class CompileErrorException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(CompileWarningException::class))
 {
-    class CompileWarningException extends ErrorException {}
+    class CompileWarningException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(UserErrorException::class))
 {
-    class UserErrorException extends ErrorException {}
+    class UserErrorException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(UserWarningException::class))
 {
-    class UserWarningException extends ErrorException {}
+    class UserWarningException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(UserNoticeException::class))
 {
-    class UserNoticeException extends ErrorException {}
+    class UserNoticeException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(StrictException::class))
 {
-    class StrictException extends ErrorException {}
+    class StrictException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(RecoverableErrorException::class))
 {
-    class RecoverableErrorException extends ErrorException {}
+    class RecoverableErrorException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(DeprecatedException::class))
 {
-    class DeprecatedException extends ErrorException {}
+    class DeprecatedException extends ErrorException
+    {
+    }
 }
 
 if ( ! class_exists(UserDeprecatedException::class))
 {
-    class UserDeprecatedException extends ErrorException {}
+    class UserDeprecatedException extends ErrorException
+    {
+    }
 }
 
 if ( ! function_exists('list_error_handlers'))

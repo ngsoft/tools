@@ -2,40 +2,35 @@
 
 declare(strict_types=1);
 
-use NGSOFT\{
-    DataStructure\SimpleIterator, DataStructure\Sort, Tools\TypeCheck
-};
+use NGSOFT\DataStructure\SimpleIterator;
+use NGSOFT\DataStructure\Sort;
+use NGSOFT\Tools\TypeCheck;
 
 /**
- * Checks if value is a list
+ * Checks if value is a list.
  */
 function is_list(mixed $value): bool
 {
-
     // mixed union, intersection type check
     if ( ! TypeCheck::checkType($value, 'ArrayAccess&Countable|iterable'))
     {
         return false;
     }
 
-
     if (is_array($value))
     {
         return array_is_list($value);
     }
 
-
-    if (is_countable($value) && count($value) === 0)
+    if (is_countable($value) && 0 === count($value))
     {
         return true;
     }
-
 
     if (is_array($value))
     {
         return $value === array_values($value);
     }
-
 
     // array|Traversable
     if (is_iterable($value))
@@ -44,7 +39,7 @@ function is_list(mixed $value): bool
 
         foreach ($value as $k => $_)
         {
-            if ($k !== ++ $nextKey)
+            if ($k !== ++$nextKey)
             {
                 return false;
             }
@@ -55,33 +50,29 @@ function is_list(mixed $value): bool
 
     // ArrayAccess&Countable
 
-    for ($offset = 0; $offset < count($value); $offset ++ )
+    for ($offset = 0; $offset < count($value); ++$offset )
     {
-
         // isset can return false negative
         try
         {
-            if ($value[$offset] === null)
+            if (null === $value[$offset])
             {
                 return false;
             }
-        }
-        catch (Throwable)
+        } catch (Throwable)
         {
             return false;
         }
     }
 
-
     return true;
 }
 
 /**
- * Alias of count
+ * Alias of count.
  */
 function len(mixed $countable): int
 {
-
     if (is_countable($countable))
     {
         return count($countable);
@@ -91,7 +82,7 @@ function len(mixed $countable): int
 }
 
 /**
- * Get a reversed iterable
+ * Get a reversed iterable.
  */
 function reversed(iterable $seq): iterable
 {

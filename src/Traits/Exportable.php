@@ -63,7 +63,8 @@ trait Exportable
         }
 
         if (is_array($value)) // need to traverse to find objects
-        {$newvalue = [];
+        {
+            $newvalue = [];
 
             foreach ($value as $key => $val)
             {

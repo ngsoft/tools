@@ -111,7 +111,7 @@ final class Range implements ReversibleIterator, \Stringable
                 }
             } else
             {
-                for ($offset = 0; $offset < $this->count(); ++$offset )
+                for ($offset = 0; $offset < $this->count(); ++$offset)
                 {
                     yield $this->getOffset($offset);
                 }

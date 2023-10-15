@@ -127,7 +127,7 @@ class Slice implements \Stringable
         [$start, $stop, $step, $len] = [$this->start, $this->stop, $this->step, count($value)];
 
         $step  ??= 1;
-        $stop  ??= $step  > 0 ? $len : -1;
+        $stop  ??= $step > 0 ? $len : -1;
         $start ??= $step > 0 ? 0 : $len - 1;
 
         while ($start < 0)
