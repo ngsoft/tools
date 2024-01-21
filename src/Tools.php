@@ -12,7 +12,7 @@ final class Tools
     /**
      * Package Version Information.
      */
-    public const VERSION         = '4.0.0';
+    public const VERSION         = '4.0.1';
 
     /**
      * URL Parser Regex.
@@ -49,8 +49,6 @@ final class Tools
     /**
      * Execute a callback and hides all php errors that can be thrown
      * Exceptions thrown inside the callback will be preserved.
-     *
-     * @param mixed $args args to be passed to the callback
      */
     public static function safe_exec(callable $callback, mixed ...$args): mixed
     {
@@ -80,7 +78,7 @@ final class Tools
     public static function suppress_errors(): null|callable
     {
         static $handler;
-        $handler = $handler ?? static fn () => null;
+        $handler ??= static fn () => null;
         return set_error_handler($handler);
     }
 

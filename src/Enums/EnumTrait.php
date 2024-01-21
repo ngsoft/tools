@@ -17,7 +17,7 @@ trait EnumTrait
 {
     final public static function __callStatic(string $name, array $arguments): mixed
     {
-        // missing from  from \UnitEnum
+        // missing from \UnitEnum
         // to use fromEnum
         if ('from' === $name)
         {
@@ -43,7 +43,7 @@ trait EnumTrait
         }
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): int|string
     {
         return $this->getValue();
     }
@@ -78,7 +78,7 @@ trait EnumTrait
     /**
      * Checks if current Enum is one of the inputs.
      */
-    final public function is(object|int|string ...$input): bool
+    final public function is(int|object|string ...$input): bool
     {
         $compare = function ($input)
         {
@@ -95,7 +95,7 @@ trait EnumTrait
     /**
      * Get Enum instance by name.
      */
-    final public static function tryGet(string $name): static|null
+    final public static function tryGet(string $name): null|static
     {
         try
         {
@@ -125,12 +125,10 @@ trait EnumTrait
     }
 
     /**
-     * Compatibility layer between real BackedEnum and polyfilled one
+     * Compatibility layer between real BackedEnum and polyfill one
      * usage: MyEnum::fromEnum(MyEnum::MY_CASE).
-     *
-     * @param int|object|string $enum
      */
-    final public static function fromEnum(self|int|string $enum): static
+    final public static function fromEnum(int|object|string $enum): static
     {
         if ($enum instanceof self)
         {

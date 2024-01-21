@@ -50,7 +50,7 @@ function is_list(mixed $value): bool
 
     // ArrayAccess&Countable
 
-    for ($offset = 0; $offset < count($value); ++$offset )
+    for ($offset = 0; $offset < count($value); ++$offset)
     {
         // isset can return false negative
         try
