@@ -27,6 +27,14 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
     protected array $keys   = [];
     protected array $values = [];
 
+    public function __construct(?iterable $iterable = null)
+    {
+        if (is_iterable($iterable))
+        {
+            $this->importIterable($iterable);
+        }
+    }
+
     public function __debugInfo(): array
     {
         $result = [];
@@ -53,6 +61,30 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
     {
         $this->keys   = $this->cloneArray($this->keys);
         $this->values = $this->cloneArray($this->values);
+    }
+
+    /**
+     * Creates a new instance initialized with an iterable.
+     */
+    public static function of(iterable $iterable): self
+    {
+        return new self($iterable);
+    }
+
+    /**
+     * Creates a new instance.
+     */
+    public static function new(?iterable $iterable = null): self
+    {
+        return new self($iterable);
+    }
+
+    /**
+     * Create a new Map.
+     */
+    public static function create(): self
+    {
+        return new self();
     }
 
     /**
@@ -92,7 +124,7 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
     public function get(mixed $key): mixed
     {
         return
-                ($index = $this->indexOf($key)) > -1 ?
+            ($index = $this->indexOf($key)) > -1 ?
                 $this->values[$index] :
                 null;
     }
@@ -103,7 +135,7 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
     public function search(mixed $value): mixed
     {
         return
-                ($index = $this->indexOfValue($value)) > -1 ?
+            ($index = $this->indexOfValue($value)) > -1 ?
                 $this->keys[$index] :
                 null;
     }
@@ -111,16 +143,16 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
     /**
      * The set() method adds or updates an element with a specified key and a value to a Map object.
      */
-    public function set(mixed $key, mixed $value): static
+    public function set(mixed $key, mixed $value): self
     {
         $this->delete($key);
         return $this->append($key, $value);
     }
 
     /**
-     * The add() method adds an element with a specified key and a value to a Map object if it does'n already exists.
+     * The add() method adds an element with a specified key and a value to a Map object if it doesn't already exist.
      */
-    public function add(mixed $key, mixed $value): static
+    public function add(mixed $key, mixed $value): self
     {
         if ($this->has($key))
         {
@@ -200,9 +232,16 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
         return count($this->keys);
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
-        return [];
+        $result = [];
+
+        foreach ($this->entries() as $key => $value)
+        {
+            $result[] = [$key, $value];
+        }
+
+        return $result;
     }
 
     protected function indexOf(mixed $key): int
@@ -217,7 +256,7 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
         return false !== $index ? $index : -1;
     }
 
-    protected function append(mixed $key, mixed $value): static
+    protected function append(mixed $key, mixed $value): self
     {
         if ( ! $this->isLocked())
         {
@@ -226,5 +265,18 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
         }
 
         return $this;
+    }
+
+    private function importIterable(iterable $iterable): void
+    {
+        foreach ($iterable as $item)
+        {
+            if ( ! is_list($item) || 2 < count($item))
+            {
+                continue;
+            }
+
+            $this->set($item[0], $item[1]);
+        }
     }
 }

@@ -20,6 +20,14 @@ final class Set implements ReversibleIterator, \JsonSerializable, \Stringable
 
     private array $storage = [];
 
+    public function __construct(?iterable $iterable = null)
+    {
+        if (is_iterable($iterable))
+        {
+            $this->importIterable($iterable);
+        }
+    }
+
     public function __debugInfo(): array
     {
         return $this->storage;
@@ -43,15 +51,31 @@ final class Set implements ReversibleIterator, \JsonSerializable, \Stringable
     /**
      * Create a new Set.
      */
-    public static function create(): static
+    public static function create(): self
     {
         return new self();
     }
 
     /**
+     * Creates a new instance initialized with an iterable.
+     */
+    public static function of(iterable $iterable): self
+    {
+        return new self($iterable);
+    }
+
+    /**
+     * Creates a new instance.
+     */
+    public static function new(?iterable $iterable = null): self
+    {
+        return new self($iterable);
+    }
+
+    /**
      * The add() method appends a new element with a specified value to the end of a Set object.
      */
-    public function add(mixed $value): static
+    public function add(mixed $value): self
     {
         if ( ! $this->has($value))
         {
@@ -128,7 +152,7 @@ final class Set implements ReversibleIterator, \JsonSerializable, \Stringable
         yield from $this->values();
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return $this->storage;
     }
@@ -145,5 +169,13 @@ final class Set implements ReversibleIterator, \JsonSerializable, \Stringable
     private function getIndexes(Sort $sort = Sort::ASC): \Generator
     {
         yield from $this->sortArray(array_keys($this->storage), $sort);
+    }
+
+    private function importIterable(iterable $iterable): void
+    {
+        foreach ($iterable as $item)
+        {
+            $this->add($item);
+        }
     }
 }
