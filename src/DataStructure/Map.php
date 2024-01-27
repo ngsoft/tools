@@ -258,6 +258,11 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
 
     protected function append(mixed $key, mixed $value): self
     {
+        if ('' === $key || null === $key)
+        {
+            return $this;
+        }
+
         if ( ! $this->isLocked())
         {
             $this->keys[]   = $key;
@@ -275,7 +280,6 @@ final class Map implements \ArrayAccess, ReversibleIterator, \Stringable, \JsonS
             {
                 continue;
             }
-
             $this->set($item[0], $item[1]);
         }
     }
