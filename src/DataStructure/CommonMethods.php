@@ -34,7 +34,10 @@ trait CommonMethods
      */
     public function each(callable $callback): void
     {
-        Tools::each($callback, $this->entries());
+        foreach ($this->entries() as $key => $value)
+        {
+            $callback($value, $key, $this);
+        }
     }
 
     /**

@@ -12,7 +12,7 @@ final class Tools
     /**
      * Package Version Information.
      */
-    public const VERSION         = '4.1.1';
+    public const VERSION         = '4.1.2';
 
     /**
      * URL Parser Regex.
@@ -109,12 +109,11 @@ final class Tools
     /**
      * Uses callback for each element of the array and returns the value.
      */
-    public static function each(callable $callback, iterable $iterable): iterable
+    public static function each(callable $callback, iterable $iterable): void
     {
         foreach ($iterable as $key => $value)
         {
-            $result = $callback($value, $key, $iterable);
-            yield $key => $result;
+            $callback($value, $key, $iterable);
         }
     }
 

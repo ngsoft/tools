@@ -104,9 +104,9 @@ function split_string(string|\Stringable $string, &$length = null): array
 /**
  * Uses callback for each element of the array and returns the value.
  */
-function each(callable $callback, iterable $iterable): iterable
+function each(callable $callback, iterable $iterable): void
 {
-    yield from Tools::each($callback, $iterable);
+    Tools::each($callback, $iterable);
 }
 
 /**
